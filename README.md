@@ -1,3 +1,9 @@
+# Squeeth Portal
+
+<p align="center">
+<a href="https://fontmeme.com/fonts/cattyla-font/"><img src="https://fontmeme.com/permalink/220217/eef0d579e6d6908a3795c5c192cbabc5.png" alt="cattyla-font" border="0"></a>
+</p>
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started

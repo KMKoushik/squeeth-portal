@@ -1,0 +1,47 @@
+import { createTheme } from '@mui/material'
+
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: 'rgba(26, 232, 255)',
+      contrastText: '#FFFFFF',
+      light: 'rgba(26, 232, 255, 0.08)',
+    },
+    secondary: {
+      main: '#ff2e17',
+    },
+    error: {
+      main: '#ff2e17',
+    },
+    warning: {
+      light: '#F5B07326',
+      main: '#F5B073',
+    },
+    success: {
+      main: '#17ffa2',
+      light: '#B2F0C5',
+    },
+    background: {
+      base: '#1F2023',
+      surface: '#27292D',
+      overlayDark: '#2D2F34',
+      overlayLight: '#383B40',
+      default: '#1F2023',
+      paper: '#1F2023',
+    },
+    text: {
+      primary: 'rgb(255 255 255 / 90%)',
+      secondary: 'rgb(255 255 255 / 65%)',
+    },
+  },
+  components: {
+    MuiButtonBase: {
+      defaultProps: {
+        disableRipple: true, // No more ripple!
+      },
+    },
+  },
+})
+
+export default darkTheme
