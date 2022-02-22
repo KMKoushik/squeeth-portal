@@ -31,7 +31,8 @@ const useCrab = () => {
     const p4 = crabContract.hedgePriceThreshold()
     const p5 = crabContract.checkTimeHedge()
 
-    setLoading(true)
+    setLoading(!crabLoaded && true) // Only set true for 1st time
+    console.log('Update auction data')
     const [_time, _price, _timeThreshold, _priceThreshold, [_isTimeHedge, _aucTime]] = await Promise.all([
       p1,
       p2,
@@ -65,6 +66,7 @@ const useCrab = () => {
   return {
     crabContract,
     crabLoaded,
+    updateAuctionData,
   }
 }
 

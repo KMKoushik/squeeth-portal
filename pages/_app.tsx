@@ -6,17 +6,21 @@ import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { WalletLinkConnector } from 'wagmi/connectors/walletLink'
 import theme from '../theme'
 import { CssBaseline, ThemeProvider } from '@mui/material'
+import { providers } from 'ethers'
+import { CHAIN_ID } from '../constants/numbers'
 
 // API key for Ethereum node
 // Two popular services are Infura (infura.io) and Alchemy (alchemy.com)
 const infuraId = process.env.NEXT_PUBLIC_INFURA_API_KEY
+const poktKey = process.env.NEXT_PUBLIC_PORTAL_API_KEY
 
 // Chains for connectors to support
 const chains = defaultChains
 
+console.log(chains)
 // Set up connectors
-const connectors = ({ chainId }: { chainId?: number }) => {
-  const rpcUrl = chains.find(x => x.id === chainId)?.rpcUrls?.[0] ?? chain.mainnet.rpcUrls[0]
+const connectors = () => {
+  const rpcUrl = chains.find(x => x.id === CHAIN_ID)?.rpcUrls?.[0] ?? chain.mainnet.rpcUrls[0]
   return [
     new InjectedConnector({ chains }),
     new WalletConnectConnector({
@@ -34,9 +38,11 @@ const connectors = ({ chainId }: { chainId?: number }) => {
   ]
 }
 
+const provider = new providers.InfuraProvider(CHAIN_ID, infuraId)
+
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <Provider autoConnect connectors={connectors}>
+    <Provider autoConnect connectors={connectors} provider={provider}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Component {...pageProps} />

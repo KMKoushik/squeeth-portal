@@ -19,6 +19,7 @@
     "next": "12.0.7",
     "next-global-css": "^1.2.0",
     "react": "17.0.2",
+    "react-countdown": "^2.3.2",
     "react-dom": "17.0.2",
     "uniswap-dapp-integration-shared": "^1.0.3",
     "uniswap-react": "^1.0.3",

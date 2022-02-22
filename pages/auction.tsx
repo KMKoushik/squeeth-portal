@@ -8,11 +8,14 @@ import { Nav } from '../container/Nav'
 import PageGrid from '../container/PageGrid'
 import useCrab from '../hooks/useCrab'
 import useCrabStore from '../store/crabStore'
-import { divideWithPrecision, formatBigNumber } from '../utils/math'
+import { divideWithPrecision, formatBigNumber, parseUnits } from '../utils/math'
 import useOracle from '../hooks/useOracle'
 import { OSQUEETH, SQUEETH_UNI_POOL, WETH } from '../constants/address'
-import { BIG_ZERO } from '../constants/numbers'
+import { BIG_ONE, BIG_ZERO } from '../constants/numbers'
 import { bnComparator } from '../utils'
+import { useNetwork, useProvider } from 'wagmi'
+import LiveAuction from '../container/Auction/LiveAuction'
+import NoAuction from '../container/Auction/NoAuction'
 
 const Auction: NextPage = () => {
   const { crabLoaded } = useCrab()
@@ -37,11 +40,12 @@ const Auction: NextPage = () => {
 }
 
 const CrabAuction = React.memo(function CrabAuction() {
-  const { crabContract } = useCrab()
   const oracle = useOracle()
   const timeAtLastHedge = useCrabStore(s => s.timeAtLastHedge)
   const priceAtLastHedge = useCrabStore(s => s.priceAtLastHedge, bnComparator)
   const timeHedgeThreshold = useCrabStore(s => s.hedgeTimeThreshold)
+  const priceHedgeThreshold = useCrabStore(s => s.hedgePriceThreshold, bnComparator)
+  const isTimeHedgeAvailable = useCrabStore(s => s.isTimeHedgeAvailable)
 
   const [priceDeviation, setPriceDeviation] = React.useState(0)
   const [squeethPrice, setSqueethPrice] = React.useState(BIG_ZERO)
@@ -82,7 +86,15 @@ const CrabAuction = React.memo(function CrabAuction() {
             <Typography>
               Current oSQTH price: {formatBigNumber(squeethPrice, 18, 6)} ({priceDeviation}%)
             </Typography>
+            <Typography>
+              price to trigger Price auction:
+              {formatBigNumber(squeethPrice.add(squeethPrice.mul(priceHedgeThreshold).div(BIG_ONE)), 18, 6)} /
+              {formatBigNumber(squeethPrice.sub(squeethPrice.mul(priceHedgeThreshold).div(BIG_ONE)), 18, 6)}
+            </Typography>
           </Box>
+        </Grid>
+        <Grid item xs={12} md={12}>
+          {isTimeHedgeAvailable ? <LiveAuction /> : <NoAuction time={(timeAtLastHedge + timeHedgeThreshold) * 1000} />}
         </Grid>
       </Grid>
     </PageGrid>
