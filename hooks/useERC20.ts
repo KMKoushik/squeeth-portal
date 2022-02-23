@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useContract, useProvider, useSigner } from 'wagmi'
 import { ERC20 } from '../types/contracts'
-import erc20Abi from '../abis/erc20.json'
+import erc20Abi from '../abis/ERC20.json'
 
 const useERC20 = (address: string) => {
   const [{ data, error, loading }] = useSigner()
