@@ -21,29 +21,29 @@ import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 export interface CrabStrategyInterface extends utils.Interface {
   contractName: "CrabStrategy";
   functions: {
-    "DELTA_HEDGE_THRESHOLD()": FunctionFragment;
     "POWER_PERP_PERIOD()": FunctionFragment;
-    "TWAP_PERIOD()": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
-    "auctionStartTime()": FunctionFragment;
     "auctionTime()": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "checkPriceHedge(uint256)": FunctionFragment;
     "checkTimeHedge()": FunctionFragment;
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
+    "deltaHedgeThreshold()": FunctionFragment;
     "deposit()": FunctionFragment;
     "ethQuoteCurrencyPool()": FunctionFragment;
     "ethWSqueethPool()": FunctionFragment;
     "factory()": FunctionFragment;
     "flashDeposit(uint256)": FunctionFragment;
     "flashWithdraw(uint256,uint256)": FunctionFragment;
+    "getAuctionDetails(uint256)": FunctionFragment;
     "getStrategyVaultId()": FunctionFragment;
     "getVaultDetails()": FunctionFragment;
     "getWsqueethFromCrabAmount(uint256)": FunctionFragment;
     "hedgePriceThreshold()": FunctionFragment;
     "hedgeTimeThreshold()": FunctionFragment;
+    "hedgingTwapPeriod()": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
     "maxPriceMultiplier()": FunctionFragment;
     "minPriceMultiplier()": FunctionFragment;
@@ -55,7 +55,15 @@ export interface CrabStrategyInterface extends utils.Interface {
     "priceHedge(uint256,bool,uint256)": FunctionFragment;
     "priceHedgeOnUniswap(uint256,uint256,uint256)": FunctionFragment;
     "quoteCurrency()": FunctionFragment;
+    "redeemShortShutdown()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
+    "setAuctionTime(uint256)": FunctionFragment;
+    "setDeltaHedgeThreshold(uint256)": FunctionFragment;
+    "setHedgePriceThreshold(uint256)": FunctionFragment;
+    "setHedgeTimeThreshold(uint256)": FunctionFragment;
+    "setHedgingTwapPeriod(uint32)": FunctionFragment;
+    "setMaxPriceMultiplier(uint256)": FunctionFragment;
+    "setMinPriceMultiplier(uint256)": FunctionFragment;
     "setStrategyCap(uint256)": FunctionFragment;
     "strategyCap()": FunctionFragment;
     "symbol()": FunctionFragment;
@@ -71,18 +79,11 @@ export interface CrabStrategyInterface extends utils.Interface {
     "wPowerPerp()": FunctionFragment;
     "weth()": FunctionFragment;
     "withdraw(uint256)": FunctionFragment;
+    "withdrawShutdown(uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "DELTA_HEDGE_THRESHOLD",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "POWER_PERP_PERIOD",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "TWAP_PERIOD",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -92,10 +93,6 @@ export interface CrabStrategyInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "approve",
     values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "auctionStartTime",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "auctionTime",
@@ -114,6 +111,10 @@ export interface CrabStrategyInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "decreaseAllowance",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "deltaHedgeThreshold",
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "deposit", values?: undefined): string;
   encodeFunctionData(
@@ -134,6 +135,10 @@ export interface CrabStrategyInterface extends utils.Interface {
     values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "getAuctionDetails",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getStrategyVaultId",
     values?: undefined
   ): string;
@@ -151,6 +156,10 @@ export interface CrabStrategyInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "hedgeTimeThreshold",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "hedgingTwapPeriod",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -189,8 +198,40 @@ export interface CrabStrategyInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "redeemShortShutdown",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setAuctionTime",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setDeltaHedgeThreshold",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setHedgePriceThreshold",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setHedgeTimeThreshold",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setHedgingTwapPeriod",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setMaxPriceMultiplier",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setMinPriceMultiplier",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setStrategyCap",
@@ -243,25 +284,17 @@ export interface CrabStrategyInterface extends utils.Interface {
     functionFragment: "withdraw",
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawShutdown",
+    values: [BigNumberish]
+  ): string;
 
-  decodeFunctionResult(
-    functionFragment: "DELTA_HEDGE_THRESHOLD",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "POWER_PERP_PERIOD",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "TWAP_PERIOD",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "auctionStartTime",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "auctionTime",
     data: BytesLike
@@ -278,6 +311,10 @@ export interface CrabStrategyInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "decreaseAllowance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "deltaHedgeThreshold",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
@@ -299,6 +336,10 @@ export interface CrabStrategyInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getAuctionDetails",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getStrategyVaultId",
     data: BytesLike
   ): Result;
@@ -316,6 +357,10 @@ export interface CrabStrategyInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "hedgeTimeThreshold",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "hedgingTwapPeriod",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -351,7 +396,39 @@ export interface CrabStrategyInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "redeemShortShutdown",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setAuctionTime",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setDeltaHedgeThreshold",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setHedgePriceThreshold",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setHedgeTimeThreshold",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setHedgingTwapPeriod",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setMaxPriceMultiplier",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setMinPriceMultiplier",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -393,6 +470,10 @@ export interface CrabStrategyInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "wPowerPerp", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "weth", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawShutdown",
+    data: BytesLike
+  ): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
@@ -400,17 +481,27 @@ export interface CrabStrategyInterface extends utils.Interface {
     "ExecuteBuyAuction(address,uint256,uint256,bool)": EventFragment;
     "ExecuteSellAuction(address,uint256,uint256,bool)": EventFragment;
     "FlashDeposit(address,uint256,uint256)": EventFragment;
+    "FlashDepositCallback(address,uint256,uint256)": EventFragment;
     "FlashWithdraw(address,uint256,uint256)": EventFragment;
+    "FlashWithdrawCallback(address,uint256,uint256)": EventFragment;
     "Hedge(address,bool,uint256,uint256,uint256,uint256)": EventFragment;
     "HedgeOnUniswap(address,bool,uint256,uint256,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "PriceHedge(address,bool,uint256,uint256)": EventFragment;
     "PriceHedgeOnUniswap(address,uint256,uint256,uint256,uint256)": EventFragment;
-    "SetStrategyCap(uint256,uint256)": EventFragment;
+    "SetAuctionTime(uint256)": EventFragment;
+    "SetDeltaHedgeThreshold(uint256)": EventFragment;
+    "SetHedgePriceThreshold(uint256)": EventFragment;
+    "SetHedgeTimeThreshold(uint256)": EventFragment;
+    "SetHedgingTwapPeriod(uint32)": EventFragment;
+    "SetMaxPriceMultiplier(uint256)": EventFragment;
+    "SetMinPriceMultiplier(uint256)": EventFragment;
+    "SetStrategyCap(uint256)": EventFragment;
     "TimeHedge(address,bool,uint256,uint256)": EventFragment;
     "TimeHedgeOnUniswap(address,uint256,uint256,uint256,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
     "Withdraw(address,uint256,uint256,uint256)": EventFragment;
+    "WithdrawShutdown(address,uint256,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
@@ -418,17 +509,27 @@ export interface CrabStrategyInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "ExecuteBuyAuction"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ExecuteSellAuction"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FlashDeposit"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FlashDepositCallback"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FlashWithdraw"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FlashWithdrawCallback"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Hedge"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "HedgeOnUniswap"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PriceHedge"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PriceHedgeOnUniswap"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetAuctionTime"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetDeltaHedgeThreshold"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetHedgePriceThreshold"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetHedgeTimeThreshold"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetHedgingTwapPeriod"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetMaxPriceMultiplier"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetMinPriceMultiplier"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SetStrategyCap"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TimeHedge"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TimeHedgeOnUniswap"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "WithdrawShutdown"): EventFragment;
 }
 
 export type ApprovalEvent = TypedEvent<
@@ -478,12 +579,28 @@ export type FlashDepositEvent = TypedEvent<
 
 export type FlashDepositEventFilter = TypedEventFilter<FlashDepositEvent>;
 
+export type FlashDepositCallbackEvent = TypedEvent<
+  [string, BigNumber, BigNumber],
+  { depositor: string; flashswapDebt: BigNumber; excess: BigNumber }
+>;
+
+export type FlashDepositCallbackEventFilter =
+  TypedEventFilter<FlashDepositCallbackEvent>;
+
 export type FlashWithdrawEvent = TypedEvent<
   [string, BigNumber, BigNumber],
   { withdrawer: string; crabAmount: BigNumber; wSqueethAmount: BigNumber }
 >;
 
 export type FlashWithdrawEventFilter = TypedEventFilter<FlashWithdrawEvent>;
+
+export type FlashWithdrawCallbackEvent = TypedEvent<
+  [string, BigNumber, BigNumber],
+  { withdrawer: string; flashswapDebt: BigNumber; excess: BigNumber }
+>;
+
+export type FlashWithdrawCallbackEventFilter =
+  TypedEventFilter<FlashWithdrawCallbackEvent>;
 
 export type HedgeEvent = TypedEvent<
   [string, boolean, BigNumber, BigNumber, BigNumber, BigNumber],
@@ -546,9 +663,64 @@ export type PriceHedgeOnUniswapEvent = TypedEvent<
 export type PriceHedgeOnUniswapEventFilter =
   TypedEventFilter<PriceHedgeOnUniswapEvent>;
 
+export type SetAuctionTimeEvent = TypedEvent<
+  [BigNumber],
+  { newAuctionTime: BigNumber }
+>;
+
+export type SetAuctionTimeEventFilter = TypedEventFilter<SetAuctionTimeEvent>;
+
+export type SetDeltaHedgeThresholdEvent = TypedEvent<
+  [BigNumber],
+  { newDeltaHedgeThreshold: BigNumber }
+>;
+
+export type SetDeltaHedgeThresholdEventFilter =
+  TypedEventFilter<SetDeltaHedgeThresholdEvent>;
+
+export type SetHedgePriceThresholdEvent = TypedEvent<
+  [BigNumber],
+  { newHedgePriceThreshold: BigNumber }
+>;
+
+export type SetHedgePriceThresholdEventFilter =
+  TypedEventFilter<SetHedgePriceThresholdEvent>;
+
+export type SetHedgeTimeThresholdEvent = TypedEvent<
+  [BigNumber],
+  { newHedgeTimeThreshold: BigNumber }
+>;
+
+export type SetHedgeTimeThresholdEventFilter =
+  TypedEventFilter<SetHedgeTimeThresholdEvent>;
+
+export type SetHedgingTwapPeriodEvent = TypedEvent<
+  [number],
+  { newHedgingTwapPeriod: number }
+>;
+
+export type SetHedgingTwapPeriodEventFilter =
+  TypedEventFilter<SetHedgingTwapPeriodEvent>;
+
+export type SetMaxPriceMultiplierEvent = TypedEvent<
+  [BigNumber],
+  { newMaxPriceMultiplier: BigNumber }
+>;
+
+export type SetMaxPriceMultiplierEventFilter =
+  TypedEventFilter<SetMaxPriceMultiplierEvent>;
+
+export type SetMinPriceMultiplierEvent = TypedEvent<
+  [BigNumber],
+  { newMinPriceMultiplier: BigNumber }
+>;
+
+export type SetMinPriceMultiplierEventFilter =
+  TypedEventFilter<SetMinPriceMultiplierEvent>;
+
 export type SetStrategyCapEvent = TypedEvent<
-  [BigNumber, BigNumber],
-  { newCapAmount: BigNumber; oldCapAmount: BigNumber }
+  [BigNumber],
+  { newCapAmount: BigNumber }
 >;
 
 export type SetStrategyCapEventFilter = TypedEventFilter<SetStrategyCapEvent>;
@@ -598,6 +770,14 @@ export type WithdrawEvent = TypedEvent<
 
 export type WithdrawEventFilter = TypedEventFilter<WithdrawEvent>;
 
+export type WithdrawShutdownEvent = TypedEvent<
+  [string, BigNumber, BigNumber],
+  { withdrawer: string; crabAmount: BigNumber; ethWithdrawn: BigNumber }
+>;
+
+export type WithdrawShutdownEventFilter =
+  TypedEventFilter<WithdrawShutdownEvent>;
+
 export interface CrabStrategy extends BaseContract {
   contractName: "CrabStrategy";
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -626,11 +806,7 @@ export interface CrabStrategy extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    DELTA_HEDGE_THRESHOLD(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     POWER_PERP_PERIOD(overrides?: CallOverrides): Promise<[number]>;
-
-    TWAP_PERIOD(overrides?: CallOverrides): Promise<[number]>;
 
     allowance(
       owner: string,
@@ -643,8 +819,6 @@ export interface CrabStrategy extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    auctionStartTime(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     auctionTime(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -664,6 +838,8 @@ export interface CrabStrategy extends BaseContract {
       subtractedValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    deltaHedgeThreshold(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     deposit(
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -686,6 +862,11 @@ export interface CrabStrategy extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    getAuctionDetails(
+      _auctionTriggerTime: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[boolean, BigNumber, BigNumber, BigNumber, boolean]>;
+
     getStrategyVaultId(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getVaultDetails(
@@ -700,6 +881,8 @@ export interface CrabStrategy extends BaseContract {
     hedgePriceThreshold(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     hedgeTimeThreshold(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    hedgingTwapPeriod(overrides?: CallOverrides): Promise<[number]>;
 
     increaseAllowance(
       spender: string,
@@ -737,7 +920,46 @@ export interface CrabStrategy extends BaseContract {
 
     quoteCurrency(overrides?: CallOverrides): Promise<[string]>;
 
+    redeemShortShutdown(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setAuctionTime(
+      _auctionTime: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setDeltaHedgeThreshold(
+      _deltaHedgeThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setHedgePriceThreshold(
+      _hedgePriceThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setHedgeTimeThreshold(
+      _hedgeTimeThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setHedgingTwapPeriod(
+      _hedgingTwapPeriod: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setMaxPriceMultiplier(
+      _maxPriceMultiplier: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setMinPriceMultiplier(
+      _minPriceMultiplier: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -799,15 +1021,16 @@ export interface CrabStrategy extends BaseContract {
 
     withdraw(
       _crabAmount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawShutdown(
+      _crabAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
-  DELTA_HEDGE_THRESHOLD(overrides?: CallOverrides): Promise<BigNumber>;
-
   POWER_PERP_PERIOD(overrides?: CallOverrides): Promise<number>;
-
-  TWAP_PERIOD(overrides?: CallOverrides): Promise<number>;
 
   allowance(
     owner: string,
@@ -820,8 +1043,6 @@ export interface CrabStrategy extends BaseContract {
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  auctionStartTime(overrides?: CallOverrides): Promise<BigNumber>;
 
   auctionTime(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -841,6 +1062,8 @@ export interface CrabStrategy extends BaseContract {
     subtractedValue: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  deltaHedgeThreshold(overrides?: CallOverrides): Promise<BigNumber>;
 
   deposit(
     overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -863,6 +1086,11 @@ export interface CrabStrategy extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  getAuctionDetails(
+    _auctionTriggerTime: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<[boolean, BigNumber, BigNumber, BigNumber, boolean]>;
+
   getStrategyVaultId(overrides?: CallOverrides): Promise<BigNumber>;
 
   getVaultDetails(
@@ -877,6 +1105,8 @@ export interface CrabStrategy extends BaseContract {
   hedgePriceThreshold(overrides?: CallOverrides): Promise<BigNumber>;
 
   hedgeTimeThreshold(overrides?: CallOverrides): Promise<BigNumber>;
+
+  hedgingTwapPeriod(overrides?: CallOverrides): Promise<number>;
 
   increaseAllowance(
     spender: string,
@@ -914,7 +1144,46 @@ export interface CrabStrategy extends BaseContract {
 
   quoteCurrency(overrides?: CallOverrides): Promise<string>;
 
+  redeemShortShutdown(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   renounceOwnership(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setAuctionTime(
+    _auctionTime: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setDeltaHedgeThreshold(
+    _deltaHedgeThreshold: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setHedgePriceThreshold(
+    _hedgePriceThreshold: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setHedgeTimeThreshold(
+    _hedgeTimeThreshold: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setHedgingTwapPeriod(
+    _hedgingTwapPeriod: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setMaxPriceMultiplier(
+    _maxPriceMultiplier: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setMinPriceMultiplier(
+    _minPriceMultiplier: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -976,15 +1245,16 @@ export interface CrabStrategy extends BaseContract {
 
   withdraw(
     _crabAmount: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawShutdown(
+    _crabAmount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    DELTA_HEDGE_THRESHOLD(overrides?: CallOverrides): Promise<BigNumber>;
-
     POWER_PERP_PERIOD(overrides?: CallOverrides): Promise<number>;
-
-    TWAP_PERIOD(overrides?: CallOverrides): Promise<number>;
 
     allowance(
       owner: string,
@@ -997,8 +1267,6 @@ export interface CrabStrategy extends BaseContract {
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
-
-    auctionStartTime(overrides?: CallOverrides): Promise<BigNumber>;
 
     auctionTime(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1019,7 +1287,9 @@ export interface CrabStrategy extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    deposit(overrides?: CallOverrides): Promise<[BigNumber, BigNumber]>;
+    deltaHedgeThreshold(overrides?: CallOverrides): Promise<BigNumber>;
+
+    deposit(overrides?: CallOverrides): Promise<void>;
 
     ethQuoteCurrencyPool(overrides?: CallOverrides): Promise<string>;
 
@@ -1038,6 +1308,11 @@ export interface CrabStrategy extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    getAuctionDetails(
+      _auctionTriggerTime: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[boolean, BigNumber, BigNumber, BigNumber, boolean]>;
+
     getStrategyVaultId(overrides?: CallOverrides): Promise<BigNumber>;
 
     getVaultDetails(
@@ -1052,6 +1327,8 @@ export interface CrabStrategy extends BaseContract {
     hedgePriceThreshold(overrides?: CallOverrides): Promise<BigNumber>;
 
     hedgeTimeThreshold(overrides?: CallOverrides): Promise<BigNumber>;
+
+    hedgingTwapPeriod(overrides?: CallOverrides): Promise<number>;
 
     increaseAllowance(
       spender: string,
@@ -1089,7 +1366,44 @@ export interface CrabStrategy extends BaseContract {
 
     quoteCurrency(overrides?: CallOverrides): Promise<string>;
 
+    redeemShortShutdown(overrides?: CallOverrides): Promise<void>;
+
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    setAuctionTime(
+      _auctionTime: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setDeltaHedgeThreshold(
+      _deltaHedgeThreshold: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setHedgePriceThreshold(
+      _hedgePriceThreshold: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setHedgeTimeThreshold(
+      _hedgeTimeThreshold: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setHedgingTwapPeriod(
+      _hedgingTwapPeriod: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setMaxPriceMultiplier(
+      _maxPriceMultiplier: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setMinPriceMultiplier(
+      _minPriceMultiplier: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     setStrategyCap(
       _capAmount: BigNumberish,
@@ -1148,6 +1462,11 @@ export interface CrabStrategy extends BaseContract {
     weth(overrides?: CallOverrides): Promise<string>;
 
     withdraw(
+      _crabAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdrawShutdown(
       _crabAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1213,6 +1532,17 @@ export interface CrabStrategy extends BaseContract {
       tradedAmountOut?: null
     ): FlashDepositEventFilter;
 
+    "FlashDepositCallback(address,uint256,uint256)"(
+      depositor?: string | null,
+      flashswapDebt?: null,
+      excess?: null
+    ): FlashDepositCallbackEventFilter;
+    FlashDepositCallback(
+      depositor?: string | null,
+      flashswapDebt?: null,
+      excess?: null
+    ): FlashDepositCallbackEventFilter;
+
     "FlashWithdraw(address,uint256,uint256)"(
       withdrawer?: string | null,
       crabAmount?: null,
@@ -1223,6 +1553,17 @@ export interface CrabStrategy extends BaseContract {
       crabAmount?: null,
       wSqueethAmount?: null
     ): FlashWithdrawEventFilter;
+
+    "FlashWithdrawCallback(address,uint256,uint256)"(
+      withdrawer?: string | null,
+      flashswapDebt?: null,
+      excess?: null
+    ): FlashWithdrawCallbackEventFilter;
+    FlashWithdrawCallback(
+      withdrawer?: string | null,
+      flashswapDebt?: null,
+      excess?: null
+    ): FlashWithdrawCallbackEventFilter;
 
     "Hedge(address,bool,uint256,uint256,uint256,uint256)"(
       hedger?: string | null,
@@ -1293,14 +1634,53 @@ export interface CrabStrategy extends BaseContract {
       minEth?: null
     ): PriceHedgeOnUniswapEventFilter;
 
-    "SetStrategyCap(uint256,uint256)"(
-      newCapAmount?: null,
-      oldCapAmount?: null
-    ): SetStrategyCapEventFilter;
-    SetStrategyCap(
-      newCapAmount?: null,
-      oldCapAmount?: null
-    ): SetStrategyCapEventFilter;
+    "SetAuctionTime(uint256)"(newAuctionTime?: null): SetAuctionTimeEventFilter;
+    SetAuctionTime(newAuctionTime?: null): SetAuctionTimeEventFilter;
+
+    "SetDeltaHedgeThreshold(uint256)"(
+      newDeltaHedgeThreshold?: null
+    ): SetDeltaHedgeThresholdEventFilter;
+    SetDeltaHedgeThreshold(
+      newDeltaHedgeThreshold?: null
+    ): SetDeltaHedgeThresholdEventFilter;
+
+    "SetHedgePriceThreshold(uint256)"(
+      newHedgePriceThreshold?: null
+    ): SetHedgePriceThresholdEventFilter;
+    SetHedgePriceThreshold(
+      newHedgePriceThreshold?: null
+    ): SetHedgePriceThresholdEventFilter;
+
+    "SetHedgeTimeThreshold(uint256)"(
+      newHedgeTimeThreshold?: null
+    ): SetHedgeTimeThresholdEventFilter;
+    SetHedgeTimeThreshold(
+      newHedgeTimeThreshold?: null
+    ): SetHedgeTimeThresholdEventFilter;
+
+    "SetHedgingTwapPeriod(uint32)"(
+      newHedgingTwapPeriod?: null
+    ): SetHedgingTwapPeriodEventFilter;
+    SetHedgingTwapPeriod(
+      newHedgingTwapPeriod?: null
+    ): SetHedgingTwapPeriodEventFilter;
+
+    "SetMaxPriceMultiplier(uint256)"(
+      newMaxPriceMultiplier?: null
+    ): SetMaxPriceMultiplierEventFilter;
+    SetMaxPriceMultiplier(
+      newMaxPriceMultiplier?: null
+    ): SetMaxPriceMultiplierEventFilter;
+
+    "SetMinPriceMultiplier(uint256)"(
+      newMinPriceMultiplier?: null
+    ): SetMinPriceMultiplierEventFilter;
+    SetMinPriceMultiplier(
+      newMinPriceMultiplier?: null
+    ): SetMinPriceMultiplierEventFilter;
+
+    "SetStrategyCap(uint256)"(newCapAmount?: null): SetStrategyCapEventFilter;
+    SetStrategyCap(newCapAmount?: null): SetStrategyCapEventFilter;
 
     "TimeHedge(address,bool,uint256,uint256)"(
       hedger?: string | null,
@@ -1353,14 +1733,21 @@ export interface CrabStrategy extends BaseContract {
       wSqueethAmount?: null,
       ethWithdrawn?: null
     ): WithdrawEventFilter;
+
+    "WithdrawShutdown(address,uint256,uint256)"(
+      withdrawer?: string | null,
+      crabAmount?: null,
+      ethWithdrawn?: null
+    ): WithdrawShutdownEventFilter;
+    WithdrawShutdown(
+      withdrawer?: string | null,
+      crabAmount?: null,
+      ethWithdrawn?: null
+    ): WithdrawShutdownEventFilter;
   };
 
   estimateGas: {
-    DELTA_HEDGE_THRESHOLD(overrides?: CallOverrides): Promise<BigNumber>;
-
     POWER_PERP_PERIOD(overrides?: CallOverrides): Promise<BigNumber>;
-
-    TWAP_PERIOD(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowance(
       owner: string,
@@ -1373,8 +1760,6 @@ export interface CrabStrategy extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    auctionStartTime(overrides?: CallOverrides): Promise<BigNumber>;
 
     auctionTime(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1394,6 +1779,8 @@ export interface CrabStrategy extends BaseContract {
       subtractedValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    deltaHedgeThreshold(overrides?: CallOverrides): Promise<BigNumber>;
 
     deposit(
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -1416,6 +1803,11 @@ export interface CrabStrategy extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    getAuctionDetails(
+      _auctionTriggerTime: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getStrategyVaultId(overrides?: CallOverrides): Promise<BigNumber>;
 
     getVaultDetails(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1428,6 +1820,8 @@ export interface CrabStrategy extends BaseContract {
     hedgePriceThreshold(overrides?: CallOverrides): Promise<BigNumber>;
 
     hedgeTimeThreshold(overrides?: CallOverrides): Promise<BigNumber>;
+
+    hedgingTwapPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
     increaseAllowance(
       spender: string,
@@ -1465,7 +1859,46 @@ export interface CrabStrategy extends BaseContract {
 
     quoteCurrency(overrides?: CallOverrides): Promise<BigNumber>;
 
+    redeemShortShutdown(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setAuctionTime(
+      _auctionTime: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setDeltaHedgeThreshold(
+      _deltaHedgeThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setHedgePriceThreshold(
+      _hedgePriceThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setHedgeTimeThreshold(
+      _hedgeTimeThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setHedgingTwapPeriod(
+      _hedgingTwapPeriod: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setMaxPriceMultiplier(
+      _maxPriceMultiplier: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setMinPriceMultiplier(
+      _minPriceMultiplier: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1527,18 +1960,17 @@ export interface CrabStrategy extends BaseContract {
 
     withdraw(
       _crabAmount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    withdrawShutdown(
+      _crabAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    DELTA_HEDGE_THRESHOLD(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     POWER_PERP_PERIOD(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    TWAP_PERIOD(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     allowance(
       owner: string,
@@ -1551,8 +1983,6 @@ export interface CrabStrategy extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    auctionStartTime(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     auctionTime(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1574,6 +2004,10 @@ export interface CrabStrategy extends BaseContract {
       spender: string,
       subtractedValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    deltaHedgeThreshold(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     deposit(
@@ -1599,6 +2033,11 @@ export interface CrabStrategy extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    getAuctionDetails(
+      _auctionTriggerTime: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getStrategyVaultId(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1617,6 +2056,8 @@ export interface CrabStrategy extends BaseContract {
     hedgeTimeThreshold(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    hedgingTwapPeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     increaseAllowance(
       spender: string,
@@ -1660,7 +2101,46 @@ export interface CrabStrategy extends BaseContract {
 
     quoteCurrency(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    redeemShortShutdown(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setAuctionTime(
+      _auctionTime: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setDeltaHedgeThreshold(
+      _deltaHedgeThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setHedgePriceThreshold(
+      _hedgePriceThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setHedgeTimeThreshold(
+      _hedgeTimeThreshold: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setHedgingTwapPeriod(
+      _hedgingTwapPeriod: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setMaxPriceMultiplier(
+      _maxPriceMultiplier: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setMinPriceMultiplier(
+      _minPriceMultiplier: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1722,7 +2202,12 @@ export interface CrabStrategy extends BaseContract {
 
     withdraw(
       _crabAmount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawShutdown(
+      _crabAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

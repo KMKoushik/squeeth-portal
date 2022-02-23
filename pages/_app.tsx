@@ -17,7 +17,6 @@ const poktKey = process.env.NEXT_PUBLIC_PORTAL_API_KEY
 // Chains for connectors to support
 const chains = defaultChains
 
-console.log(chains)
 // Set up connectors
 const connectors = () => {
   const rpcUrl = chains.find(x => x.id === CHAIN_ID)?.rpcUrls?.[0] ?? chain.mainnet.rpcUrls[0]

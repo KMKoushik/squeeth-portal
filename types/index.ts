@@ -7,4 +7,9 @@ declare module '@mui/material/styles/createPalette' {
   }
 }
 
-export default {}
+export enum HedgeType {
+  TIME_HEDGE = 1,
+  PRICE_HEDGE,
+  TIME_HEDGE_ON_UNISWAP,
+  PRICE_HEDGE_ON_UNISWAP,
+}

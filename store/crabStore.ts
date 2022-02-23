@@ -2,6 +2,14 @@ import { BigNumber } from 'ethers'
 import create from 'zustand'
 import { BIG_ZERO } from '../constants/numbers'
 
+export type AuctionDetail = {
+  isSelling: boolean
+  oSqthAmount: BigNumber
+  ethProceeds: BigNumber
+  auctionPrice: BigNumber
+  isDirectionChanged: boolean
+}
+
 interface CrabState {
   loaded: boolean
   timeAtLastHedge: number
@@ -10,6 +18,7 @@ interface CrabState {
   hedgePriceThreshold: BigNumber
   isTimeHedgeAvailable: boolean
   auctionTriggerTime: number
+  auctionDetails: AuctionDetail
   setLoaded: (l: boolean) => void
   setTimeAtLastHedge: (time: number) => void
   setPriceAtLastHedge: (price: BigNumber) => void
@@ -17,6 +26,7 @@ interface CrabState {
   setHedgePriceThreshold: (threshold: BigNumber) => void
   setIsTimeHedgeAvailable: (isAvailable: boolean) => void
   setAuctionTriggerTime: (auctionTriggerTime: number) => void
+  setAuctionDetails: (data: AuctionDetail) => void
 }
 
 const useCrabStore = create<CrabState>(set => ({
@@ -27,6 +37,13 @@ const useCrabStore = create<CrabState>(set => ({
   hedgePriceThreshold: BIG_ZERO,
   isTimeHedgeAvailable: false,
   auctionTriggerTime: 0,
+  auctionDetails: {
+    isSelling: false,
+    oSqthAmount: BIG_ZERO,
+    ethProceeds: BIG_ZERO,
+    auctionPrice: BIG_ZERO,
+    isDirectionChanged: false,
+  },
   setLoaded: l => set({ loaded: l }),
   setTimeAtLastHedge: (time: number) => set({ timeAtLastHedge: time }),
   setPriceAtLastHedge: (price: BigNumber) => set({ priceAtLastHedge: price }),
@@ -34,6 +51,7 @@ const useCrabStore = create<CrabState>(set => ({
   setHedgePriceThreshold: (threshold: BigNumber) => set({ hedgePriceThreshold: threshold }),
   setIsTimeHedgeAvailable: (isAvailable: boolean) => set({ isTimeHedgeAvailable: isAvailable }),
   setAuctionTriggerTime: auctionTriggerTime => set({ auctionTriggerTime }),
+  setAuctionDetails: aucData => set({ auctionDetails: aucData }),
 }))
 
 export default useCrabStore

@@ -206,6 +206,31 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
+        name: "depositor",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "flashswapDebt",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "excess",
+        type: "uint256",
+      },
+    ],
+    name: "FlashDepositCallback",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
         name: "withdrawer",
         type: "address",
       },
@@ -223,6 +248,31 @@ const _abi = [
       },
     ],
     name: "FlashWithdraw",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "withdrawer",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "flashswapDebt",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "excess",
+        type: "uint256",
+      },
+    ],
+    name: "FlashWithdrawCallback",
     type: "event",
   },
   {
@@ -398,13 +448,98 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "newCapAmount",
+        name: "newAuctionTime",
         type: "uint256",
       },
+    ],
+    name: "SetAuctionTime",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
       {
         indexed: false,
         internalType: "uint256",
-        name: "oldCapAmount",
+        name: "newDeltaHedgeThreshold",
+        type: "uint256",
+      },
+    ],
+    name: "SetDeltaHedgeThreshold",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newHedgePriceThreshold",
+        type: "uint256",
+      },
+    ],
+    name: "SetHedgePriceThreshold",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newHedgeTimeThreshold",
+        type: "uint256",
+      },
+    ],
+    name: "SetHedgeTimeThreshold",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint32",
+        name: "newHedgingTwapPeriod",
+        type: "uint32",
+      },
+    ],
+    name: "SetHedgingTwapPeriod",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newMaxPriceMultiplier",
+        type: "uint256",
+      },
+    ],
+    name: "SetMaxPriceMultiplier",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newMinPriceMultiplier",
+        type: "uint256",
+      },
+    ],
+    name: "SetMinPriceMultiplier",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newCapAmount",
         type: "uint256",
       },
     ],
@@ -536,34 +671,33 @@ const _abi = [
     type: "event",
   },
   {
-    inputs: [],
-    name: "DELTA_HEDGE_THRESHOLD",
-    outputs: [
+    anonymous: false,
+    inputs: [
       {
+        indexed: true,
+        internalType: "address",
+        name: "withdrawer",
+        type: "address",
+      },
+      {
+        indexed: false,
         internalType: "uint256",
-        name: "",
+        name: "crabAmount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "ethWithdrawn",
         type: "uint256",
       },
     ],
-    stateMutability: "view",
-    type: "function",
+    name: "WithdrawShutdown",
+    type: "event",
   },
   {
     inputs: [],
     name: "POWER_PERP_PERIOD",
-    outputs: [
-      {
-        internalType: "uint32",
-        name: "",
-        type: "uint32",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "TWAP_PERIOD",
     outputs: [
       {
         internalType: "uint32",
@@ -620,19 +754,6 @@ const _abi = [
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "auctionStartTime",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
     type: "function",
   },
   {
@@ -743,19 +864,21 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "deposit",
+    name: "deltaHedgeThreshold",
     outputs: [
       {
         internalType: "uint256",
         name: "",
         type: "uint256",
       },
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
     ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "deposit",
+    outputs: [],
     stateMutability: "payable",
     type: "function",
   },
@@ -827,6 +950,45 @@ const _abi = [
     name: "flashWithdraw",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_auctionTriggerTime",
+        type: "uint256",
+      },
+    ],
+    name: "getAuctionDetails",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -910,6 +1072,19 @@ const _abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "hedgingTwapPeriod",
+    outputs: [
+      {
+        internalType: "uint32",
+        name: "",
+        type: "uint32",
       },
     ],
     stateMutability: "view",
@@ -1091,7 +1266,105 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "redeemShortShutdown",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "renounceOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_auctionTime",
+        type: "uint256",
+      },
+    ],
+    name: "setAuctionTime",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_deltaHedgeThreshold",
+        type: "uint256",
+      },
+    ],
+    name: "setDeltaHedgeThreshold",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_hedgePriceThreshold",
+        type: "uint256",
+      },
+    ],
+    name: "setHedgePriceThreshold",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_hedgeTimeThreshold",
+        type: "uint256",
+      },
+    ],
+    name: "setHedgeTimeThreshold",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint32",
+        name: "_hedgingTwapPeriod",
+        type: "uint32",
+      },
+    ],
+    name: "setHedgingTwapPeriod",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_maxPriceMultiplier",
+        type: "uint256",
+      },
+    ],
+    name: "setMaxPriceMultiplier",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_minPriceMultiplier",
+        type: "uint256",
+      },
+    ],
+    name: "setMinPriceMultiplier",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -1335,7 +1608,20 @@ const _abi = [
     ],
     name: "withdraw",
     outputs: [],
-    stateMutability: "payable",
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_crabAmount",
+        type: "uint256",
+      },
+    ],
+    name: "withdrawShutdown",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {

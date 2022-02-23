@@ -9,3 +9,5 @@ export const INDEX_SCALE = 10000
 export const FUNDING_PERIOD = 17.5
 
 export const CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID || 1)
+
+export const MAX_UINT = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'

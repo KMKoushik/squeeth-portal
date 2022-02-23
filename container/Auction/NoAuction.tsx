@@ -10,7 +10,7 @@ type NoAuctionProps = {
 
 const renderer: CountdownRendererFn = ({ days, hours, minutes, seconds, completed }) => {
   if (completed) {
-    return <Typography align="center">Hurray</Typography>
+    return <Typography align="center">Reload if auction details not shown!</Typography>
   } else {
     // Render a countdown
     return (
@@ -45,14 +45,14 @@ const renderer: CountdownRendererFn = ({ days, hours, minutes, seconds, complete
 }
 
 const NoAuction = React.memo<NoAuctionProps>(function NoAuction({ time }) {
-  const { updateAuctionData } = useCrab()
+  const { updateCrabData } = useCrab()
 
   return (
     <Box sx={{ height: '100%' }} bgcolor="background.surface" borderRadius={2} py={2} px={4}>
       <Typography align="center" variant="h6" color="textSecondary" mb={2}>
         No live Auctions. Next in
       </Typography>
-      <Countdown date={time} onComplete={updateAuctionData} renderer={renderer} />
+      <Countdown date={time} onComplete={updateCrabData} renderer={renderer} />
     </Box>
   )
 })

@@ -3,8 +3,10 @@
 /* eslint-disable */
 export type { Controller } from "./Controller";
 export type { CrabStrategy } from "./CrabStrategy";
+export type { ERC20 } from "./ERC20";
 export type { Oracle } from "./Oracle";
 
 export { Controller__factory } from "./factories/Controller__factory";
 export { CrabStrategy__factory } from "./factories/CrabStrategy__factory";
+export { ERC20__factory } from "./factories/ERC20__factory";
 export { Oracle__factory } from "./factories/Oracle__factory";
