@@ -128,20 +128,32 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
   const [limitPrice, setLimitPrice] = React.useState(formatUnits(safeAuctionPrice))
 
   const hedge = React.useCallback(async () => {
-    const [isSelling, oSqthAmount, ethProceeds] = await crabContract.getAuctionDetails(auctionTriggerTime)
-    const _safeAuctionPrice = safeAuctionPrice.add(
-      safeAuctionPrice
-        .mul(10)
+    const [isSelling, oSqthAmount, ethProceeds, auctionPrice, dirChanged] = await crabContract.getAuctionDetails(
+      auctionTriggerTime,
+    )
+    const _safeAuctionPrice = auctionPrice.add(
+      auctionPrice
+        .mul(auctionTriggerTime - Date.now() / 1000 > 1200 ? 1 : 10)
         .div(100)
         .mul(isSelling ? 1 : -1),
     )
     setLimitPrice(formatUnits(_safeAuctionPrice))
     const ethToAttach = isSelling ? wmul(oSqthAmount, _safeAuctionPrice) : BIG_ZERO
 
-    console.log(ethToAttach.toString(), ethProceeds.toString())
+    console.log(
+      'Attached eth',
+      ethToAttach.toString(),
+      'ETH proceed: ',
+      ethProceeds.toString(),
+      'Auc price',
+      auctionPrice.toString(),
+      'osq amount',
+      oSqthAmount.toString(),
+      dirChanged,
+    )
     setTxLoading(true)
     try {
-      const tx = await crabContract.timeHedge(isSelling, parseUnits(limitPrice), { value: ethToAttach })
+      const tx = await crabContract.timeHedge(isSelling, _safeAuctionPrice, { value: ethToAttach })
       await tx.wait()
     } catch (e) {
       console.log(e)
