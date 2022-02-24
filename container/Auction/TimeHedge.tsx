@@ -131,7 +131,7 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
     const [isSelling, oSqthAmount, ethProceeds] = await crabContract.getAuctionDetails(auctionTriggerTime)
     const _safeAuctionPrice = safeAuctionPrice.add(
       safeAuctionPrice
-        .mul(5)
+        .mul(10)
         .div(100)
         .mul(isSelling ? 1 : -1),
     )
