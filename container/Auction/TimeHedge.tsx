@@ -128,15 +128,15 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
   const [limitPrice, setLimitPrice] = React.useState(formatUnits(safeAuctionPrice))
 
   const hedge = React.useCallback(async () => {
-    const [isSelling, oSqthAmount, ethProceeds, auctionPrice] = await crabContract.getAuctionDetails(auctionTriggerTime)
-    const safeAuctionPrice = auctionPrice.add(
-      auctionPrice
-        .mul(2)
+    const [isSelling, oSqthAmount, ethProceeds] = await crabContract.getAuctionDetails(auctionTriggerTime)
+    const _safeAuctionPrice = safeAuctionPrice.add(
+      safeAuctionPrice
+        .mul(5)
         .div(100)
         .mul(isSelling ? 1 : -1),
     )
-    setLimitPrice(formatUnits(safeAuctionPrice))
-    const ethToAttach = isSelling ? wmul(oSqthAmount, safeAuctionPrice) : BIG_ZERO
+    setLimitPrice(formatUnits(_safeAuctionPrice))
+    const ethToAttach = isSelling ? wmul(oSqthAmount, _safeAuctionPrice) : BIG_ZERO
 
     console.log(ethToAttach.toString(), ethProceeds.toString())
     setTxLoading(true)
