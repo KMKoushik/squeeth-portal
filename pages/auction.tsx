@@ -16,9 +16,12 @@ import { bnComparator } from '../utils'
 import { useNetwork, useProvider } from 'wagmi'
 import LiveAuction from '../container/Auction/LiveAuction'
 import NoAuction from '../container/Auction/NoAuction'
+import useCatLoaderStore from '../store/catLoaderStore'
 
 const Auction: NextPage = () => {
   const { crabLoaded } = useCrab()
+  const setLoading = useCatLoaderStore(s => s.setOpen)
+  !crabLoaded ? setLoading(true) : setLoading(false)
 
   return (
     <div>

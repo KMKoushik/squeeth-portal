@@ -6,6 +6,9 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Head from 'next/head'
 import SqueethInfo from '../container/SqueethInfo'
+import AuctionCard from '../components/squeethInfoActionCards/AuctionCard'
+import TradeCard from '../components/squeethInfoActionCards/TradeCard'
+import VaultsCard from '../components/squeethInfoActionCards/VaultsCard'
 
 const initialAnimation = {
   visible: (i: number) => ({
@@ -29,15 +32,15 @@ const Home: NextPage = () => {
       <Nav />
       <Box flexGrow={1} px={4} pt={4}>
         <Grid container>
-          <Grid item xs={0} md={2} />
-          <Grid item xs={12} md={8}>
+          <Grid item xs={0} md={0} lg={2} />
+          <Grid item xs={12} md={12} lg={8}>
             <SqueethInfo />
           </Grid>
-          <Grid item xs={0} md={2} />
-          <Grid item xs={0} md={2} />
-          <Grid item xs={12} md={8}>
+          <Grid item xs={0} md={0} lg={2} />
+          <Grid item xs={0} md={0} lg={2} />
+          <Grid item xs={12} md={12} lg={8}>
             <Grid container spacing={4}>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={4} height="100%">
                 <motion.div
                   initial="hidden"
                   animate="visible"
@@ -45,20 +48,7 @@ const Home: NextPage = () => {
                   variants={initialAnimation}
                   custom={0}
                 >
-                  <Box
-                    bgcolor="background.surface"
-                    flexDirection="column"
-                    display="flex"
-                    borderRadius={2}
-                    py={2}
-                    px={4}
-                    sx={{
-                      cursor: 'pointer',
-                      ':hover': {
-                        boxShadow: 6,
-                      },
-                    }}
-                  >
+                  <TradeCard>
                     <Typography textAlign="center" variant="h5" mb={4}>
                       Trade
                     </Typography>
@@ -68,7 +58,7 @@ const Home: NextPage = () => {
                     <Typography align="center" mt={4} color="textSecondary">
                       Trade oSQTH / ETH on uniswap.
                     </Typography>
-                  </Box>
+                  </TradeCard>
                 </motion.div>
               </Grid>
               <Grid item xs={12} md={4}>
@@ -80,20 +70,7 @@ const Home: NextPage = () => {
                   custom={1}
                 >
                   <Link href="/auction" passHref>
-                    <Box
-                      bgcolor="background.surface"
-                      borderRadius={2}
-                      flexDirection="column"
-                      display="flex"
-                      py={2}
-                      px={4}
-                      sx={{
-                        cursor: 'pointer',
-                        ':hover': {
-                          boxShadow: 6,
-                        },
-                      }}
-                    >
+                    <AuctionCard>
                       <Typography textAlign="center" variant="h5" mb={4}>
                         Auction
                       </Typography>
@@ -103,11 +80,11 @@ const Home: NextPage = () => {
                       <Typography align="center" mt={4} color="textSecondary">
                         Participate on auctions by automated strategies!
                       </Typography>
-                    </Box>
+                    </AuctionCard>
                   </Link>
                 </motion.div>
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={4} sx={{ marginBottom: { xs: 2, sm: 0 } }}>
                 <motion.div
                   initial="hidden"
                   animate="visible"
@@ -115,20 +92,7 @@ const Home: NextPage = () => {
                   variants={initialAnimation}
                   custom={2}
                 >
-                  <Box
-                    bgcolor="background.surface"
-                    borderRadius={2}
-                    flexDirection="column"
-                    display="flex"
-                    py={2}
-                    px={4}
-                    sx={{
-                      cursor: 'pointer',
-                      ':hover': {
-                        boxShadow: 6,
-                      },
-                    }}
-                  >
+                  <VaultsCard>
                     <Typography textAlign="center" variant="h5" mb={4}>
                       Vaults
                     </Typography>
@@ -138,12 +102,12 @@ const Home: NextPage = () => {
                     <Typography align="center" mt={4} color="textSecondary">
                       Manage your vaults. Coming soon!
                     </Typography>
-                  </Box>
+                  </VaultsCard>
                 </motion.div>
               </Grid>
             </Grid>
           </Grid>
-          <Grid item xs={0} md={2} />
+          <Grid item xs={0} md={0} lg={2} />
         </Grid>
       </Box>
     </div>
