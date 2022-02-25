@@ -8,6 +8,7 @@ import theme from '../theme'
 import { CssBaseline, ThemeProvider } from '@mui/material'
 import { providers } from 'ethers'
 import { CHAIN_ID } from '../constants/numbers'
+import CatLoader from '../components/loaders/CatLoader'
 
 // API key for Ethereum node
 // Two popular services are Infura (infura.io) and Alchemy (alchemy.com)
@@ -45,6 +46,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Component {...pageProps} />
+        <CatLoader />
       </ThemeProvider>
     </Provider>
   )

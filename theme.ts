@@ -1,6 +1,9 @@
 import { createTheme } from '@mui/material'
 
 const darkTheme = createTheme({
+  typography: {
+    fontFamily: 'Poppins'
+  },
   palette: {
     mode: 'dark',
     primary: {
