@@ -2,7 +2,21 @@ import { createTheme } from '@mui/material'
 
 const darkTheme = createTheme({
   typography: {
-    fontFamily: 'Poppins'
+    fontFamily: ['Inter', 'Roboto', '"Helvetic Neue"'].join(','),
+    h6: {
+      fontFamily: ['Space Mono', 'Michroma', 'Roboto'].join(','),
+      fontWeight: 600,
+      letterSpacing: 1.5
+
+    },
+    h5: {
+      fontFamily: ['Space Mono', 'Michroma', 'Roboto'].join(','),
+      fontWeight: 600,
+      letterSpacing: 1.5
+    },
+    body2: {
+      fontFamily: ['Space Mono'].join(',')
+    }
   },
   palette: {
     mode: 'dark',
