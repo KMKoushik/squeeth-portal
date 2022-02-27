@@ -19,6 +19,8 @@ interface CrabState {
   isTimeHedgeAvailable: boolean
   auctionTriggerTime: number
   auctionDetails: AuctionDetail
+  vaultId: number
+  deltaHedgeThreshold: BigNumber
   setLoaded: (l: boolean) => void
   setTimeAtLastHedge: (time: number) => void
   setPriceAtLastHedge: (price: BigNumber) => void
@@ -27,6 +29,8 @@ interface CrabState {
   setIsTimeHedgeAvailable: (isAvailable: boolean) => void
   setAuctionTriggerTime: (auctionTriggerTime: number) => void
   setAuctionDetails: (data: AuctionDetail) => void
+  setVaultId: (id: number) => void
+  setDeltaHedgeThreshold: (t: BigNumber) => void
 }
 
 const useCrabStore = create<CrabState>(set => ({
@@ -44,6 +48,8 @@ const useCrabStore = create<CrabState>(set => ({
     auctionPrice: BIG_ZERO,
     isDirectionChanged: false,
   },
+  vaultId: 0,
+  deltaHedgeThreshold: BIG_ZERO,
   setLoaded: l => set({ loaded: l }),
   setTimeAtLastHedge: (time: number) => set({ timeAtLastHedge: time }),
   setPriceAtLastHedge: (price: BigNumber) => set({ priceAtLastHedge: price }),
@@ -52,6 +58,8 @@ const useCrabStore = create<CrabState>(set => ({
   setIsTimeHedgeAvailable: (isAvailable: boolean) => set({ isTimeHedgeAvailable: isAvailable }),
   setAuctionTriggerTime: auctionTriggerTime => set({ auctionTriggerTime }),
   setAuctionDetails: aucData => set({ auctionDetails: aucData }),
+  setVaultId: (id: number) => set({ vaultId: id }),
+  setDeltaHedgeThreshold: (t: BigNumber) => set({ deltaHedgeThreshold: t }),
 }))
 
 export default useCrabStore

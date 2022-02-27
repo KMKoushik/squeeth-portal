@@ -1,7 +1,7 @@
 import { Box, TextField, Typography } from '@mui/material'
 import { BigNumber } from 'ethers'
 import * as React from 'react'
-import { useBalance, useSigner } from 'wagmi'
+import { useBalance, useBlockNumber, useSigner } from 'wagmi'
 import shallow from 'zustand/shallow'
 import { PrimaryLoadingButton } from '../../components/button/PrimaryButton'
 import { CRAB_STRATEGY, OSQUEETH } from '../../constants/address'
@@ -24,7 +24,6 @@ const TimeHedge = React.memo(function TimeHedge() {
     if (!owner || oSqthAmount.isZero()) return
 
     const allowance = await squeethContract.allowance(owner, CRAB_STRATEGY)
-    console.log(allowance.toString(), oSqthAmount.toString(), allowance.gte(oSqthAmount))
     if (allowance.gte(oSqthAmount)) {
       setIsApproved(true)
     } else {
@@ -39,7 +38,6 @@ const TimeHedge = React.memo(function TimeHedge() {
       setIsApprovalNeeded(false)
       return
     }
-
     setIsApprovalNeeded(true)
     checkApproval()
   }, [owner, isSelling, setIsApprovalNeeded, checkApproval])
@@ -52,14 +50,12 @@ const TimeHedge = React.memo(function TimeHedge() {
       const tx = await squeethContract.approve(CRAB_STRATEGY, MAX_UINT)
       await tx.wait()
       checkApproval()
-      console.log(tx)
     } catch (e) {
       console.log(e)
     }
     setTxLoading(false)
   }, [checkApproval, owner, setTxLoading, squeethContract])
 
-  console.log('Is selling', isSelling)
   const { isError, errorMessage } = React.useMemo(() => {
     if (balanceLoading) return { isError: false, errorMessage: '' }
 
@@ -131,9 +127,10 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
     const [isSelling, oSqthAmount, ethProceeds, auctionPrice, dirChanged] = await crabContract.getAuctionDetails(
       auctionTriggerTime,
     )
+
     const _safeAuctionPrice = auctionPrice.add(
       auctionPrice
-        .mul(auctionTriggerTime - Date.now() / 1000 > 1200 ? 1 : 10)
+        .mul(Date.now() / 1000 - auctionTriggerTime > 1200 ? 1 : 10)
         .div(100)
         .mul(isSelling ? 1 : -1),
     )
@@ -155,12 +152,13 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
     try {
       const tx = await crabContract.timeHedge(isSelling, _safeAuctionPrice, { value: ethToAttach })
       await tx.wait()
+      await tx.wait()
     } catch (e) {
       console.log(e)
     }
     setTxLoading(false)
     updateCrabData()
-  }, [crabContract, auctionTriggerTime, limitPrice, setTxLoading, updateCrabData])
+  }, [crabContract, auctionTriggerTime, setTxLoading, updateCrabData])
 
   return (
     <>
