@@ -21,4 +21,12 @@ export const wmul = (num1: BigNumber, num2: BigNumber) => {
   return num1.mul(num2).div(BIG_ONE)
 }
 
+export const wdiv = (dividend: BigNumber | number, divisor: BigNumber | number) => {
+  const _dividend = BigNumber.from(dividend)
+  const _divisor = BigNumber.from(divisor)
+  return _dividend.mul(BIG_ONE).add(_divisor.div(2)).div(_divisor)
+}
+
 export const formatNumber = (n: number) => (n > 9 ? n.toString() : `0${n}`)
+
+export const getCurrentSeconds = () => Number((Date.now() / 1000).toFixed(0))
