@@ -38,10 +38,10 @@ const SqueethInfo = React.memo(function SqueethInfo() {
       >
         <TVL name="TVL" value={tvl.toFixed(2)} />
         <Box mb={2}>
-          <LabelValue name="Index Price" value={formatBigNumber(indexPrice, 18, 0)} />
-          <LabelValue name="Mark Price" value={formatBigNumber(markPrice, 18, 0)} />
+          <LabelValue name="Index Price" value={formatBigNumber(indexPrice, 18, 0) + '$'} />
+          <LabelValue name="Mark Price" value={formatBigNumber(markPrice, 18, 0) + '$'} />
         </Box>
-        <LabelValue name="Current Funding" value={impliedFunding.toFixed(2) + ' %'} />
+        <LabelValue name="Current Funding" value={impliedFunding.toFixed(2) + '%'} />
         <LabelValue name="NF" value={formatBigNumber(nf, 18, 6)} />
       </Grid>
 
@@ -68,7 +68,7 @@ function TVL({ name, value }: PropsKeyValue) {
       </Grid>
       <Grid item>
         <Typography color="GrayText"> {name}</Typography>
-        <Typography color="primary" fontWeight={600} fontSize="x-large">
+        <Typography color="primary" fontWeight={600} fontSize="x-large" fontFamily='Space Mono'>
           {value}
           <Typography component="span" color="white" fontSize="small" ml={0.5}>
             {' '}
@@ -87,9 +87,9 @@ function LabelValue({ name, value }: PropsKeyValue) {
         {' '}
         {name}{' '}
       </Typography>
-      <Typography color="whitesmoke" fontSize="large" component="span">
+      <Typography fontFamily='Space Mono' fontSize="large" component="span">
         {' '}
-        {value}﹩{' '}
+        {value}
       </Typography>
     </Box>
   )
@@ -105,7 +105,7 @@ function Addressbar({ address, name, margin }: { address: string; name: string; 
   return (
     <Box borderRadius={2} maxWidth="xs" border={1} borderColor="#2D2F34" p={0.5} mb={margin ? 2 : 0}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="h6" component="span" ml={1}>
+        <Typography variant="h6" component="span" ml={1} >
           {name}
           <a target="_blank" href={`https://etherscan.io/address/${address}`} rel="noreferrer">
             <OpenInNewIcon
@@ -136,7 +136,7 @@ function Addressbar({ address, name, margin }: { address: string; name: string; 
           }}
         />
       </Box>
-      <Typography textAlign="left" color="GrayText" overflow="hidden" textOverflow="ellipsis" mx={1}>
+      <Typography fontFamily='Space Mono' textAlign="left" color="GrayText" overflow="hidden" textOverflow="ellipsis" mx={1}>
         {address}
       </Typography>
 

@@ -1,4 +1,4 @@
-import { Box, Grid } from '@mui/material'
+import { Box, Grid, Typography } from '@mui/material'
 import * as React from 'react'
 import shallow from 'zustand/shallow'
 import useCrab from '../../hooks/useCrab'
@@ -18,7 +18,9 @@ const AuctionItem = React.memo<AuctionItemProps>(function AuctionItem({ title, v
         {title}
       </Grid>
       <Grid item xs={6}>
-        {value}
+        <Typography fontFamily='Space Mono'>
+          {value}
+        </Typography>
       </Grid>
     </Grid>
   )

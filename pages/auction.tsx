@@ -63,7 +63,7 @@ const CrabAuction = React.memo(function CrabAuction() {
 
   return (
     <PageGrid>
-      <Typography variant="h6" color="primary" mb={2}>
+      <Typography variant="h5" color="primary" mb={2}>
         Crab Strategy auction
       </Typography>
       <Grid container spacing={4}>
@@ -75,7 +75,7 @@ const CrabAuction = React.memo(function CrabAuction() {
             <Typography>
               Hedged time: {formatDistance(timeAtLastHedge * 1000, Date.now(), { addSuffix: true })}
             </Typography>
-            <Typography>oSQTH Price: {formatBigNumber(priceAtLastHedge, 18, 6)} ETH</Typography>
+            <Typography fontFamily="Space Mono">oSQTH Price: {formatBigNumber(priceAtLastHedge, 18, 6)} ETH</Typography>
           </Box>
         </Grid>
         <Grid item xs={12} md={6}>
@@ -84,15 +84,26 @@ const CrabAuction = React.memo(function CrabAuction() {
               Upcoming auction
             </Typography>
             <Typography>
-              Next auction time: {format((timeAtLastHedge + timeHedgeThreshold) * 1000, 'dd-MMM-yyy hh:mm aa')}
+              Next auction time:
+              <Typography fontFamily="Space Mono" component="span">
+                {' ' + format((timeAtLastHedge + timeHedgeThreshold) * 1000, 'dd-MMM-yyy hh:mm aa')}
+              </Typography>
             </Typography>
             <Typography>
-              Current oSQTH price: {formatBigNumber(squeethPrice, 18, 6)} ({priceDeviation}%)
+              Current oSQTH price:
+              <Typography fontFamily="Space Mono" component="span">
+                {' ' + formatBigNumber(squeethPrice, 18, 6)} ({priceDeviation}%)
+              </Typography>
             </Typography>
             <Typography>
+              {' '}
               price to trigger Price auction:
-              {formatBigNumber(squeethPrice.add(squeethPrice.mul(priceHedgeThreshold).div(BIG_ONE)), 18, 6)} /
-              {formatBigNumber(squeethPrice.sub(squeethPrice.mul(priceHedgeThreshold).div(BIG_ONE)), 18, 6)}
+              <Typography fontFamily="Space Mono">
+                {' ' +
+                  formatBigNumber(squeethPrice.add(squeethPrice.mul(priceHedgeThreshold).div(BIG_ONE)), 18, 6) +
+                  '/' +
+                  formatBigNumber(squeethPrice.sub(squeethPrice.mul(priceHedgeThreshold).div(BIG_ONE)), 18, 6)}
+              </Typography>
             </Typography>
           </Box>
         </Grid>
