@@ -75,7 +75,10 @@ const CrabAuction = React.memo(function CrabAuction() {
             <Typography>
               Hedged time: {formatDistance(timeAtLastHedge * 1000, Date.now(), { addSuffix: true })}
             </Typography>
-            <Typography fontFamily="Space Mono">oSQTH Price: {formatBigNumber(priceAtLastHedge, 18, 6)} ETH</Typography>
+            <Typography>
+              oSQTH Price: &nbsp;
+              <Typography variant="numeric">{formatBigNumber(priceAtLastHedge, 18, 6)} ETH</Typography>
+            </Typography>
           </Box>
         </Grid>
         <Grid item xs={12} md={6}>
@@ -85,20 +88,20 @@ const CrabAuction = React.memo(function CrabAuction() {
             </Typography>
             <Typography>
               Next auction time:
-              <Typography fontFamily="Space Mono" component="span">
+              <Typography variant="numeric" component="span">
                 {' ' + format((timeAtLastHedge + timeHedgeThreshold) * 1000, 'dd-MMM-yyy hh:mm aa')}
               </Typography>
             </Typography>
             <Typography>
               Current oSQTH price:
-              <Typography fontFamily="Space Mono" component="span">
+              <Typography variant="numeric" component="span">
                 {' ' + formatBigNumber(squeethPrice, 18, 6)} ({priceDeviation}%)
               </Typography>
             </Typography>
             <Typography>
               {' '}
               price to trigger Price auction:
-              <Typography fontFamily="Space Mono">
+              <Typography variant="numeric">
                 {' ' +
                   formatBigNumber(squeethPrice.add(squeethPrice.mul(priceHedgeThreshold).div(BIG_ONE)), 18, 6) +
                   '/' +

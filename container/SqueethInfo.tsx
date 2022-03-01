@@ -68,7 +68,7 @@ function TVL({ name, value }: PropsKeyValue) {
       </Grid>
       <Grid item>
         <Typography color="GrayText"> {name}</Typography>
-        <Typography color="primary" fontWeight={600} fontSize="x-large" fontFamily='Space Mono'>
+        <Typography color="primary" variant='numeric' fontWeight={600} fontSize="x-large">
           {value}
           <Typography component="span" color="white" fontSize="small" ml={0.5}>
             {' '}
@@ -87,7 +87,7 @@ function LabelValue({ name, value }: PropsKeyValue) {
         {' '}
         {name}{' '}
       </Typography>
-      <Typography fontFamily='Space Mono' fontSize="large" component="span">
+      <Typography variant='numeric' fontSize="large" component="span">
         {' '}
         {value}
       </Typography>
@@ -136,7 +136,7 @@ function Addressbar({ address, name, margin }: { address: string; name: string; 
           }}
         />
       </Box>
-      <Typography fontFamily='Space Mono' textAlign="left" color="GrayText" overflow="hidden" textOverflow="ellipsis" mx={1}>
+      <Typography variant='numeric' component='p' textAlign="left" color="GrayText" overflow="hidden" textOverflow="ellipsis" whiteSpace='nowrap' mx={1}>
         {address}
       </Typography>
 

@@ -1,7 +1,6 @@
 import { Box, Grid, Typography } from '@mui/material'
 import * as React from 'react'
 import shallow from 'zustand/shallow'
-import useCrab from '../../hooks/useCrab'
 import useCrabStore from '../../store/crabStore'
 import { formatBigNumber } from '../../utils/math'
 import TimeHedge from './TimeHedge'
@@ -13,12 +12,12 @@ type AuctionItemProps = {
 
 const AuctionItem = React.memo<AuctionItemProps>(function AuctionItem({ title, value }) {
   return (
-    <Grid container spacing={1} mt={0.25}>
-      <Grid item xs={5}>
+    <Grid container spacing={1} mt={0.25} justifyContent='space-between'>
+      <Grid item xs={6}>
         {title}
       </Grid>
       <Grid item xs={6}>
-        <Typography fontFamily='Space Mono'>
+        <Typography variant='numeric'>
           {value}
         </Typography>
       </Grid>
