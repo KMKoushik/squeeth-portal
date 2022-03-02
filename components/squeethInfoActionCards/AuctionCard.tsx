@@ -8,8 +8,13 @@ const AuctionCard = styled(Box)(({ theme }) => ({
   py: 2,
   px: 4,
   cursor: 'pointer',
-  backgroundColor: '#21190d',
+  backgroundColor: '#21190d90',
   padding: '1rem 2rem 1rem 2rem',
+  border: '2px solid transparent',
+  '&:hover': {
+    boxShadow: '0px 0px 20px 2px rgba(253,170,50,.5)',
+    border: '2px solid #FDAA32',
+  },
 }))
 
 export default AuctionCard

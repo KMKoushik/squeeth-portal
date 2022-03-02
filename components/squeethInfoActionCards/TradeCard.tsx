@@ -8,8 +8,13 @@ const TradeCard = styled(Box)(({ theme }) => ({
   py: 2,
   px: 4,
   cursor: 'pointer',
-  backgroundColor: '#25191d',
+  backgroundColor: '#25191d90',
   padding: '1rem 2rem 1rem 2rem',
+  border: '2px solid transparent',
+  '&:hover': {
+    boxShadow: '0px 0px 20px 2px rgba(251,0,122,.5)',
+    border: '2px solid #FB007A',
+  },
 }))
 
 export default TradeCard

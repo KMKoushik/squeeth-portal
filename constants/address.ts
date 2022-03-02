@@ -38,3 +38,13 @@ export const WETH = getAddress({
   1: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
   3: '0xc778417e063141139fce010982780140aa0cd5ab',
 })
+
+export const WETH_USDC_POOL = getAddress({
+  1: '0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8',
+  3: '0x8356AbC730a218c24446C2c85708F373f354F0D8',
+})
+
+export const USDC = getAddress({
+  1: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  3: '0x27415c30d8c87437becbd4f98474f26e712047f4',
+})

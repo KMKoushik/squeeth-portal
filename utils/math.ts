@@ -1,5 +1,5 @@
 import { BigNumber, ethers } from 'ethers'
-import { BIG_ONE } from '../constants/numbers'
+import { BIG_ONE, FUNDING_PERIOD, INDEX_SCALE } from '../constants/numbers'
 
 export const { formatUnits, parseUnits } = ethers.utils
 
@@ -30,3 +30,11 @@ export const wdiv = (dividend: BigNumber | number, divisor: BigNumber | number) 
 export const formatNumber = (n: number) => (n > 9 ? n.toString() : `0${n}`)
 
 export const getCurrentSeconds = () => Number((Date.now() / 1000).toFixed(0))
+
+/**
+ * IV formula = sqrt( ln( (oSQTH price * 10000)/(normFactor * ETH price) )/ (17.5/365) )
+ */
+
+export const calculateIV = (oSqthPrice: number, normFactor: number, ethPrice: number) => {
+  return Math.sqrt(Math.log((oSqthPrice * INDEX_SCALE) / (normFactor * ethPrice)) / (FUNDING_PERIOD / 365))
+}

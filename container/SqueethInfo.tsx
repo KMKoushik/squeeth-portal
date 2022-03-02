@@ -68,7 +68,7 @@ function TVL({ name, value }: PropsKeyValue) {
       </Grid>
       <Grid item>
         <Typography color="GrayText"> {name}</Typography>
-        <Typography color="primary" variant='numeric' fontWeight={600} fontSize="x-large">
+        <Typography color="primary" variant="numeric" fontWeight={600} fontSize="x-large">
           {value}
           <Typography component="span" color="white" fontSize="small" ml={0.5}>
             {' '}
@@ -87,7 +87,7 @@ function LabelValue({ name, value }: PropsKeyValue) {
         {' '}
         {name}{' '}
       </Typography>
-      <Typography variant='numeric' fontSize="large" component="span">
+      <Typography variant="numeric" fontSize="large" component="span">
         {' '}
         {value}
       </Typography>
@@ -105,7 +105,7 @@ function Addressbar({ address, name, margin }: { address: string; name: string; 
   return (
     <Box borderRadius={2} maxWidth="xs" border={1} borderColor="#2D2F34" p={0.5} mb={margin ? 2 : 0}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Typography variant="h6" component="span" ml={1} >
+        <Typography variant="h6" component="span" ml={1}>
           {name}
           <a target="_blank" href={`https://etherscan.io/address/${address}`} rel="noreferrer">
             <OpenInNewIcon
@@ -136,7 +136,16 @@ function Addressbar({ address, name, margin }: { address: string; name: string; 
           }}
         />
       </Box>
-      <Typography variant='numeric' component='p' textAlign="left" color="GrayText" overflow="hidden" textOverflow="ellipsis" whiteSpace='nowrap' mx={1}>
+      <Typography
+        variant="numeric"
+        component="p"
+        textAlign="left"
+        color="GrayText"
+        overflow="hidden"
+        textOverflow="ellipsis"
+        whiteSpace="nowrap"
+        mx={1}
+      >
         {address}
       </Typography>
 
