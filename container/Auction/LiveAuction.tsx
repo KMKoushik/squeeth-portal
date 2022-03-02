@@ -1,4 +1,4 @@
-import { Box, Grid, Typography } from '@mui/material'
+import { Box, Button, Grid, Typography } from '@mui/material'
 import * as React from 'react'
 import shallow from 'zustand/shallow'
 import useControllerStore from '../../store/controllerStore'
@@ -8,6 +8,7 @@ import { convertBigNumber, formatBigNumber, calculateIV } from '../../utils/math
 import { bnComparator } from '../../utils'
 import TimeHedge from './TimeHedge'
 import useController from '../../hooks/useController'
+import useCrab from '../../hooks/useCrab'
 
 type AuctionItemProps = {
   title: string
@@ -34,6 +35,9 @@ const LiveAuction = React.memo(function LiveAuction() {
   const normFactor = useControllerStore(s => s.normFactor, bnComparator)
   const ethPrice = usePriceStore(s => s.ethPrice, bnComparator)
 
+  const setAuctionDetails = useCrabStore(s => s.setAuctionDetails)
+  const { getAuctionDetailsOffChain } = useCrab()
+
   const iv = React.useMemo(() => {
     if (normFactor.isZero()) return 0
 
@@ -43,10 +47,25 @@ const LiveAuction = React.memo(function LiveAuction() {
     return calculateIV(oSqthPrice, nf, _ethPrice) * 100
   }, [auctionDetails.auctionPrice, ethPrice, normFactor])
 
+  const refetchAuctionDetails = React.useCallback(() => {
+    getAuctionDetailsOffChain(auctionTriggerTime).then(d => {
+      const { isSellingAuction, oSqthToAuction, ethProceeds, auctionOsqthPrice, isAuctionDirectionChanged } = d
+
+      setAuctionDetails({
+        isSelling: isSellingAuction,
+        oSqthAmount: oSqthToAuction,
+        ethProceeds,
+        auctionPrice: auctionOsqthPrice,
+        isDirectionChanged: isAuctionDirectionChanged,
+      })
+    })
+  }, [auctionTriggerTime, getAuctionDetailsOffChain, setAuctionDetails])
+
   return (
     <Box sx={{ height: '100%' }} bgcolor="background.surface" borderRadius={2} py={2} px={4}>
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
+          <Button onClick={refetchAuctionDetails}>Reload</Button>
           <AuctionItem title="Type :" value="Time Hedge" />
           <AuctionItem title="Is Selling oSQTH :" value={auctionDetails.isSelling ? 'Yes' : 'No'} />
           <AuctionItem title="Start time :" value={auctionTriggerTime} />

@@ -130,7 +130,7 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
 
     const _safeAuctionPrice = auctionPrice.add(
       auctionPrice
-        .mul(Date.now() / 1000 - auctionTriggerTime > 1200 ? 1 : 10)
+        .mul(Date.now() / 1000 - auctionTriggerTime > 1200 ? 1 : 5)
         .div(100)
         .mul(isSelling ? 1 : -1),
     )
