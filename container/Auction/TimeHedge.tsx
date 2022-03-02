@@ -110,7 +110,7 @@ const TimeHedge = React.memo(function TimeHedge() {
 })
 
 const TimeHedgeForm = React.memo(function TimeHedgeForm() {
-  const { crabContract, updateCrabData } = useCrab()
+  const { crabContract, updateCrabData, getAuctionDetailsOffChain } = useCrab()
   const { isSelling, auctionPrice } = useCrabStore(s => s.auctionDetails, shallow)
   const auctionTriggerTime = useCrabStore(s => s.auctionTriggerTime)
   const [txLoading, setTxLoading] = useHedgeStore(s => [s.txLoading, s.setTxLoading])
@@ -124,9 +124,13 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
   const [limitPrice, setLimitPrice] = React.useState(formatUnits(safeAuctionPrice))
 
   const hedge = React.useCallback(async () => {
-    const [isSelling, oSqthAmount, ethProceeds, auctionPrice, dirChanged] = await crabContract.getAuctionDetails(
-      auctionTriggerTime,
-    )
+    const {
+      isSellingAuction: isSelling,
+      oSqthToAuction: oSqthAmount,
+      ethProceeds,
+      auctionOsqthPrice: auctionPrice,
+      isAuctionDirectionChanged: dirChanged,
+    } = await getAuctionDetailsOffChain(auctionTriggerTime)
 
     const _safeAuctionPrice = auctionPrice.add(
       auctionPrice
@@ -152,13 +156,12 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
     try {
       const tx = await crabContract.timeHedge(isSelling, _safeAuctionPrice, { value: ethToAttach })
       await tx.wait()
-      await tx.wait()
     } catch (e) {
       console.log(e)
     }
     setTxLoading(false)
     updateCrabData()
-  }, [crabContract, auctionTriggerTime, setTxLoading, updateCrabData])
+  }, [getAuctionDetailsOffChain, auctionTriggerTime, setTxLoading, updateCrabData, crabContract])
 
   return (
     <>
