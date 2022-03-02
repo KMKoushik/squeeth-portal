@@ -1,6 +1,24 @@
 import { createTheme } from '@mui/material'
 
+declare module '@mui/material/styles' {
+  interface TypographyVariants {
+    numeric: React.CSSProperties;
+  }
+
+  // allow configuration using `createTheme`
+  interface TypographyVariantsOptions {
+    numeric?: React.CSSProperties;
+  }
+}
+
+declare module '@mui/material/Typography' {
+  interface TypographyPropsVariantOverrides {
+    numeric: true;
+  }
+}
+
 const darkTheme = createTheme({
+
   typography: {
     fontFamily: ['Inter', 'Roboto', '"Helvetic Neue"'].join(','),
     h6: {
@@ -16,7 +34,13 @@ const darkTheme = createTheme({
     },
     body2: {
       fontFamily: ['Space Mono'].join(',')
-    }
+    },
+
+    numeric: {
+      fontFamily: ['Space Mono', 'Michroma', 'Roboto'].join(','),
+    },
+
+
   },
   palette: {
     mode: 'dark',
