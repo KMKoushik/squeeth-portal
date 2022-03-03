@@ -44,14 +44,17 @@ const Auction: NextPage = () => {
 
 const CrabAuction = React.memo(function CrabAuction() {
   const oracle = useOracle()
+  const { crabContract } = useCrab()
   const timeAtLastHedge = useCrabStore(s => s.timeAtLastHedge)
   const priceAtLastHedge = useCrabStore(s => s.priceAtLastHedge, bnComparator)
   const timeHedgeThreshold = useCrabStore(s => s.hedgeTimeThreshold)
   const priceHedgeThreshold = useCrabStore(s => s.hedgePriceThreshold, bnComparator)
   const isTimeHedgeAvailable = useCrabStore(s => s.isTimeHedgeAvailable)
+  const triggerTime = useCrabStore(s => s.auctionTriggerTime)
 
   const [priceDeviation, setPriceDeviation] = React.useState(0)
   const [squeethPrice, setSqueethPrice] = React.useState(BIG_ZERO)
+  const [isContractGivingResult, setIsContractGivingResult] = React.useState(false)
 
   React.useEffect(() => {
     oracle.getTwap(SQUEETH_UNI_POOL, OSQUEETH, WETH, 1, true).then(_squeethPrice => {
@@ -60,6 +63,13 @@ const CrabAuction = React.memo(function CrabAuction() {
       setPriceDeviation(Number(_deviation))
     })
   }, [oracle, priceAtLastHedge])
+
+  React.useEffect(() => {
+    crabContract
+      .getAuctionDetails(triggerTime)
+      .then(d => setIsContractGivingResult(!d[4]))
+      .catch(console.log)
+  }, [crabContract, triggerTime])
 
   return (
     <PageGrid>
@@ -111,7 +121,11 @@ const CrabAuction = React.memo(function CrabAuction() {
           </Box>
         </Grid>
         <Grid item xs={12} md={12}>
-          {isTimeHedgeAvailable ? <LiveAuction /> : <NoAuction time={(timeAtLastHedge + timeHedgeThreshold) * 1000} />}
+          {isTimeHedgeAvailable && isContractGivingResult ? (
+            <LiveAuction />
+          ) : (
+            <NoAuction time={(timeAtLastHedge + timeHedgeThreshold) * 1000} />
+          )}
         </Grid>
       </Grid>
     </PageGrid>

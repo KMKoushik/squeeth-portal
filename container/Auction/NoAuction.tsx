@@ -49,10 +49,20 @@ const NoAuction = React.memo<NoAuctionProps>(function NoAuction({ time }) {
 
   return (
     <Box sx={{ height: '100%' }} bgcolor="background.surface" borderRadius={2} py={2} px={4}>
-      <Typography align="center" variant="h6" color="textSecondary" mb={2}>
-        No live Auctions. Next in
-      </Typography>
-      <Countdown date={time} onComplete={updateCrabData} renderer={renderer} />
+      {time > Date.now() ? (
+        <>
+          <Typography align="center" variant="h6" color="textSecondary" mb={2}>
+            No live Auctions. Next in
+          </Typography>
+          <Countdown date={time} onComplete={updateCrabData} renderer={renderer} />
+        </>
+      ) : (
+        <>
+          <Typography align="center" color="textSecondary" mb={2}>
+            Auction direction is changing. Try again in sometime (10s)
+          </Typography>
+        </>
+      )}
     </Box>
   )
 })
