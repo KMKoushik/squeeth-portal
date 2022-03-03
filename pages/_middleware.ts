@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const BLOCKED_COUNTRIES = ['US', 'BY', 'CU', 'IR', 'IQ', 'CI', 'LR', 'KP', 'SD', 'SY', 'ZW']
+const ALLOWED_URLS = ['images', 'fonts', 'favicon.ico']
 
 export function middleware(req: NextRequest) {
   const country = req?.geo?.country
   const response = NextResponse.next()
-  console.log(country)
+  const path = req.url.split('/')[1]
 
-  if (country && BLOCKED_COUNTRIES.includes(country)) {
+  if (!ALLOWED_URLS.includes(path) && country && BLOCKED_COUNTRIES.includes(country)) {
     return NextResponse.rewrite('/blocked')
   }
 
