@@ -132,14 +132,16 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
       isAuctionDirectionChanged: dirChanged,
     } = await getAuctionDetailsOffChain(auctionTriggerTime)
 
+    const isAuctionLive = Date.now() / 1000 - auctionTriggerTime < 1200
     const _safeAuctionPrice = auctionPrice.add(
       auctionPrice
-        .mul(Date.now() / 1000 - auctionTriggerTime > 1200 ? 1 : 5)
+        .mul(!isAuctionLive ? 1 : 2)
         .div(100)
         .mul(isSelling ? 1 : -1),
     )
     setLimitPrice(formatUnits(_safeAuctionPrice))
-    const ethToAttach = isSelling ? wmul(oSqthAmount, _safeAuctionPrice) : BIG_ZERO
+    const potentialOsqth = isAuctionLive ? oSqthAmount.mul(105).div(100) : oSqthAmount
+    const ethToAttach = isSelling ? wmul(potentialOsqth, _safeAuctionPrice) : BIG_ZERO
 
     console.log(
       'Attached eth',
@@ -149,7 +151,7 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
       'Auc price',
       auctionPrice.toString(),
       'osq amount',
-      oSqthAmount.toString(),
+      potentialOsqth.toString(),
       dirChanged,
     )
     setTxLoading(true)
@@ -176,6 +178,9 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
       <PrimaryLoadingButton loading={txLoading} sx={{ margin: 'auto', mt: 2, width: 250 }} onClick={hedge}>
         Hedge
       </PrimaryLoadingButton>
+      <Typography mt={2} fontSize="small" align="center" color="textSecondary">
+        Note: We will be attaching extra 5% ETH for selling auction, which will returned if not used
+      </Typography>
     </>
   )
 })
