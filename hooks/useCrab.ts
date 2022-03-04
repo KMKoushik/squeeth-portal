@@ -112,7 +112,7 @@ const useCrab = () => {
 
   const getAuctionDetailsOffChain = React.useCallback(
     async (auctionTriggerTime: number) => {
-      const currentOSqueethPrice = await oracleContract.getTwap(SQUEETH_UNI_POOL, OSQUEETH, WETH, 1, true)
+      const currentOSqueethPrice = await oracleContract.getTwap(SQUEETH_UNI_POOL, OSQUEETH, WETH, 420, true)
       // todo: Include FEE rate from the controller
 
       const { collateralAmount: ethDelta, shortAmount: debt } = await controller.vaults(vaultId)
