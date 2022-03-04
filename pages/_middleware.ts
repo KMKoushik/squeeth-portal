@@ -4,7 +4,7 @@ const BLOCKED_COUNTRIES = ['US', 'BY', 'CU', 'IR', 'IQ', 'CI', 'LR', 'KP', 'SD',
 const ALLOWED_URLS = RegExp('(/images|/favicon.ico|/font)')
 
 export function middleware(req: NextRequest) {
-  const country = req?.geo?.country || 'US'
+  const country = req?.geo?.country
   const response = NextResponse.next()
   console.log(req.url)
   const path = req.url

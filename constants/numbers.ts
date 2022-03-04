@@ -11,3 +11,5 @@ export const FUNDING_PERIOD = 17.5
 export const CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID || 1)
 
 export const MAX_UINT = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+
+export const AUCTION_TIME = 1200

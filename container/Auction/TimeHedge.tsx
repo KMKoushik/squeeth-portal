@@ -139,6 +139,7 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
         .div(100)
         .mul(isSelling ? 1 : -1),
     )
+    console.log(isAuctionLive)
     setLimitPrice(formatUnits(_safeAuctionPrice))
     const potentialOsqth = isAuctionLive ? oSqthAmount.mul(105).div(100) : oSqthAmount
     const ethToAttach = isSelling ? wmul(potentialOsqth, _safeAuctionPrice) : BIG_ZERO
@@ -156,7 +157,7 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
     )
     setTxLoading(true)
     try {
-      const tx = await crabContract.timeHedge(isSelling, _safeAuctionPrice, { value: ethToAttach })
+      const tx = await crabContract.timeHedge(isSelling, _safeAuctionPrice, { value: ethToAttach, gasLimit: 407595 })
       await tx.wait()
     } catch (e) {
       console.log(e)

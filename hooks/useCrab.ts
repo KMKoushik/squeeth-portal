@@ -8,9 +8,8 @@ import { useContract, useProvider, useSigner } from 'wagmi'
 import useOracle from './useOracle'
 import { BigNumber } from 'ethers'
 import { divideWithPrecision, getCurrentSeconds, wdiv, wmul } from '../utils/math'
-import { BIG_ONE } from '../constants/numbers'
+import { AUCTION_TIME, BIG_ONE } from '../constants/numbers'
 
-const AUCTION_TIME = 1200
 const MAX_PRICE_MULTIPLIER = BigNumber.from('1050000000000000000')
 const MIN_PRICE_MULTIPLIER = BigNumber.from('950000000000000000')
 
@@ -154,6 +153,25 @@ const useCrab = () => {
     return wmul(oSqthPrice, priceMultiplier)
   }
 
+  const getMinAndMaxPrice = React.useCallback((oSqthPrice: BigNumber, isSelling: boolean) => {
+    const upperPrice = wmul(
+      MAX_PRICE_MULTIPLIER.sub(wmul(BIG_ONE, MAX_PRICE_MULTIPLIER.sub(MIN_PRICE_MULTIPLIER))),
+      oSqthPrice,
+    )
+    const lowerPrice = wmul(
+      MIN_PRICE_MULTIPLIER.add(wmul(BIG_ONE, MAX_PRICE_MULTIPLIER.sub(MIN_PRICE_MULTIPLIER))),
+      oSqthPrice,
+    )
+
+    const minPrice = isSelling ? lowerPrice : upperPrice
+    const maxPrice = isSelling ? upperPrice : lowerPrice
+
+    return {
+      minPrice,
+      maxPrice,
+    }
+  }, [])
+
   React.useEffect(() => {
     if (!crabLoaded && !loading) updateCrabData()
   }, [crabLoaded, updateCrabData, loading])
@@ -179,6 +197,7 @@ const useCrab = () => {
     crabLoaded,
     updateCrabData,
     getAuctionDetailsOffChain,
+    getMinAndMaxPrice,
   }
 }
 
