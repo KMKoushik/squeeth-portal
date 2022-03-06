@@ -7,11 +7,11 @@ import controllerAbi from '../abis/controller.json'
 import { useContract, useProvider, useSigner } from 'wagmi'
 import useOracle from './useOracle'
 import { BigNumber } from 'ethers'
-import { divideWithPrecision, getCurrentSeconds, wdiv, wmul } from '../utils/math'
+import { getCurrentSeconds, wdiv, wmul } from '../utils/math'
 import { AUCTION_TIME, BIG_ONE } from '../constants/numbers'
 
-const MAX_PRICE_MULTIPLIER = BigNumber.from('1050000000000000000')
-const MIN_PRICE_MULTIPLIER = BigNumber.from('950000000000000000')
+const MAX_PRICE_MULTIPLIER = BigNumber.from('1050000000000000000') // 1.05 - Need to be taken from contract in future
+const MIN_PRICE_MULTIPLIER = BigNumber.from('950000000000000000') // .95 - Need to be taken from contract in future
 
 const useCrab = () => {
   const [{ data: signer }] = useSigner()
@@ -110,6 +110,10 @@ const useCrab = () => {
     [deltaHedgeThreshold],
   )
 
+  /**
+   * This function uses the same code as crab contract to get auction details without even calling the view function
+   * Reason behind this is view function uses the old block's timestamp for calculation and does not give accurate values.
+   */
   const getAuctionDetailsOffChain = React.useCallback(
     async (auctionTriggerTime: number) => {
       const currentOSqueethPrice = await oracleContract.getTwap(SQUEETH_UNI_POOL, OSQUEETH, WETH, 420, true)
