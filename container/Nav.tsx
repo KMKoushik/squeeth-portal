@@ -1,7 +1,8 @@
-import { AppBar, Box, Modal, Toolbar, Typography, useMediaQuery, useTheme } from '@mui/material'
+import { AppBar, Box, IconButton, Modal, Toolbar, Typography, useMediaQuery, useTheme } from '@mui/material'
 import * as React from 'react'
 import { useAccount } from 'wagmi'
 import Davatar from '@davatar/react'
+import GitHubIcon from '@mui/icons-material/GitHub'
 import ConnectWallet from './ConnectWallet'
 import PrimaryButton from '../components/button/PrimaryButton'
 import OutlinedPrimaryButton from '../components/button/OutlinePrimaryButton'
@@ -41,27 +42,34 @@ export const Nav: React.FC = React.memo(function Nav() {
           >
             {matches ? 'Squeeth' : 'Squeeth Portal'}
           </Typography>
-          {accountData ? (
-            <OutlinedPrimaryButton
-              color="primary"
-              variant="outlined"
-              sx={{ width: 200 }}
-              onClick={disconnect}
-              startIcon={
-                <Davatar
-                  size={18}
-                  address={accountData.address}
-                  generatedAvatarType="jazzicon" // optional, 'jazzicon' or 'blockies'
-                />
-              }
-            >
-              <Typography sx={{ ml: 1, fontSize: '1em' }}>{shortName}</Typography>
-            </OutlinedPrimaryButton>
-          ) : (
-            <PrimaryButton color="primary" variant="contained" onClick={() => setOpenModal(true)}>
-              Connect wallet
-            </PrimaryButton>
-          )}
+          <Box display="flex" alignItems="center">
+            <IconButton href="https://github.com/KMKoushik/squeeth-portal" target="_blank">
+              <GitHubIcon color="primary" />
+            </IconButton>
+            <Box ml={2}>
+              {accountData ? (
+                <OutlinedPrimaryButton
+                  color="primary"
+                  variant="outlined"
+                  sx={{ width: 200 }}
+                  onClick={disconnect}
+                  startIcon={
+                    <Davatar
+                      size={18}
+                      address={accountData.address}
+                      generatedAvatarType="jazzicon" // optional, 'jazzicon' or 'blockies'
+                    />
+                  }
+                >
+                  <Typography sx={{ ml: 1, fontSize: '1em' }}>{shortName}</Typography>
+                </OutlinedPrimaryButton>
+              ) : (
+                <PrimaryButton color="primary" variant="contained" onClick={() => setOpenModal(true)}>
+                  Connect wallet
+                </PrimaryButton>
+              )}
+            </Box>
+          </Box>
         </Toolbar>
       </AppBar>
       <Modal
