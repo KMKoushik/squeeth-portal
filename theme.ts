@@ -33,7 +33,6 @@ const darkTheme = createTheme({
     body2: {
       fontFamily: ['Space Mono'].join(','),
     },
-
     numeric: {
       fontFamily: ['Space Mono', 'Michroma', 'Roboto'].join(','),
     },

@@ -4,13 +4,13 @@ import shallow from 'zustand/shallow'
 import useControllerStore from '../../store/controllerStore'
 import useCrabStore from '../../store/crabStore'
 import usePriceStore from '../../store/priceStore'
-import { convertBigNumber, formatBigNumber, calculateIV, formatNumber } from '../../utils/math'
+import { convertBigNumber, formatBigNumber, calculateIV, formatNumber, wdiv } from '../../utils/math'
 import { bnComparator } from '../../utils'
 import TimeHedge from './TimeHedge'
 import useController from '../../hooks/useController'
 import useCrab from '../../hooks/useCrab'
 import Countdown, { CountdownRendererFn } from 'react-countdown'
-import { AUCTION_TIME } from '../../constants/numbers'
+import { AUCTION_TIME, BIG_ONE } from '../../constants/numbers'
 
 type AuctionItemProps = {
   title: string
@@ -91,6 +91,10 @@ const LiveAuction = React.memo(function LiveAuction() {
     })
   }, [auctionTriggerTime, getAuctionDetailsOffChain, setAuctionDetails])
 
+  const aucPriceVsUniPrice = React.useMemo(() => {
+    return Number(formatBigNumber(wdiv(auctionDetails.auctionPrice, osqthPrice).sub(BIG_ONE).mul(100), 18, 6))
+  }, [auctionDetails.auctionPrice, osqthPrice])
+
   return (
     <Box sx={{ height: '100%' }} bgcolor="background.surface" borderRadius={2} py={2} px={4}>
       <Grid container spacing={4}>
@@ -102,7 +106,7 @@ const LiveAuction = React.memo(function LiveAuction() {
             title="Start / End Price :"
             value={`${formatBigNumber(minPrice, 18, 6)} / ${formatBigNumber(maxPrice, 18, 6)}`}
           />
-          <AuctionItem title="Current Price :" value={`${formatBigNumber(auctionDetails.auctionPrice, 18, 6)} ETH`} />
+          <AuctionItem title="Auction Price :" value={`${formatBigNumber(auctionDetails.auctionPrice, 18, 6)} ETH`} />
           <AuctionItem title="oSQTH Amount :" value={`${formatBigNumber(auctionDetails.oSqthAmount, 18, 6)}`} />
           <AuctionItem title="ETH Value :" value={`${formatBigNumber(auctionDetails.ethProceeds, 18, 6)}`} />
           <AuctionItem title="Implied vol :" value={`${(iv || 0).toFixed(2)} %`} />
@@ -110,6 +114,10 @@ const LiveAuction = React.memo(function LiveAuction() {
             title="Auction ends in :"
             value={<Countdown date={(auctionTriggerTime + AUCTION_TIME) * 1000} renderer={renderer} />}
           />
+          <Typography variant="body2" mt={2} fontSize={16}>
+            Auction price is {Math.abs(aucPriceVsUniPrice).toFixed(4)}% {aucPriceVsUniPrice > 0 ? 'Higher' : 'Lower'}{' '}
+            than uniswap price{' '}
+          </Typography>
         </Grid>
         <Grid item xs={12} md={6}>
           <TimeHedge />
