@@ -1,6 +1,7 @@
 import '../styles/globals.css'
 import * as React from 'react'
 import { AppProps } from 'next/app'
+import Head from 'next/head'
 import { Provider, chain, defaultChains } from 'wagmi'
 import { InjectedConnector } from 'wagmi/connectors/injected'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
@@ -68,14 +69,22 @@ const InitializePrice = React.memo(function InitializePrice() {
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <Provider autoConnect connectors={connectors} provider={provider}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <InitializePrice />
-        <Component {...pageProps} />
-        <CatLoader />
-      </ThemeProvider>
-    </Provider>
+    <>
+      <Head>
+        <title>Squeeth Portal</title>
+        <meta property="og:title" content="Squeeth Portal" />
+        <meta property="og:description" content="A single place for your squeeth" />
+        <meta property="og:image" content="https://i.ibb.co/zRcf8YC/space-cat.jpg" />
+      </Head>
+      <Provider autoConnect connectors={connectors} provider={provider}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <InitializePrice />
+          <Component {...pageProps} />
+          <CatLoader />
+        </ThemeProvider>
+      </Provider>
+    </>
   )
 }
 

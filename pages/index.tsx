@@ -28,6 +28,9 @@ const Home: NextPage = () => {
     <div>
       <Head>
         <title>Squeeth Portal</title>
+        <meta property="og:title" content="Squeeth Portal" />
+        <meta property="og:description" content="A single place for your squeeth" />
+        <meta property="og:image" content="https://i.ibb.co/zRcf8YC/space-cat.jpg" />
       </Head>
       <Nav />
       <Box flexGrow={1} px={4} pt={4}>
