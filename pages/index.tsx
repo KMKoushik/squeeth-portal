@@ -9,6 +9,7 @@ import SqueethInfo from '../container/SqueethInfo'
 import AuctionCard from '../components/squeethInfoActionCards/AuctionCard'
 import TradeCard from '../components/squeethInfoActionCards/TradeCard'
 import VaultsCard from '../components/squeethInfoActionCards/VaultsCard'
+import SqueethProjects from '../container/SqueethProjects'
 
 const initialAnimation = {
   visible: (i: number) => ({
@@ -56,7 +57,7 @@ const Home: NextPage = () => {
                       Trade
                     </Typography>
                     <Box mx="auto">
-                      <Image src="/images/uniswap-logo.svg" alt="Picture of uniswap log" height={64} width={64} />
+                      <Image src="/images/uniswap-logo.svg" alt="Picture of uniswap logo" height={64} width={64} />
                     </Box>
                     <Typography align="center" mt={4} color="textSecondary">
                       Trade oSQTH / ETH on uniswap.
@@ -113,6 +114,7 @@ const Home: NextPage = () => {
           <Grid item xs={0} md={0} lg={2} />
         </Grid>
       </Box>
+      <SqueethProjects />
     </div>
   )
 }
