@@ -72,9 +72,22 @@ function MyApp({ Component, pageProps }: AppProps) {
     <>
       <Head>
         <title>Squeeth Portal</title>
+
+        <meta name="theme-color" content="#1AE8FF" />
+        <meta name="title" content="Squeeth Portal" />
+        <meta name="description" content="A single place for your squeeth" />
+
+        <meta property="og:type" content="website" />
         <meta property="og:title" content="Squeeth Portal" />
         <meta property="og:description" content="A single place for your squeeth" />
-        <meta property="og:image" content="https://i.ibb.co/zRcf8YC/space-cat.jpg" />
+        <meta property="og:image" content="https://i.ibb.co/Yc4pfKD/og-image.png" />
+        <meta property="og:url" content="https://www.squeethportal.xyz/" />
+
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://www.squeethportal.xyz/" />
+        <meta property="twitter:title" content="Squeeth Portal" />
+        <meta property="twitter:description" content="A single place for your squeeth" />
+        <meta property="twitter:image" content="https://i.ibb.co/Yc4pfKD/og-image.png" />
       </Head>
       <Provider autoConnect connectors={connectors} provider={provider}>
         <ThemeProvider theme={theme}>
