@@ -10,6 +10,8 @@ import AuctionCard from '../components/squeethInfoActionCards/AuctionCard'
 import TradeCard from '../components/squeethInfoActionCards/TradeCard'
 import VaultsCard from '../components/squeethInfoActionCards/VaultsCard'
 import SqueethProjects from '../container/SqueethProjects'
+import React from 'react'
+import { Pages } from '../constants/analytics'
 
 const initialAnimation = {
   visible: (i: number) => ({
@@ -25,6 +27,12 @@ const initialAnimation = {
 }
 
 const Home: NextPage = () => {
+  React.useEffect(() => {
+    fetch(`/api/views/${Pages.home}`, {
+      method: 'POST',
+    })
+  }, [])
+
   return (
     <div>
       <Head>

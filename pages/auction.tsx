@@ -17,10 +17,18 @@ import { useBlockNumber, useNetwork, useProvider } from 'wagmi'
 import LiveAuction from '../container/Auction/LiveAuction'
 import NoAuction from '../container/Auction/NoAuction'
 import useCatLoaderStore from '../store/catLoaderStore'
+import { Pages } from '../constants/analytics'
 
 const Auction: NextPage = () => {
   const { crabLoaded } = useCrab()
   const setLoading = useCatLoaderStore(s => s.setOpen)
+
+  React.useEffect(() => {
+    fetch(`/api/views/${Pages.auction}`, {
+      method: 'POST',
+    })
+  }, [])
+
   !crabLoaded ? setLoading(true) : setLoading(false)
 
   return (
