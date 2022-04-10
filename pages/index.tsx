@@ -60,17 +60,19 @@ const Home: NextPage = () => {
                   variants={initialAnimation}
                   custom={0}
                 >
-                  <TradeCard>
-                    <Typography textAlign="center" variant="h5" mb={4}>
-                      Trade
-                    </Typography>
-                    <Box mx="auto">
-                      <Image src="/images/uniswap-logo.svg" alt="Picture of uniswap logo" height={64} width={64} />
-                    </Box>
-                    <Typography align="center" mt={4} color="textSecondary">
-                      Trade oSQTH / ETH on uniswap.
-                    </Typography>
-                  </TradeCard>
+                  <Link href="/trade" passHref>
+                    <TradeCard>
+                      <Typography textAlign="center" variant="h5" mb={4}>
+                        Trade
+                      </Typography>
+                      <Box mx="auto">
+                        <Image src="/images/uniswap-logo.svg" alt="Picture of uniswap logo" height={64} width={64} />
+                      </Box>
+                      <Typography align="center" mt={4} color="textSecondary">
+                        Trade oSQTH / ETH on uniswap.
+                      </Typography>
+                    </TradeCard>
+                  </Link>
                 </motion.div>
               </Grid>
               <Grid item xs={12} md={4}>
