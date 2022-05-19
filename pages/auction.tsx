@@ -6,9 +6,9 @@ import * as React from 'react'
 import { formatDistance, format } from 'date-fns'
 import { Nav } from '../container/Nav'
 import PageGrid from '../container/PageGrid'
-import useCrab from '../hooks/useCrab'
+import useCrab, { getSqthEthTarget } from '../hooks/useCrab'
 import useCrabStore from '../store/crabStore'
-import { divideWithPrecision, formatBigNumber, parseUnits } from '../utils/math'
+import { divideWithPrecision, formatBigNumber, parseUnits, wdiv, wmul } from '../utils/math'
 import useOracle from '../hooks/useOracle'
 import { OSQUEETH, SQUEETH_UNI_POOL, WETH } from '../constants/address'
 import { BIG_ONE, BIG_ZERO } from '../constants/numbers'
@@ -52,13 +52,14 @@ const Auction: NextPage = () => {
 
 const CrabAuction = React.memo(function CrabAuction() {
   const oracle = useOracle()
-  const { crabContract } = useCrab()
+  const { crabContract, getMinAndMaxPrice } = useCrab()
   const timeAtLastHedge = useCrabStore(s => s.timeAtLastHedge)
   const priceAtLastHedge = useCrabStore(s => s.priceAtLastHedge, bnComparator)
   const timeHedgeThreshold = useCrabStore(s => s.hedgeTimeThreshold)
   const priceHedgeThreshold = useCrabStore(s => s.hedgePriceThreshold, bnComparator)
   const isTimeHedgeAvailable = useCrabStore(s => s.isTimeHedgeAvailable)
   const triggerTime = useCrabStore(s => s.auctionTriggerTime)
+  const vault = useCrabStore(s => s.vault)
 
   const [priceDeviation, setPriceDeviation] = React.useState(0)
   const [squeethPrice, setSqueethPrice] = React.useState(BIG_ZERO)
@@ -72,12 +73,72 @@ const CrabAuction = React.memo(function CrabAuction() {
     })
   }, [oracle, priceAtLastHedge])
 
-  React.useEffect(() => {
+  const reloadContractData = React.useCallback(() => {
     crabContract
       .getAuctionDetails(triggerTime)
       .then(d => setIsContractGivingResult(!d[4]))
       .catch(console.log)
   }, [crabContract, triggerTime])
+
+  React.useEffect(() => {
+    reloadContractData()
+  }, [reloadContractData])
+
+  const priceAuctionStart = React.useMemo(() => {
+    return squeethPrice.add(squeethPrice.mul(priceHedgeThreshold).div(BIG_ONE))
+  }, [squeethPrice, priceHedgeThreshold])
+
+  const priceAuctionEnd = React.useMemo(() => {
+    return squeethPrice.sub(squeethPrice.mul(priceHedgeThreshold).div(BIG_ONE))
+  }, [squeethPrice, priceHedgeThreshold])
+
+  const { minPrice, maxPrice } = React.useMemo(() => {
+    if (!vault) return { minPrice: BIG_ZERO, maxPrice: BIG_ZERO }
+    const sqthEthDelta = wmul(vault.shortAmount, squeethPrice).mul(2)
+
+    return getMinAndMaxPrice(squeethPrice, !sqthEthDelta.gt(vault.collateralAmount))
+  }, [getMinAndMaxPrice, squeethPrice, vault])
+
+  const { start, end, isSellingAuction } = React.useMemo(() => {
+    if (!vault || squeethPrice.isZero())
+      return {
+        start: { ethAmount: BIG_ZERO, oSqthAmount: BIG_ZERO },
+        end: { ethAmount: BIG_ZERO, oSqthAmount: BIG_ZERO },
+        isSellingAuction: false,
+      }
+
+    console.log(minPrice.toString(), maxPrice.toString())
+
+    const { oSqthAmount: defaultSqth, ethAmount: defaultEth } = getSqthEthTarget(
+      vault.shortAmount,
+      vault.collateralAmount,
+      squeethPrice,
+    )
+
+    const { oSqthAmount: startLikelySqthTrade, ethAmount: startLikelyEthTrade } = getSqthEthTarget(
+      vault.shortAmount,
+      vault.collateralAmount,
+      minPrice,
+    )
+
+    const {
+      oSqthAmount: endLikelySqthTrade,
+      ethAmount: endLikelyEthTrade,
+      isSellingAuction,
+    } = getSqthEthTarget(vault.shortAmount, vault.collateralAmount, maxPrice)
+
+    return {
+      start: {
+        ethAmount: startLikelyEthTrade.isZero() ? defaultEth : startLikelyEthTrade,
+        oSqthAmount: startLikelySqthTrade.isZero() ? defaultSqth : startLikelySqthTrade,
+      },
+      end: {
+        ethAmount: endLikelyEthTrade.isZero() ? defaultEth : endLikelyEthTrade,
+        oSqthAmount: endLikelySqthTrade.isZero() ? defaultSqth : endLikelySqthTrade,
+      },
+      isSellingAuction,
+    }
+  }, [maxPrice, minPrice, squeethPrice, vault])
 
   return (
     <PageGrid>
@@ -120,17 +181,31 @@ const CrabAuction = React.memo(function CrabAuction() {
               {' '}
               price to trigger Price auction:
               <Typography variant="numeric">
-                {' ' +
-                  formatBigNumber(squeethPrice.add(squeethPrice.mul(priceHedgeThreshold).div(BIG_ONE)), 18, 6) +
-                  '/' +
-                  formatBigNumber(squeethPrice.sub(squeethPrice.mul(priceHedgeThreshold).div(BIG_ONE)), 18, 6)}
+                {' ' + formatBigNumber(priceAuctionStart, 18, 6) + '/' + formatBigNumber(priceAuctionEnd, 18, 6)}
               </Typography>
+            </Typography>
+            <Typography mt={2}>
+              Strategy will {isSellingAuction ? 'Sell' : 'Buy'}
+              <Typography variant="numeric" component="span" fontWeight={600}>
+                &nbsp;{formatBigNumber(start.oSqthAmount, 18, 0)}-
+              </Typography>
+              <Typography variant="numeric" component="span" fontWeight={600}>
+                {formatBigNumber(end.oSqthAmount, 18, 0)}&nbsp;
+              </Typography>
+              oSQTH for
+              <Typography variant="numeric" component="span" fontWeight={600}>
+                &nbsp;{formatBigNumber(start.ethAmount, 18, 0)}
+              </Typography>
+              <Typography variant="numeric" component="span" fontWeight={600}>
+                -{formatBigNumber(end.ethAmount, 18, 0)}
+              </Typography>
+              &nbsp;ETH
             </Typography>
           </Box>
         </Grid>
         <Grid item xs={12} md={12}>
-          {isTimeHedgeAvailable && isContractGivingResult ? (
-            <LiveAuction />
+          {isTimeHedgeAvailable ? (
+            <LiveAuction isContractGivingResult={isContractGivingResult} reload={reloadContractData} />
           ) : (
             <NoAuction time={(timeAtLastHedge + timeHedgeThreshold) * 1000} />
           )}
