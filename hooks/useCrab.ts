@@ -97,7 +97,7 @@ const useCrab = () => {
     setPriceAtLastHedge(_price)
     setHedgePriceThreshold(_priceThreshold)
     setHedgeTimeThreshold(_timeThreshold.toNumber())
-    setIsTimeHedgeAvailable(_isTimeHedge)
+    setIsTimeHedgeAvailable((_time.toNumber() + _timeThreshold.toNumber()) * 1000 < Date.now())
     setVaultId(_vaultId.toNumber())
     setDeltaHedgeThreshold(_deltaThreshold)
     setAuctionTriggerTime(_aucTime.toNumber())

@@ -8,12 +8,11 @@ import { Nav } from '../container/Nav'
 import PageGrid from '../container/PageGrid'
 import useCrab, { getSqthEthTarget } from '../hooks/useCrab'
 import useCrabStore from '../store/crabStore'
-import { divideWithPrecision, formatBigNumber, parseUnits, wdiv, wmul } from '../utils/math'
+import { divideWithPrecision, formatBigNumber, wmul } from '../utils/math'
 import useOracle from '../hooks/useOracle'
 import { OSQUEETH, SQUEETH_UNI_POOL, WETH } from '../constants/address'
 import { BIG_ONE, BIG_ZERO } from '../constants/numbers'
 import { bnComparator } from '../utils'
-import { useBlockNumber, useNetwork, useProvider } from 'wagmi'
 import LiveAuction from '../container/Auction/LiveAuction'
 import NoAuction from '../container/Auction/NoAuction'
 import useCatLoaderStore from '../store/catLoaderStore'
@@ -99,27 +98,26 @@ const CrabAuction = React.memo(function CrabAuction() {
     return getMinAndMaxPrice(squeethPrice, !sqthEthDelta.gt(vault.collateralAmount))
   }, [getMinAndMaxPrice, squeethPrice, vault])
 
-  const { start, end, isSellingAuction } = React.useMemo(() => {
+  const { start, end, mid, isSellingAuction } = React.useMemo(() => {
     if (!vault || squeethPrice.isZero())
       return {
         start: { ethAmount: BIG_ZERO, oSqthAmount: BIG_ZERO },
         end: { ethAmount: BIG_ZERO, oSqthAmount: BIG_ZERO },
+        mid: { ethAmount: BIG_ZERO, oSqthAmount: BIG_ZERO },
         isSellingAuction: false,
       }
 
-    console.log(minPrice.toString(), maxPrice.toString())
+    const {
+      oSqthAmount: defaultSqth,
+      ethAmount: defaultEth,
+      isSellingAuction: isSellingMid,
+    } = getSqthEthTarget(vault.shortAmount, vault.collateralAmount, squeethPrice)
 
-    const { oSqthAmount: defaultSqth, ethAmount: defaultEth } = getSqthEthTarget(
-      vault.shortAmount,
-      vault.collateralAmount,
-      squeethPrice,
-    )
-
-    const { oSqthAmount: startLikelySqthTrade, ethAmount: startLikelyEthTrade } = getSqthEthTarget(
-      vault.shortAmount,
-      vault.collateralAmount,
-      minPrice,
-    )
+    const {
+      oSqthAmount: startLikelySqthTrade,
+      ethAmount: startLikelyEthTrade,
+      isSellingAuction: isSellingMin,
+    } = getSqthEthTarget(vault.shortAmount, vault.collateralAmount, minPrice)
 
     const {
       oSqthAmount: endLikelySqthTrade,
@@ -129,12 +127,16 @@ const CrabAuction = React.memo(function CrabAuction() {
 
     return {
       start: {
-        ethAmount: startLikelyEthTrade.isZero() ? defaultEth : startLikelyEthTrade,
-        oSqthAmount: startLikelySqthTrade.isZero() ? defaultSqth : startLikelySqthTrade,
+        ethAmount: startLikelyEthTrade.isZero() || isSellingMin != isSellingMid ? defaultEth : startLikelyEthTrade,
+        oSqthAmount: startLikelySqthTrade.isZero() || isSellingMin != isSellingMid ? defaultSqth : startLikelySqthTrade,
       },
       end: {
         ethAmount: endLikelyEthTrade.isZero() ? defaultEth : endLikelyEthTrade,
         oSqthAmount: endLikelySqthTrade.isZero() ? defaultSqth : endLikelySqthTrade,
+      },
+      mid: {
+        ethAmount: defaultEth,
+        oSqthAmount: defaultSqth,
       },
       isSellingAuction,
     }
@@ -165,41 +167,55 @@ const CrabAuction = React.memo(function CrabAuction() {
             <Typography textAlign="center" variant="h6" mb={2}>
               Upcoming auction
             </Typography>
-            <Typography>
+            <Typography color="textSecondary">
               Next auction time:
-              <Typography variant="numeric" component="span">
+              <Typography variant="numeric" component="span" color="textPrimary">
                 {' ' + format((timeAtLastHedge + timeHedgeThreshold) * 1000, 'dd-MMM-yyy hh:mm aa')}
               </Typography>
             </Typography>
-            <Typography>
+            <Typography color="textSecondary">
               Current oSQTH price:
-              <Typography variant="numeric" component="span">
+              <Typography variant="numeric" component="span" color="textPrimary">
                 {' ' + formatBigNumber(squeethPrice, 18, 6)} ({priceDeviation}%)
               </Typography>
             </Typography>
-            <Typography>
+            <Typography color="textSecondary">
               {' '}
               price to trigger Price auction:
-              <Typography variant="numeric">
+              <Typography variant="numeric" color="textPrimary">
                 {' ' + formatBigNumber(priceAuctionStart, 18, 6) + '/' + formatBigNumber(priceAuctionEnd, 18, 6)}
               </Typography>
             </Typography>
-            <Typography mt={2}>
+            <Typography mt={2} fontWeight={600}>
+              Estimates
+            </Typography>
+            <Typography color="textSecondary">
               Strategy will {isSellingAuction ? 'Sell' : 'Buy'}
-              <Typography variant="numeric" component="span" fontWeight={600}>
+              <Typography variant="numeric" component="span" fontWeight={600} color="textPrimary">
                 &nbsp;{formatBigNumber(start.oSqthAmount, 18, 0)}-
               </Typography>
-              <Typography variant="numeric" component="span" fontWeight={600}>
+              <Typography variant="numeric" component="span" fontWeight={600} color="textPrimary">
                 {formatBigNumber(end.oSqthAmount, 18, 0)}&nbsp;
               </Typography>
               oSQTH for
-              <Typography variant="numeric" component="span" fontWeight={600}>
+              <Typography variant="numeric" component="span" fontWeight={600} color="textPrimary">
                 &nbsp;{formatBigNumber(start.ethAmount, 18, 0)}
               </Typography>
-              <Typography variant="numeric" component="span" fontWeight={600}>
+              <Typography variant="numeric" component="span" fontWeight={600} color="textPrimary">
                 -{formatBigNumber(end.ethAmount, 18, 0)}
               </Typography>
               &nbsp;ETH
+            </Typography>
+            <Typography color="textSecondary">
+              Strategy needs to {isSellingAuction ? 'Sell' : 'Buy'}
+              <Typography variant="numeric" component="span" fontWeight={600} color="textPrimary">
+                &nbsp;{formatBigNumber(mid.oSqthAmount, 18, 0)}&nbsp;
+              </Typography>
+              oSQTH for
+              <Typography variant="numeric" component="span" fontWeight={600} color="textPrimary">
+                &nbsp;{formatBigNumber(mid.ethAmount, 18, 0)}&nbsp;
+              </Typography>
+              ETH to rebalance
             </Typography>
           </Box>
         </Grid>
