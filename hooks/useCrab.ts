@@ -13,6 +13,32 @@ import { AUCTION_TIME, BIG_ONE } from '../constants/numbers'
 const MAX_PRICE_MULTIPLIER = BigNumber.from('1050000000000000000') // 1.05 - Need to be taken from contract in future
 const MIN_PRICE_MULTIPLIER = BigNumber.from('950000000000000000') // .95 - Need to be taken from contract in future
 
+export const getSqthEthTarget = (debt: BigNumber, ethDelta: BigNumber, sqthPrice: BigNumber) => {
+  const oSqthDelta = wmul(wmul(debt, BigNumber.from(BIG_ONE).mul(2)), sqthPrice)
+
+  const getAuctionTypeAndTargetHedge = () => {
+    if (oSqthDelta.gt(ethDelta)) {
+      return { isSellingAuction: false, target: wdiv(oSqthDelta.sub(ethDelta), sqthPrice) }
+    }
+    return { isSellingAuction: true, target: wdiv(ethDelta.sub(oSqthDelta), sqthPrice) }
+  }
+
+  const { isSellingAuction, target } = getAuctionTypeAndTargetHedge()
+  const ethProceeds = wmul(target, sqthPrice)
+  console.log(
+    ethProceeds.toString(),
+    target.toString(),
+    sqthPrice.toString(),
+    oSqthDelta.toString(),
+    'Is Selling',
+    !oSqthDelta.gt(ethDelta),
+    ethDelta.toString(),
+    oSqthDelta.sub(ethDelta).toString(),
+  )
+
+  return { isSellingAuction, oSqthAmount: target, ethAmount: ethProceeds }
+}
+
 const useCrab = () => {
   const [{ data: signer }] = useSigner()
   const provider = useProvider()
@@ -32,6 +58,7 @@ const useCrab = () => {
     setAuctionTriggerTime,
     setAuctionDetails,
     setDeltaHedgeThreshold,
+    setCrabVault,
   } = useCrabStore()
 
   const [loading, setLoading] = React.useState(false)
@@ -63,21 +90,25 @@ const useCrab = () => {
     console.log('Update auction data')
     const [_time, _price, _timeThreshold, _priceThreshold, [_isTimeHedge, _aucTime], _deltaThreshold, _vaultId] =
       await Promise.all([p1, p2, p3, p4, p5, p6, p7])
-    console.log(_deltaThreshold.toString())
+
+    const { operator, shortAmount, collateralAmount } = await controller.vaults(_vaultId)
+    setCrabVault({ operator, shortAmount, collateralAmount })
     setTimeAtLastHedge(_time.toNumber())
     setPriceAtLastHedge(_price)
     setHedgePriceThreshold(_priceThreshold)
     setHedgeTimeThreshold(_timeThreshold.toNumber())
-    setIsTimeHedgeAvailable(_isTimeHedge)
+    setIsTimeHedgeAvailable((_time.toNumber() + _timeThreshold.toNumber()) * 1000 < Date.now())
     setVaultId(_vaultId.toNumber())
     setDeltaHedgeThreshold(_deltaThreshold)
     setAuctionTriggerTime(_aucTime.toNumber())
     setLoaded(true)
     setLoading(false)
   }, [
+    controller,
     crabContract,
     crabLoaded,
     setAuctionTriggerTime,
+    setCrabVault,
     setDeltaHedgeThreshold,
     setHedgePriceThreshold,
     setHedgeTimeThreshold,
@@ -202,6 +233,7 @@ const useCrab = () => {
     updateCrabData,
     getAuctionDetailsOffChain,
     getMinAndMaxPrice,
+    checkAuctionTypeOffChain,
   }
 }
 

@@ -158,8 +158,15 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
     )
     setTxLoading(true)
     try {
-      const tx = await crabContract.timeHedge(isSelling, _safeAuctionPrice, { value: ethToAttach })
-      await tx.wait() 
+      const estimatedGas = await crabContract.estimateGas.timeHedge(isSelling, _safeAuctionPrice, {
+        value: ethToAttach,
+      })
+      const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
+      const tx = await crabContract.timeHedge(isSelling, _safeAuctionPrice, {
+        value: ethToAttach,
+        gasLimit: estimatedGasCeil,
+      })
+      await tx.wait()
       fetch(`/api/actions/${Activity.succussfullAuction}`, {
         method: 'POST',
       })
