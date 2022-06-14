@@ -10,8 +10,8 @@ import { BigNumber } from 'ethers'
 import { getCurrentSeconds, wdiv, wmul } from '../utils/math'
 import { AUCTION_TIME, BIG_ONE } from '../constants/numbers'
 
-const MAX_PRICE_MULTIPLIER = BigNumber.from('1050000000000000000') // 1.05 - Need to be taken from contract in future
-const MIN_PRICE_MULTIPLIER = BigNumber.from('950000000000000000') // .95 - Need to be taken from contract in future
+const MAX_PRICE_MULTIPLIER = BigNumber.from('1025000000000000000') // 1.05 - Need to be taken from contract in future
+const MIN_PRICE_MULTIPLIER = BigNumber.from('975000000000000000') // .95 - Need to be taken from contract in future
 
 export const getSqthEthTarget = (debt: BigNumber, ethDelta: BigNumber, sqthPrice: BigNumber) => {
   const oSqthDelta = wmul(wmul(debt, BigNumber.from(BIG_ONE).mul(2)), sqthPrice)
