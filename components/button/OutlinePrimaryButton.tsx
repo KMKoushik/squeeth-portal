@@ -5,7 +5,7 @@ const OutlinedPrimaryButton = styled(Button)(({ theme }) => ({
   border: `1px solid ${theme.palette.primary.main}`,
   color: theme.palette.primary.main,
   boxShadow: 'none',
-  borderRadius: 30,
+  borderRadius: 8,
   width: 200,
 }))
 

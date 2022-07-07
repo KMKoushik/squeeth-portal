@@ -1,3 +1,5 @@
+import { BigNumber } from 'ethers'
+
 declare module '@mui/material/styles/createPalette' {
   interface TypeBackground {
     base?: string
@@ -13,3 +15,45 @@ export enum HedgeType {
   TIME_HEDGE_ON_UNISWAP,
   PRICE_HEDGE_ON_UNISWAP,
 }
+
+export type Order = {
+  bidId: number
+  trader: string
+  quantity: string
+  price: string
+  isBuying: boolean
+  expiry: number
+  nonce: number
+}
+
+export type Bid = {
+  order: Order
+  signature: string
+  r: string
+  s: string
+  v: number
+  bidder: string
+}
+
+export type Auction = {
+  currentAuctionId: number
+  nextAuctionId: number
+  oSqthAmount: string
+  minPrice: string
+  auctionEnd: number
+  isSelling: boolean
+  tx?: string
+  bids: { [k: string]: Bid }
+  winningBids: Array<string>
+  clearingPrice: string
+}
+
+export enum BidStatus {
+  INCLUDED = 1,
+  PARTIALLY_FILLED,
+  ALREADY_FILLED,
+  NO_BALANCE,
+  NO_APPROVAL,
+}
+
+export type BigNumMap = { [key: string]: BigNumber }

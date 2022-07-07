@@ -40,7 +40,7 @@ export const getSqthEthTarget = (debt: BigNumber, ethDelta: BigNumber, sqthPrice
 }
 
 const useCrab = () => {
-  const [{ data: signer }] = useSigner()
+  const { data: signer } = useSigner()
   const provider = useProvider()
 
   const {
