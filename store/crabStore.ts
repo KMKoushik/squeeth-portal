@@ -28,6 +28,7 @@ interface CrabState {
   vaultId: number
   deltaHedgeThreshold: BigNumber
   vault: Vault | null
+  totalSupply: BigNumber
   setLoaded: (l: boolean) => void
   setTimeAtLastHedge: (time: number) => void
   setPriceAtLastHedge: (price: BigNumber) => void
@@ -39,6 +40,7 @@ interface CrabState {
   setVaultId: (id: number) => void
   setDeltaHedgeThreshold: (t: BigNumber) => void
   setCrabVault: (v: Vault) => void
+  setTotalSupply: (t: BigNumber) => void
 }
 
 const useCrabStore = create<CrabState>(set => ({
@@ -59,6 +61,7 @@ const useCrabStore = create<CrabState>(set => ({
   vaultId: 0,
   deltaHedgeThreshold: BIG_ZERO,
   vault: null,
+  totalSupply: BIG_ZERO,
   setLoaded: l => set({ loaded: l }),
   setTimeAtLastHedge: (time: number) => set({ timeAtLastHedge: time }),
   setPriceAtLastHedge: (price: BigNumber) => set({ priceAtLastHedge: price }),
@@ -70,6 +73,7 @@ const useCrabStore = create<CrabState>(set => ({
   setVaultId: (id: number) => set({ vaultId: id }),
   setDeltaHedgeThreshold: (t: BigNumber) => set({ deltaHedgeThreshold: t }),
   setCrabVault: (v: Vault) => set({ vault: v }),
+  setTotalSupply: (t: BigNumber) => set({ totalSupply: t }),
 }))
 
 export default useCrabStore

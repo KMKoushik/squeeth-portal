@@ -59,6 +59,7 @@ const useCrab = () => {
     setAuctionDetails,
     setDeltaHedgeThreshold,
     setCrabVault,
+    setTotalSupply,
   } = useCrabStore()
 
   const [loading, setLoading] = React.useState(false)
@@ -85,11 +86,20 @@ const useCrab = () => {
     const p5 = crabContract.checkTimeHedge()
     const p6 = crabContract.deltaHedgeThreshold()
     const p7 = crabContract.vaultId()
+    const p8 = crabContract.totalSupply()
 
     setLoading(!crabLoaded && true) // Only set true for 1st time
     console.log('Update auction data')
-    const [_time, _price, _timeThreshold, _priceThreshold, [_isTimeHedge, _aucTime], _deltaThreshold, _vaultId] =
-      await Promise.all([p1, p2, p3, p4, p5, p6, p7])
+    const [
+      _time,
+      _price,
+      _timeThreshold,
+      _priceThreshold,
+      [_isTimeHedge, _aucTime],
+      _deltaThreshold,
+      _vaultId,
+      _totalSupply,
+    ] = await Promise.all([p1, p2, p3, p4, p5, p6, p7, p8])
 
     const { operator, shortAmount, collateralAmount } = await controller.vaults(_vaultId)
     setCrabVault({ operator, shortAmount, collateralAmount })
@@ -103,6 +113,7 @@ const useCrab = () => {
     setAuctionTriggerTime(_aucTime.toNumber())
     setLoaded(true)
     setLoading(false)
+    setTotalSupply(_totalSupply)
   }, [
     controller,
     crabContract,
@@ -116,6 +127,7 @@ const useCrab = () => {
     setLoaded,
     setPriceAtLastHedge,
     setTimeAtLastHedge,
+    setTotalSupply,
     setVaultId,
   ])
 

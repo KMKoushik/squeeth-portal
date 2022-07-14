@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import { NextPage } from 'next'
 
@@ -8,8 +8,32 @@ import MouseOutlinedIcon from '@mui/icons-material/MouseOutlined'
 
 import PieChart from '../components/charts/pieChart'
 import { Nav } from '../container/Nav'
+import Image from 'next/image'
+import useCrab from '../hooks/useCrab'
+import { CRAB_MIGRATION } from '../constants/address'
+import useCrabStore from '../store/crabStore'
+import { bnComparator } from '../utils'
+import { BIG_ZERO } from '../constants/numbers'
 
 const Analytics: NextPage = () => {
+  const { crabContract } = useCrab()
+  const totalSupply = useCrabStore(s => s.totalSupply, bnComparator)
+  const [migratedPer, setMigratedPer] = useState(0)
+
+  useEffect(() => {
+    // eslint-disable-next-line prettier/prettier
+    ; (async function () {
+      if (!totalSupply.gt(0)) return
+
+      console.log(CRAB_MIGRATION, crabContract.address)
+      const migrated = await crabContract.balanceOf(CRAB_MIGRATION)
+      console.log(totalSupply.toString(), migrated.toString())
+
+      const _migratedPer = migrated.mul(100).div(totalSupply)
+      setMigratedPer(_migratedPer.toNumber())
+    })()
+  }, [crabContract, totalSupply])
+
   return (
     <>
       <Nav />
@@ -25,6 +49,34 @@ const Analytics: NextPage = () => {
             <RemoveRedEyeOutlinedIcon color="disabled" sx={{ verticalAlign: 'middle' }} /> Page Views
           </Typography>
           <ViewsAnalytics />
+        </Grid>
+        <Grid item xs={12}>
+          <Typography textAlign="center" variant="h6" mb={1}>
+            🦀 Crab Migrated
+          </Typography>
+          <Box display="flex" justifyContent="center" mt={10}>
+            <Box sx={{ position: 'relative', display: 'inline-flex' }} margin="auto">
+              <CircularProgress variant="determinate" value={migratedPer} size={200} />
+              <Box
+                sx={{
+                  top: 0,
+                  left: 0,
+                  bottom: 0,
+                  right: 0,
+                  position: 'absolute',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'column',
+                }}
+              >
+                <Typography variant="h6" component="div">
+                  {migratedPer}%
+                </Typography>
+                <Image width={100} height={100} src="/images/happy_crab.gif" alt="Happy crab" />
+              </Box>
+            </Box>
+          </Box>
         </Grid>
       </Grid>
     </>
