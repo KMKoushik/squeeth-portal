@@ -48,3 +48,8 @@ export const USDC = getAddress({
   1: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
   3: '0x27415c30d8c87437becbd4f98474f26e712047f4',
 })
+
+export const CRAB_MIGRATION = getAddress({
+  1: '0xa1cab67a4383312718a5799eaa127906e9d4b19e',
+  3: '0xD0fb9d47B5F65d76C6bDf1b9E43a4A2345080B2f',
+})
