@@ -9,14 +9,29 @@ import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import usePriceStore from '../../../store/priceStore'
 import useControllerStore from '../../../store/controllerStore'
-import { signOrder } from '../../../utils/auction'
-import { calculateIV, convertBigNumber, formatBigNumber } from '../../../utils/math'
+import { getAuctionStatus, signOrder } from '../../../utils/auction'
+import { calculateIV, convertBigNumber, formatBigNumber, formatNumber } from '../../../utils/math'
 import AuctionBody from './AuctionBody'
 import Approvals from './Approvals'
+import { V2_AUCTION_TIME } from '../../../constants/numbers'
+import Countdown, { CountdownRendererFn } from 'react-countdown'
+import { AuctionStatus } from '../../../types'
+
+const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
+  // Render a countdown
+  return (
+    <Box display="flex" gap={0.5} alignItems="baseline">
+      <Typography component="span" variant="numeric">
+        {formatNumber(minutes)}:{formatNumber(seconds)}
+      </Typography>
+    </Box>
+  )
+}
 
 const Auction: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
-  const isAuctionAvailable = !!auction.currentAuctionId
+  const auctionStatus = getAuctionStatus(auction)
+  const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
 
   return (
     <Box>
@@ -24,32 +39,45 @@ const Auction: React.FC = () => {
       <Box mt={1}>
         <Approvals />
       </Box>
-      <Typography variant="h6" mt={4}>
-        Auction
-      </Typography>
+      <Box display="flex" mt={4} alignItems="center">
+        <Typography variant="h6">Auction</Typography>
+        {auctionStatus === AuctionStatus.LIVE ? (
+          <Typography variant="caption" ml={4} color="success.main" bgcolor="success.light" px={2} borderRadius={1}>
+            Live Auction
+          </Typography>
+        ) : auctionStatus === AuctionStatus.SETTLEMENT ? (
+          <Typography variant="caption" ml={4} color="warning.main" bgcolor="warning.light" px={2} borderRadius={1}>
+            Settlement
+          </Typography>
+        ) : null}
+      </Box>
       <Box mt={1} border="1px solid grey" borderRadius={2} minHeight={150}>
-        {!isAuctionAvailable ? (
+        {Date.now() > auction.auctionEnd && !isHistoricalView ? (
           <Typography textAlign="center" mt={3} variant="h6">
             No auctions scheduled yet!
           </Typography>
         ) : (
           <Box>
-            <AuctionDetailsHeader />
+            <AuctionDetailsHeader isAuctionLive={auctionStatus === AuctionStatus.LIVE} />
             <AuctionHeaderBody />
           </Box>
         )}
       </Box>
-      <Typography variant="h6" mt={4}>
-        Bids
-      </Typography>
-      <Box display="flex" mt={1}>
-        <AuctionBody />
-      </Box>
+      {Date.now() < auction.auctionEnd || isHistoricalView ? (
+        <>
+          <Typography variant="h6" mt={4}>
+            Bids
+          </Typography>
+          <Box display="flex" mt={1}>
+            <AuctionBody />
+          </Box>
+        </>
+      ) : null}
     </Box>
   )
 }
 
-const AuctionDetailsHeader: React.FC = () => {
+const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean }> = ({ isAuctionLive }) => {
   const auction = useCrabV2Store(s => s.auction)
 
   return (
@@ -61,7 +89,7 @@ const AuctionDetailsHeader: React.FC = () => {
         <Box display="flex" mt={0.5} alignItems="center" justifyContent="space-between" width={180}>
           <Typography variant="body3">Auction start</Typography>
           <Typography variant="body2">
-            {format(add(new Date(auction.auctionEnd || 0), { minutes: -10 }), 'hh:mm aa')}
+            {format(add(new Date(auction.auctionEnd || 0), { minutes: V2_AUCTION_TIME * -1 }), 'hh:mm aa')}
           </Typography>
         </Box>
         <Box display="flex" mt={0.5} alignItems="center" justifyContent="space-between" width={180}>
@@ -71,7 +99,7 @@ const AuctionDetailsHeader: React.FC = () => {
         <Box display="flex" mt={0.5} alignItems="center" justifyContent="space-between" width={180}>
           <Typography variant="body3">Settlement</Typography>
           <Typography variant="body2">
-            {format(add(new Date(auction.auctionEnd || 0), { minutes: 10 }), 'hh:mm aa')}
+            {format(add(new Date(auction.auctionEnd || 0), { minutes: V2_AUCTION_TIME }), 'hh:mm aa')}
           </Typography>
         </Box>
       </Box>
@@ -82,15 +110,9 @@ const AuctionDetailsHeader: React.FC = () => {
         </Typography>
       </Box>
       <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary">Filled</Typography>
-        <Typography textAlign="center" variant="numeric" color="primary">
-          30%
-        </Typography>
-      </Box>
-      <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary">Auction</Typography>
         <Typography textAlign="center" variant="numeric" color="primary">
-          09:30
+          {isAuctionLive ? <Countdown date={auction.auctionEnd} renderer={renderer} /> : '--:--'}
         </Typography>
       </Box>
     </Box>
@@ -125,10 +147,10 @@ const AuctionHeaderBody: React.FC = () => {
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
-          Min price
+          {auction.isSelling ? 'Min price' : 'Max price'}
         </Typography>
         <Typography textAlign="center" variant="numeric">
-          {formatBigNumber(auction.minPrice, 18, 6)} WETH
+          {formatBigNumber(auction.price, 18, 6)} WETH
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />

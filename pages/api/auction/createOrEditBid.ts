@@ -1,8 +1,8 @@
 import { ethers } from 'ethers'
 import { NextApiRequest, NextApiResponse } from 'next'
+import { Auction, AuctionStatus, Bid, Order } from '../../../types'
+import { getAuctionStatus, verifyOrder } from '../../../utils/auction'
 import { addOrUpdateAuction, getAuction } from '../../../server/utils/firebase-admin'
-import { Auction, Bid, Order } from '../../../types'
-import { verifyOrder } from '../../../utils/auction'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(400).json({ message: 'Only post is allowed' })
@@ -17,6 +17,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (e) {
     return res.status(401).json({ message: "Signature can't be verified" })
   }
+
+  const isRunning = getAuctionStatus(auction) === AuctionStatus.LIVE
+  if (!isRunning) return res.status(400).json({ message: 'Auction is not live anymore' })
 
   const { r, s, v } = ethers.utils.splitSignature(signature)
 

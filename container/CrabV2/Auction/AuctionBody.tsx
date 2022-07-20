@@ -1,16 +1,16 @@
-import { Button, Grid, TextField, Typography } from '@mui/material'
+import { Grid, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import { ethers } from 'ethersv5'
 import React, { useEffect, useMemo } from 'react'
 import { useSigner } from 'wagmi'
+import shallow from 'zustand/shallow'
 import DangerButton from '../../../components/button/DangerButton'
 import { BoxLoadingButton } from '../../../components/button/PrimaryButton'
 import { SecondaryButton } from '../../../components/button/SecondaryButton'
 import { MM_CANCEL } from '../../../constants/message'
 import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
-import { Bid, Order } from '../../../types'
-import { createOrEditAuction, signOrder } from '../../../utils/auction'
+import { Order } from '../../../types'
+import { signOrder } from '../../../utils/auction'
 import { convertBigNumber, toBigNumber } from '../../../utils/math'
 import Bids from './Bids'
 
@@ -38,6 +38,14 @@ const BidForm: React.FC = () => {
   const address = useAccountStore(s => s.address)
   const bidToEdit = useCrabV2Store(s => s.bidToEdit)
   const setBidToEdit = useCrabV2Store(s => s.setBidToEdit)
+  const { oSqthApproval, wethApproval } = useCrabV2Store(
+    s => ({ oSqthApproval: s.oSqthApproval, wethApproval: s.wethApproval }),
+    shallow,
+  )
+  const { oSqthBalance, wethBalance } = useAccountStore(
+    s => ({ oSqthBalance: s.oSqthBalance, wethBalance: s.wethBalance }),
+    shallow,
+  )
 
   const isEditBid = useMemo(() => {
     return bidToEdit && !!auction.bids[bidToEdit]
@@ -97,6 +105,15 @@ const BidForm: React.FC = () => {
     setDeleteLoading(false)
   }, [bidToEdit, signer])
 
+  const error = React.useMemo(() => {
+    const aucPrice = convertBigNumber(auction.price, 18)
+    if (auction.isSelling && Number(price) < Number(aucPrice)) {
+      return 'Price should be greater than min price'
+    } else if (!auction.isSelling && Number(price) > Number(aucPrice)) {
+      return 'Price should be less than max price'
+    }
+  }, [auction.isSelling, auction.price, price])
+
   return (
     <Box
       boxShadow={1}
@@ -111,16 +128,6 @@ const BidForm: React.FC = () => {
         {isEditBid ? 'Edit Bid' : 'Place Bid'}
       </Typography>
       <TextField
-        value={price}
-        onChange={e => setPrice(e.target.value)}
-        type="number"
-        id="price"
-        label="Price"
-        variant="outlined"
-        size="small"
-        sx={{ mt: 3 }}
-      />
-      <TextField
         value={qty}
         onChange={e => setQty(e.target.value)}
         type="number"
@@ -130,7 +137,20 @@ const BidForm: React.FC = () => {
         size="small"
         sx={{ mt: 4 }}
       />
-      <BoxLoadingButton onClick={placeBid} sx={{ mt: 4 }} loading={isLoading}>
+      <TextField
+        value={price}
+        onChange={e => setPrice(e.target.value)}
+        type="number"
+        id="price"
+        label="Price"
+        variant="outlined"
+        size="small"
+        sx={{ mt: 3 }}
+      />
+      <Typography mt={3} color="error.main" variant="body3">
+        {error}
+      </Typography>
+      <BoxLoadingButton disabled={!!error} onClick={placeBid} sx={{ mt: 1 }} loading={isLoading}>
         {isEditBid ? 'Edit Bid' : 'Place Bid'}
       </BoxLoadingButton>
       {isEditBid ? (

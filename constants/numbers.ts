@@ -13,3 +13,5 @@ export const CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID || 1)
 export const MAX_UINT = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
 
 export const AUCTION_TIME = 1200
+
+export const V2_AUCTION_TIME = 10 //10 mins

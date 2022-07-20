@@ -15,6 +15,7 @@ import { chain, configureChains, createClient, WagmiConfig } from 'wagmi'
 import { infuraProvider } from 'wagmi/providers/infura'
 import { publicProvider } from 'wagmi/providers/public'
 import { CHAIN_ID } from '../constants/numbers'
+import useInitAccount from '../hooks/init/useInitAccount'
 
 // API key for Ethereum node
 // Two popular services are Infura (infura.io) and Alchemy (alchemy.com)
@@ -38,6 +39,7 @@ const wagmiClient = createClient({
 })
 
 const InitializePrice = React.memo(function InitializePrice() {
+  useInitAccount()
   const oracle = useOracle()
   const { setOsqthPrice, setEthPrice } = usePriceStore(
     s => ({ setEthPrice: s.setEthPrice, setOsqthPrice: s.setOsqthPrice }),

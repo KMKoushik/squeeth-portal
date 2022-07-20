@@ -1,8 +1,8 @@
 import { BigNumber, ethers, Signer } from 'ethers'
 import { doc, increment, setDoc } from 'firebase/firestore'
 import { CRAB_STRATEGY_V2 } from '../constants/address'
-import { BIG_ONE, BIG_ZERO, CHAIN_ID } from '../constants/numbers'
-import { Auction, Bid, BidStatus, BigNumMap, Order } from '../types'
+import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME } from '../constants/numbers'
+import { Auction, AuctionStatus, Bid, BidStatus, BigNumMap, Order } from '../types'
 import { db } from './firebase'
 import { wmul } from './math'
 
@@ -10,7 +10,7 @@ export const emptyAuction: Auction = {
   currentAuctionId: 0,
   nextAuctionId: 1,
   oSqthAmount: '0',
-  minPrice: '0',
+  price: '0',
   auctionEnd: 0,
   isSelling: false,
   bids: {},
@@ -24,8 +24,11 @@ export const createOrEditAuction = async (auction: Auction) => {
 
 export const sortBids = (auction: Auction) => {
   const bids = Object.values(auction.bids)
+
   const sortedBids = bids.sort((a, b) => {
-    return Number(b.order.price) - Number(a.order.price)
+    if (auction.isSelling) return Number(b.order.price) - Number(a.order.price)
+
+    return Number(a.order.price) - Number(b.order.price)
   })
 
   return sortedBids
@@ -76,6 +79,18 @@ export const filterBidsWithReason = (
     .sort((a, b) => a.status - b.status)
 
   return filteredBids
+}
+
+export const getAuctionStatus = (auction: Auction) => {
+  const auctionTimeInMS = V2_AUCTION_TIME * 60 * 1000
+  const currentMillis = Date.now()
+  if (currentMillis < auction.auctionEnd && currentMillis > auction.auctionEnd - auctionTimeInMS)
+    return AuctionStatus.LIVE
+  if (currentMillis < auction.auctionEnd + auctionTimeInMS && currentMillis > auction.auctionEnd)
+    return AuctionStatus.SETTLEMENT
+  if (currentMillis < auction.auctionEnd) return AuctionStatus.UPCOMING
+
+  return AuctionStatus.SETTLED
 }
 
 export const getTxBidsAndClearingPrice = (filteredBids: Array<Bid & { status: BidStatus }>) => {

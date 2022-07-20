@@ -39,7 +39,7 @@ export type Auction = {
   currentAuctionId: number
   nextAuctionId: number
   oSqthAmount: string
-  minPrice: string
+  price: string
   auctionEnd: number
   isSelling: boolean
   tx?: string
@@ -54,6 +54,13 @@ export enum BidStatus {
   ALREADY_FILLED,
   NO_BALANCE,
   NO_APPROVAL,
+}
+
+export enum AuctionStatus {
+  LIVE = 1,
+  SETTLEMENT,
+  SETTLED,
+  UPCOMING,
 }
 
 export type BigNumMap = { [key: string]: BigNumber }

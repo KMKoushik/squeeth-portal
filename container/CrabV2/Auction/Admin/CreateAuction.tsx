@@ -3,6 +3,7 @@ import { Box } from '@mui/system'
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { BigNumber } from 'ethers'
+import { doc, getDoc } from 'firebase/firestore'
 import * as React from 'react'
 import { useSigner } from 'wagmi'
 import { PrimaryLoadingButton } from '../../../../components/button/PrimaryButton'
@@ -10,14 +11,16 @@ import { KING_CRAB } from '../../../../constants/message'
 import { BIG_ONE } from '../../../../constants/numbers'
 import useCrabV2Store from '../../../../store/crabV2Store'
 import { Auction } from '../../../../types'
+import { createOrEditAuction } from '../../../../utils/auction'
+import { db } from '../../../../utils/firebase'
 import { convertBigNumber, wmul } from '../../../../utils/math'
 
 const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const auction = useCrabV2Store(s => s.auction)
   const isNew = !auction.currentAuctionId
 
-  const [oSqthAmount, setOsqthAmount] = React.useState(convertBigNumber(auction.oSqthAmount, 18).toString() || '')
-  const [minPrice, setMinPrice] = React.useState(convertBigNumber(auction.minPrice, 18).toString() || '')
+  const [oSqthAmount, setOsqthAmount] = React.useState(convertBigNumber(auction.oSqthAmount, 18).toString())
+  const [price, setPrice] = React.useState(convertBigNumber(auction.price, 18).toString())
   const [endDate, setEndDate] = React.useState<Date>(auction.auctionEnd ? new Date(auction.auctionEnd) : new Date())
   const [isSelling, setIsSelling] = React.useState<boolean>(!!auction.isSelling)
   const [loading, setLoading] = React.useState(false)
@@ -33,9 +36,9 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
 
   const updateMinAmount = React.useCallback(
     (v: string) => {
-      setMinPrice(v)
+      setPrice(v)
     },
-    [setMinPrice],
+    [setPrice],
   )
 
   const createOrUpdate = React.useCallback(async () => {
@@ -47,7 +50,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
         ...auction,
         currentAuctionId: isNew ? auction.nextAuctionId : auction.currentAuctionId,
         oSqthAmount: (Number(oSqthAmount) * 10 ** 18).toString(),
-        minPrice: (Number(minPrice) * 10 ** 18).toString(),
+        price: (Number(price) * 10 ** 18).toString(),
         auctionEnd: endDate.getTime(),
         isSelling,
       }
@@ -63,7 +66,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
       console.log(e)
     }
     setLoading(false)
-  }, [auction, isNew, oSqthAmount, minPrice, endDate, isSelling, signer])
+  }, [auction, isNew, oSqthAmount, price, endDate, isSelling, signer])
 
   return (
     <Box width={300} display="flex" flexDirection="column" justifyContent="center">
@@ -87,8 +90,8 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
         type="number"
         variant="outlined"
         sx={{ mt: 2, mb: 2 }}
-        label="Min Price"
-        value={minPrice}
+        label={isSelling ? 'Min Price' : 'Max Price'}
+        value={price}
         onChange={e => updateMinAmount(e.target.value)}
       />
       <LocalizationProvider dateAdapter={AdapterDateFns}>

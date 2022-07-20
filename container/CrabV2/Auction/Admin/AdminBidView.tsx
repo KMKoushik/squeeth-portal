@@ -15,7 +15,7 @@ import {
 } from '../../../../utils/auction'
 import { formatBigNumber, wmul } from '../../../../utils/math'
 import { BigNumber } from 'ethers'
-import { Bid, BidStatus } from '../../../../types'
+import { Auction, Bid, BidStatus } from '../../../../types'
 import useApprovals from '../../../../hooks/useApprovals'
 import { CRAB_STRATEGY_V2, OSQUEETH, WETH } from '../../../../constants/address'
 import { useBalances } from '../../../../hooks/useBalances'
@@ -27,6 +27,7 @@ import { useContract, useContractWrite, useSigner, useWaitForTransaction } from 
 import { CRAB_V2_CONTRACT } from '../../../../constants/contracts'
 import { BIG_ZERO } from '../../../../constants/numbers'
 import { CrabStrategyV2 } from '../../../../types/contracts'
+import { KING_CRAB } from '../../../../constants/message'
 
 const getStatus = (status?: BidStatus) => {
   if (status === BidStatus.INCLUDED) return 'Included'
@@ -98,11 +99,31 @@ const AdminBidView: React.FC = () => {
 
   const hedgeCB = async () => {
     try {
+      const signature = await signer?.signMessage(KING_CRAB)
       const orders = filteredBids!
         .filter(fb => fb.status! <= BidStatus.PARTIALLY_FILLED)
         .map(b => ({ ...b.order, v: b.v, r: b.r, s: b.s }))
-      await hedge({
+
+      const gasLimit = await crabV2.estimateGas.hedgeOTC(auction.oSqthAmount, clearingPrice, !auction.isSelling, orders)
+
+      const tx = await hedge({
         args: [auction.oSqthAmount, clearingPrice, !auction.isSelling, orders],
+        overrides: {
+          gasLimit: gasLimit.mul(110).div(100),
+        },
+      })
+      await tx.wait()
+
+      const updatedAuction: Auction = {
+        ...auction,
+        tx: hedgeTx?.hash,
+        winningBids: orders.map(o => `${o.trader}-${o.nonce}`),
+      }
+
+      await fetch('/api/auction/submitAuction', {
+        method: 'POST',
+        body: JSON.stringify({ signature, auction: updatedAuction }),
+        headers: { 'Content-Type': 'application/json' },
       })
     } catch (e) {
       console.log(e)

@@ -15,6 +15,7 @@ import { Bid } from '../../../types'
 
 const Bids: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
+  const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
 
   const bids = sortBids(auction)
 
@@ -27,7 +28,7 @@ const Bids: React.FC = () => {
             <TableCell align="right">Quantity</TableCell>
             <TableCell align="right">Price per oSQTH</TableCell>
             <TableCell align="right">{auction.isSelling ? 'Total Payable' : 'Total to get'}</TableCell>
-            <TableCell align="right">Action</TableCell>
+            <TableCell align="right">{isHistoricalView ? 'Accepted' : 'Action'}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -48,6 +49,8 @@ const Bids: React.FC = () => {
 const BidRow: React.FC<{ bid: Bid; rank: number }> = ({ bid, rank }) => {
   const address = useAccountStore(s => s.address)
   const setBidToEdit = useCrabV2Store(s => s.setBidToEdit)
+  const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
+  const auction = useCrabV2Store(s => s.auction)
 
   const qty = BigNumber.from(bid.order.quantity)
   const price = BigNumber.from(bid.order.price)
@@ -60,13 +63,19 @@ const BidRow: React.FC<{ bid: Bid; rank: number }> = ({ bid, rank }) => {
       <TableCell align="right">{formatBigNumber(qty, 18)} oSQTH</TableCell>
       <TableCell align="right">{formatBigNumber(price, 18)} WETH</TableCell>
       <TableCell align="right">{formatBigNumber(wmul(qty, price), 18)} WETH</TableCell>
-      <TableCell align="right">
-        {address === bid.bidder ? (
-          <Button variant="text" onClick={() => setBidToEdit(`${bid.bidder}-${bid.order.nonce}`)}>
-            Edit
-          </Button>
-        ) : null}
-      </TableCell>
+      {isHistoricalView ? (
+        <TableCell align="right">
+          {auction.winningBids!.includes(`${bid.bidder}-${bid.order.nonce}`) ? 'Yes' : 'No'}
+        </TableCell>
+      ) : (
+        <TableCell align="right">
+          {address === bid.bidder ? (
+            <Button variant="text" onClick={() => setBidToEdit(`${bid.bidder}-${bid.order.nonce}`)}>
+              Edit
+            </Button>
+          ) : null}
+        </TableCell>
+      )}
     </>
   )
 }

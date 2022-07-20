@@ -1,7 +1,7 @@
 import { Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { BigNumber, ethers } from 'ethers'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useContractReads, useContractWrite, useWaitForTransaction } from 'wagmi'
 import { BoxLoadingButton } from '../../../components/button/PrimaryButton'
 import { SecondaryButton } from '../../../components/button/SecondaryButton'
@@ -9,9 +9,12 @@ import { CRAB_STRATEGY_V2 } from '../../../constants/address'
 import { OSQUEETH_CONTRACT, WETH_CONTRACT } from '../../../constants/contracts'
 import { BIG_ZERO } from '../../../constants/numbers'
 import useAccountStore from '../../../store/accountStore'
+import useCrabV2Store from '../../../store/crabV2Store'
 
 const Approvals: React.FC = () => {
   const address = useAccountStore(s => s.address)
+  const setOsqthApproval = useCrabV2Store(s => s.setOsqthApproval)
+  const setWethApproval = useCrabV2Store(s => s.setWethApproval)
 
   const { data, isLoading, refetch } = useContractReads({
     contracts: [
@@ -59,6 +62,14 @@ const Approvals: React.FC = () => {
 
     return data as unknown as Array<BigNumber>
   }, [data])
+
+  useEffect(() => {
+    setOsqthApproval(osqthApproval)
+  }, [osqthApproval, setOsqthApproval])
+
+  useEffect(() => {
+    setWethApproval(wethApproval)
+  }, [wethApproval, setWethApproval])
 
   const isOsqthApproved = osqthApproval.eq(ethers.constants.MaxUint256)
   const isWethApproved = wethApproval.eq(ethers.constants.MaxUint256)
