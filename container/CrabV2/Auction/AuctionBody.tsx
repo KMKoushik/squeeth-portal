@@ -105,7 +105,9 @@ const BidForm: React.FC = () => {
     setDeleteLoading(false)
   }, [bidToEdit, signer])
 
-  const error = React.useMemo(() => {
+  const totalWeth = Number(price) * Number(qty)
+
+  const priceError = React.useMemo(() => {
     const aucPrice = convertBigNumber(auction.price, 18)
     if (auction.isSelling && Number(price) < Number(aucPrice)) {
       return 'Price should be greater than min price'
@@ -113,6 +115,30 @@ const BidForm: React.FC = () => {
       return 'Price should be less than max price'
     }
   }, [auction.isSelling, auction.price, price])
+
+  const quantityError = React.useMemo(() => {
+    const aucQty = convertBigNumber(auction.oSqthAmount, 18)
+    if (aucQty < Number(qty)) return 'Quantity should be less than auction quantity'
+  }, [auction.oSqthAmount, qty])
+
+  const approvalError = React.useMemo(() => {
+    if (auction.isSelling && totalWeth > convertBigNumber(wethApproval)) {
+      return 'Approve WETH in token approval section in the top'
+    } else if (!auction.isSelling && Number(qty) > convertBigNumber(oSqthApproval)) {
+      return 'Approve oSQTH in token approval section in the top'
+    }
+  }, [auction.isSelling, oSqthApproval, qty, totalWeth, wethApproval])
+
+  const balanceError = React.useMemo(() => {
+    console.log(wethBalance.toString())
+    if (auction.isSelling && totalWeth > convertBigNumber(wethBalance)) {
+      return 'Need more WETH'
+    } else if (!auction.isSelling && Number(qty) > convertBigNumber(oSqthBalance)) {
+      return 'Need more oSQTH'
+    }
+  }, [auction.isSelling, oSqthBalance, qty, totalWeth, wethBalance])
+
+  const error = priceError || quantityError || approvalError || balanceError
 
   return (
     <Box
@@ -147,7 +173,16 @@ const BidForm: React.FC = () => {
         size="small"
         sx={{ mt: 3 }}
       />
-      <Typography mt={3} color="error.main" variant="body3">
+      <Box display="flex" mt={2} justifyContent="space-between">
+        <Typography variant="body3">Total</Typography>
+        <Typography variant="body2" color="textSecondary">
+          <Typography color="textPrimary" component="span" variant="numeric">
+            {totalWeth.toFixed(4)}
+          </Typography>{' '}
+          WETH
+        </Typography>
+      </Box>
+      <Typography align="center" mt={3} color="error.main" variant="body3">
         {error}
       </Typography>
       <BoxLoadingButton disabled={!!error} onClick={placeBid} sx={{ mt: 1 }} loading={isLoading}>

@@ -9,6 +9,7 @@ const useInitAccount = () => {
   const setOsqthBalance = useAccountStore(s => s.setOsqthBalance)
   const setWethBalance = useAccountStore(s => s.setWethBalance)
 
+  console.log('Init called')
   const { data, isLoading } = useContractReads({
     contracts: [
       {
@@ -25,8 +26,10 @@ const useInitAccount = () => {
   })
 
   React.useEffect(() => {
-    if (!isLoading || !data) return
+    console.log(data, isLoading)
+    if (isLoading || !data) return
 
+    console.log(data)
     setOsqthBalance(data[0] as unknown as BigNumber)
     setWethBalance(data[1] as unknown as BigNumber)
   }, [data, isLoading, setOsqthBalance, setWethBalance])
