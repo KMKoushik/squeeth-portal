@@ -63,4 +63,10 @@ export enum AuctionStatus {
   UPCOMING,
 }
 
+export type Vault = {
+  address: string
+  shortAmount: BigNumber
+  collateral: BigNumber
+}
+
 export type BigNumMap = { [key: string]: BigNumber }

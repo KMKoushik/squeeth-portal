@@ -18,7 +18,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Signature can't be verified" })
   }
 
-  const isRunning = getAuctionStatus(auction) === AuctionStatus.LIVE
+  const status = getAuctionStatus(auction)
+  const isRunning = !(status === AuctionStatus.SETTLED || status === AuctionStatus.SETTLEMENT)
   if (!isRunning) return res.status(400).json({ message: 'Auction is not live anymore' })
 
   const { r, s, v } = ethers.utils.splitSignature(signature)

@@ -6,12 +6,12 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import useCrabV2Store from '../../../store/crabV2Store'
-import { sortBids } from '../../../utils/auction'
+import { getBgColor, sortBids } from '../../../utils/auction'
 import { formatBigNumber, wmul } from '../../../utils/math'
 import { BigNumber } from 'ethers'
 import useAccountStore from '../../../store/accountStore'
 import { Button } from '@mui/material'
-import { Bid } from '../../../types'
+import { Bid, BidStatus } from '../../../types'
 
 const Bids: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
@@ -35,7 +35,18 @@ const Bids: React.FC = () => {
           {bids.map((bid, i) => (
             <TableRow
               key={`${bid.bidder}-${bid.order.nonce}`}
-              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+              sx={{
+                '&:last-child td, &:last-child th': {
+                  border: 0,
+                },
+                bgcolor: getBgColor(
+                  isHistoricalView
+                    ? auction.winningBids.includes(`${bid.bidder}-${bid.order.nonce}`)
+                      ? BidStatus.INCLUDED
+                      : BidStatus.NO_APPROVAL
+                    : undefined,
+                ),
+              }}
             >
               <BidRow bid={bid} rank={i + 1} />
             </TableRow>

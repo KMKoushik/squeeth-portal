@@ -4,7 +4,7 @@ import { CRAB_STRATEGY_V2 } from '../constants/address'
 import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
 import { Auction, AuctionStatus, Bid, BidStatus, BigNumMap, Order } from '../types'
 import { db } from './firebase'
-import { wmul } from './math'
+import { wdiv, wmul } from './math'
 
 export const emptyAuction: Auction = {
   currentAuctionId: 0,
@@ -59,12 +59,12 @@ export const filterBidsWithReason = (
       const _price = BigNumber.from(b.order.price)
       const erc20Needed = auction.isSelling ? wmul(_osqth, _price) : _osqth
 
-      if (filledAmt.eq(quantity)) return { ...b, status: BidStatus.ALREADY_FILLED }
-
       if (!approvalMap[b.bidder] || !approvalMap[b.bidder].gte(erc20Needed))
         return { ...b, status: BidStatus.NO_APPROVAL }
 
       if (!balanceMap[b.bidder] || !balanceMap[b.bidder].gte(erc20Needed)) return { ...b, status: BidStatus.NO_BALANCE }
+
+      if (filledAmt.eq(quantity)) return { ...b, status: BidStatus.ALREADY_FILLED }
 
       if (quantity.lt(filledAmt.add(_osqth))) {
         balanceMap[b.bidder] = balanceMap[b.bidder].sub(wmul(quantity.sub(filledAmt), _price))
@@ -138,4 +138,39 @@ export const signOrder = async (signer: any, order: Order) => {
 export const verifyOrder = async (order: Order, signature: string, address: string) => {
   const addr = ethers.utils.verifyTypedData(domain, type, order, signature)
   return address.toLowerCase() === addr.toLowerCase()
+}
+
+export const estimateAuction = (debt: BigNumber, ethDelta: BigNumber, sqthPrice: BigNumber) => {
+  const oSqthDelta = wmul(wmul(debt, BigNumber.from(BIG_ONE).mul(2)), sqthPrice)
+
+  const getAuctionTypeAndTargetHedge = () => {
+    if (oSqthDelta.gt(ethDelta)) {
+      return { isSellingAuction: false, target: wdiv(oSqthDelta.sub(ethDelta), sqthPrice) }
+    }
+    return { isSellingAuction: true, target: wdiv(ethDelta.sub(oSqthDelta), sqthPrice) }
+  }
+
+  const { isSellingAuction, target } = getAuctionTypeAndTargetHedge()
+  const ethProceeds = wmul(target, sqthPrice)
+  console.log(
+    ethProceeds.toString(),
+    target.toString(),
+    sqthPrice.toString(),
+    oSqthDelta.toString(),
+    'Is Selling',
+    !oSqthDelta.gt(ethDelta),
+    ethDelta.toString(),
+    oSqthDelta.sub(ethDelta).toString(),
+  )
+
+  return { isSellingAuction, oSqthAmount: target, ethAmount: ethProceeds }
+}
+
+export const getBgColor = (status?: BidStatus) => {
+  if (status === undefined) return ''
+
+  if (status > BidStatus.PARTIALLY_FILLED) return 'error.light'
+  if (status === BidStatus.PARTIALLY_FILLED) return 'warning.light'
+
+  return 'success.light'
 }

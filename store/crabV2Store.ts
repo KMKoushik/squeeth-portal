@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers'
 import create from 'zustand'
 import { BIG_ZERO } from '../constants/numbers'
-import { Auction, AuctionStatus } from '../types'
+import { Auction, AuctionStatus, Vault } from '../types'
 import { emptyAuction } from '../utils/auction'
 
 interface CrabV2Store {
@@ -15,6 +15,7 @@ interface CrabV2Store {
   oSqthApproval: BigNumber
   wethApproval: BigNumber
   auctionStatus: AuctionStatus
+  vault: Vault | null
   setOwner: (owner: string) => void
   setIsContractLoading: (isLoading: boolean) => void
   setAuction: (a: Auction) => void
@@ -24,6 +25,7 @@ interface CrabV2Store {
   setOsqthApproval: (approval: BigNumber) => void
   setWethApproval: (approval: BigNumber) => void
   setAuctionStatus: (status: AuctionStatus) => void
+  setVault: (v: Vault) => void
 }
 
 const useCrabV2Store = create<CrabV2Store>((set, get) => ({
@@ -37,6 +39,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   oSqthApproval: BIG_ZERO,
   wethApproval: BIG_ZERO,
   auctionStatus: AuctionStatus.UPCOMING,
+  vault: null,
   setOwner: owner => set({ owner }),
   setIsContractLoading: l => set({ isContractLoading: l, isLoading: l || get().auctionLoading }),
   setAuction: auction => set({ auction }),
@@ -47,6 +50,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   setOsqthApproval: approval => set({ oSqthApproval: approval }),
   setWethApproval: approval => set({ wethApproval: approval }),
   setAuctionStatus: status => set({ auctionStatus: status }),
+  setVault: vault => set({ vault }),
 }))
 
 export default useCrabV2Store

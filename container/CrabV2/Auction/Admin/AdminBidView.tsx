@@ -9,6 +9,7 @@ import useCrabV2Store from '../../../../store/crabV2Store'
 import {
   convertArrayToMap,
   filterBidsWithReason,
+  getBgColor,
   getTxBidsAndClearingPrice,
   getUniqueTraders,
   sortBids,
@@ -19,13 +20,12 @@ import { Auction, Bid, BidStatus } from '../../../../types'
 import useApprovals from '../../../../hooks/useApprovals'
 import { CRAB_STRATEGY_V2, OSQUEETH, WETH } from '../../../../constants/address'
 import { useBalances } from '../../../../hooks/useBalances'
-import PrimaryButton, { PrimaryLoadingButton } from '../../../../components/button/PrimaryButton'
+import { PrimaryLoadingButton } from '../../../../components/button/PrimaryButton'
 import { Button, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { SecondaryButton } from '../../../../components/button/SecondaryButton'
 import { useContract, useContractWrite, useSigner, useWaitForTransaction } from 'wagmi'
 import { CRAB_V2_CONTRACT } from '../../../../constants/contracts'
-import { BIG_ZERO } from '../../../../constants/numbers'
 import { CrabStrategyV2 } from '../../../../types/contracts'
 import { KING_CRAB } from '../../../../constants/message'
 
@@ -37,15 +37,6 @@ const getStatus = (status?: BidStatus) => {
   if (status === BidStatus.ALREADY_FILLED) return 'Already filled'
 
   return '--'
-}
-
-const getBgColor = (status?: BidStatus) => {
-  if (status === undefined) return ''
-
-  if (status > BidStatus.PARTIALLY_FILLED) return 'error.light'
-  if (status === BidStatus.PARTIALLY_FILLED) return 'warning.light'
-
-  return 'success.light'
 }
 
 const AdminBidView: React.FC = () => {
@@ -116,7 +107,8 @@ const AdminBidView: React.FC = () => {
 
       const updatedAuction: Auction = {
         ...auction,
-        tx: hedgeTx?.hash,
+        tx: tx.blockHash,
+        clearingPrice,
         winningBids: orders.map(o => `${o.trader}-${o.nonce}`),
       }
 

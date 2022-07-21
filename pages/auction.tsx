@@ -14,6 +14,9 @@ const AuctionPage: NextPage = () => {
   useInitAuction()
   useController()
   const isLoading = useCrabV2Store(s => s.isLoading)
+  const setIsHistoricalView = useCrabV2Store(s => s.setIsHistoricalView)
+
+  setIsHistoricalView(false)
 
   return (
     <div>

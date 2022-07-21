@@ -1,4 +1,4 @@
-import { Grid, TextField, Typography } from '@mui/material'
+import { Grid, InputAdornment, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useEffect, useMemo } from 'react'
 import { useSigner } from 'wagmi'
@@ -9,7 +9,7 @@ import { SecondaryButton } from '../../../components/button/SecondaryButton'
 import { MM_CANCEL } from '../../../constants/message'
 import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
-import { Order } from '../../../types'
+import { AuctionStatus, Order } from '../../../types'
 import { signOrder } from '../../../utils/auction'
 import { convertBigNumber, toBigNumber } from '../../../utils/math'
 import Bids from './Bids'
@@ -38,8 +38,8 @@ const BidForm: React.FC = () => {
   const address = useAccountStore(s => s.address)
   const bidToEdit = useCrabV2Store(s => s.bidToEdit)
   const setBidToEdit = useCrabV2Store(s => s.setBidToEdit)
-  const { oSqthApproval, wethApproval } = useCrabV2Store(
-    s => ({ oSqthApproval: s.oSqthApproval, wethApproval: s.wethApproval }),
+  const { oSqthApproval, wethApproval, auctionStatus } = useCrabV2Store(
+    s => ({ oSqthApproval: s.oSqthApproval, wethApproval: s.wethApproval, auctionStatus: s.auctionStatus }),
     shallow,
   )
   const { oSqthBalance, wethBalance } = useAccountStore(
@@ -142,6 +142,8 @@ const BidForm: React.FC = () => {
 
   const error = priceError || quantityError || approvalError || balanceError
 
+  const canPlaceBid = auctionStatus === AuctionStatus.LIVE || auctionStatus === AuctionStatus.UPCOMING
+
   return (
     <Box
       boxShadow={1}
@@ -156,16 +158,6 @@ const BidForm: React.FC = () => {
         {isEditBid ? 'Edit Bid' : 'Place Bid'}
       </Typography>
       <TextField
-        value={qty}
-        onChange={e => setQty(e.target.value)}
-        type="number"
-        id="quantity"
-        label="Quantity"
-        variant="outlined"
-        size="small"
-        sx={{ mt: 4 }}
-      />
-      <TextField
         value={price}
         onChange={e => setPrice(e.target.value)}
         type="number"
@@ -174,6 +166,34 @@ const BidForm: React.FC = () => {
         variant="outlined"
         size="small"
         sx={{ mt: 3 }}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <Typography variant="caption" color="textSecondary">
+                WETH
+              </Typography>
+            </InputAdornment>
+          ),
+        }}
+      />
+      <TextField
+        value={qty}
+        onChange={e => setQty(e.target.value)}
+        type="number"
+        id="quantity"
+        label="Quantity"
+        variant="outlined"
+        size="small"
+        sx={{ mt: 4 }}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <Typography variant="caption" color="textSecondary">
+                oSQTH
+              </Typography>
+            </InputAdornment>
+          ),
+        }}
       />
       <Box display="flex" mt={2} justifyContent="space-between">
         <Typography variant="body3">Total</Typography>
@@ -187,7 +207,12 @@ const BidForm: React.FC = () => {
       <Typography align="center" mt={3} color="error.main" variant="body3">
         {error}
       </Typography>
-      <BoxLoadingButton disabled={!!error} onClick={placeBid} sx={{ mt: 1 }} loading={isLoading}>
+      <Typography align="center" mt={3} color="warning.main" variant="body3">
+        {auctionStatus === AuctionStatus.UPCOMING
+          ? 'Auction not started yet. If the price not matched, bid will be cancelled'
+          : ''}
+      </Typography>
+      <BoxLoadingButton disabled={!!error || !canPlaceBid} onClick={placeBid} sx={{ mt: 1 }} loading={isLoading}>
         {isEditBid ? 'Edit Bid' : 'Place Bid'}
       </BoxLoadingButton>
       {isEditBid ? (

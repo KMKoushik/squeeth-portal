@@ -1,4 +1,5 @@
 import { BigNumber } from 'ethers'
+import { etherscanBlockExplorers } from 'wagmi'
 
 export const BIG_ZERO = BigNumber.from(0)
 
@@ -17,3 +18,5 @@ export const AUCTION_TIME = 1200
 export const V2_AUCTION_TIME = 10 //10 mins
 
 export const V2_AUCTION_TIME_MILLIS = V2_AUCTION_TIME * 60 * 1000 //10 mins in milliseconds
+
+export const ETHERSCAN = CHAIN_ID === 3 ? etherscanBlockExplorers.ropsten : etherscanBlockExplorers.mainnet
