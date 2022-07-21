@@ -138,6 +138,26 @@ const BidForm: React.FC = () => {
     }
   }, [auction.isSelling, oSqthBalance, qty, totalWeth, wethBalance])
 
+  const balance = React.useMemo(() => {
+    if (auction.isSelling) {
+      return convertBigNumber(wethBalance)
+    } else {
+      return convertBigNumber(oSqthBalance)
+    }
+  }, [auction.isSelling, oSqthBalance, wethBalance])
+
+  const balanceToken = React.useMemo(() => {
+    if (auction.isSelling) {
+      return "WETH"
+    } else {
+      return "oSQTH"
+    }
+  }, [auction.isSelling])
+  
+  const setMaxBalance = React.useCallback(async () => {
+    setQty(balance.toString())
+  }, [balance])
+
   const error = priceError || quantityError || approvalError || balanceError
 
   return (
@@ -154,16 +174,6 @@ const BidForm: React.FC = () => {
         {isEditBid ? 'Edit Bid' : 'Place Bid'}
       </Typography>
       <TextField
-        value={qty}
-        onChange={e => setQty(e.target.value)}
-        type="number"
-        id="quantity"
-        label="Quantity"
-        variant="outlined"
-        size="small"
-        sx={{ mt: 4 }}
-      />
-      <TextField
         value={price}
         onChange={e => setPrice(e.target.value)}
         type="number"
@@ -171,8 +181,35 @@ const BidForm: React.FC = () => {
         label="Price"
         variant="outlined"
         size="small"
+        sx={{ mt: 4 }}
+      />
+      <TextField
+        value={qty}
+        onChange={e => setQty(e.target.value)}
+        type="number"
+        id="quantity"
+        label="Quantity"
+        variant="outlined"
+        size="small"
         sx={{ mt: 3 }}
       />
+      <Box 
+        py={0.5}
+        px={1}
+        borderRadius={2}
+        bgcolor="background.overlayLight"
+        display="flex"
+        justifyContent="space-between"
+        onClick={setMaxBalance}
+      >
+        <Typography variant="body3">Balance</Typography>
+        <Typography variant="body3" color="textSecondary">
+          <Typography color="textSecondary" component="span">
+            {balance.toFixed(4)}
+          </Typography>{' '}
+          {balanceToken}
+        </Typography>
+      </Box>
       <Box display="flex" mt={2} justifyContent="space-between">
         <Typography variant="body3">Total</Typography>
         <Typography variant="body2" color="textSecondary">
