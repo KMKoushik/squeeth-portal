@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers'
 import create from 'zustand'
 import { BIG_ZERO } from '../constants/numbers'
-import { Auction } from '../types'
+import { Auction, AuctionStatus } from '../types'
 import { emptyAuction } from '../utils/auction'
 
 interface CrabV2Store {
@@ -14,6 +14,7 @@ interface CrabV2Store {
   isHistoricalView: boolean
   oSqthApproval: BigNumber
   wethApproval: BigNumber
+  auctionStatus: AuctionStatus
   setOwner: (owner: string) => void
   setIsContractLoading: (isLoading: boolean) => void
   setAuction: (a: Auction) => void
@@ -22,6 +23,7 @@ interface CrabV2Store {
   setIsHistoricalView: (isHistory: boolean) => void
   setOsqthApproval: (approval: BigNumber) => void
   setWethApproval: (approval: BigNumber) => void
+  setAuctionStatus: (status: AuctionStatus) => void
 }
 
 const useCrabV2Store = create<CrabV2Store>((set, get) => ({
@@ -34,6 +36,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   isHistoricalView: false,
   oSqthApproval: BIG_ZERO,
   wethApproval: BIG_ZERO,
+  auctionStatus: AuctionStatus.UPCOMING,
   setOwner: owner => set({ owner }),
   setIsContractLoading: l => set({ isContractLoading: l, isLoading: l || get().auctionLoading }),
   setAuction: auction => set({ auction }),
@@ -43,6 +46,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   setIsHistoricalView: isHistoricalView => set({ isHistoricalView }),
   setOsqthApproval: approval => set({ oSqthApproval: approval }),
   setWethApproval: approval => set({ wethApproval: approval }),
+  setAuctionStatus: status => set({ auctionStatus: status }),
 }))
 
 export default useCrabV2Store

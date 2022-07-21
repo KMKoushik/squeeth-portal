@@ -1,7 +1,7 @@
 import { BigNumber, ethers, Signer } from 'ethers'
 import { doc, increment, setDoc } from 'firebase/firestore'
 import { CRAB_STRATEGY_V2 } from '../constants/address'
-import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME } from '../constants/numbers'
+import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
 import { Auction, AuctionStatus, Bid, BidStatus, BigNumMap, Order } from '../types'
 import { db } from './firebase'
 import { wmul } from './math'
@@ -82,11 +82,10 @@ export const filterBidsWithReason = (
 }
 
 export const getAuctionStatus = (auction: Auction) => {
-  const auctionTimeInMS = V2_AUCTION_TIME * 60 * 1000
   const currentMillis = Date.now()
-  if (currentMillis < auction.auctionEnd && currentMillis > auction.auctionEnd - auctionTimeInMS)
+  if (currentMillis < auction.auctionEnd && currentMillis > auction.auctionEnd - V2_AUCTION_TIME_MILLIS)
     return AuctionStatus.LIVE
-  if (currentMillis < auction.auctionEnd + auctionTimeInMS && currentMillis > auction.auctionEnd)
+  if (currentMillis < auction.auctionEnd + V2_AUCTION_TIME_MILLIS && currentMillis > auction.auctionEnd)
     return AuctionStatus.SETTLEMENT
   if (currentMillis < auction.auctionEnd) return AuctionStatus.UPCOMING
 

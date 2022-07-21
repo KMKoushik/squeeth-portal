@@ -2,21 +2,21 @@ import { Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { format } from 'date-fns'
 import add from 'date-fns/add'
-import { useSigner } from 'wagmi'
 import shallow from 'zustand/shallow'
-import PrimaryButton from '../../../components/button/PrimaryButton'
-import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import usePriceStore from '../../../store/priceStore'
 import useControllerStore from '../../../store/controllerStore'
-import { getAuctionStatus, signOrder } from '../../../utils/auction'
+import { getAuctionStatus } from '../../../utils/auction'
 import { calculateIV, convertBigNumber, formatBigNumber, formatNumber } from '../../../utils/math'
 import AuctionBody from './AuctionBody'
 import Approvals from './Approvals'
-import { V2_AUCTION_TIME } from '../../../constants/numbers'
+import { V2_AUCTION_TIME, V2_AUCTION_TIME_MILLIS } from '../../../constants/numbers'
 import Countdown, { CountdownRendererFn } from 'react-countdown'
 import { AuctionStatus } from '../../../types'
 import AuctionInfo from './AuctionInfo'
+import Link from 'next/link'
+import useInterval from '../../../hooks/useInterval'
+import { useCallback, useEffect } from 'react'
 
 const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
   // Render a countdown
@@ -31,8 +31,20 @@ const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
 
 const Auction: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
-  const auctionStatus = getAuctionStatus(auction)
+  const setAuctionStatus = useCrabV2Store(s => s.setAuctionStatus)
+  const auctionStatus = useCrabV2Store(s => s.auctionStatus)
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
+
+  const updateStatus = useCallback(() => {
+    setAuctionStatus(getAuctionStatus(auction))
+  }, [auction, setAuctionStatus])
+
+  useEffect(() => {
+    updateStatus()
+  }, [updateStatus])
+  useInterval(updateStatus, auction.auctionEnd ? Date.now() - auction.auctionEnd : null)
+  useInterval(updateStatus, auction.auctionEnd ? Date.now() - auction.auctionEnd - V2_AUCTION_TIME_MILLIS : null)
+  useInterval(updateStatus, auction.auctionEnd ? Date.now() - auction.auctionEnd + V2_AUCTION_TIME_MILLIS : null)
 
   return (
     <Box>
@@ -51,9 +63,21 @@ const Auction: React.FC = () => {
             Settlement
           </Typography>
         ) : null}
+        <Link href={`/auctionHistory/${auction.currentAuctionId - 1}`} passHref>
+          <Typography
+            variant="body3"
+            ml={4}
+            color="primary.main"
+            px={2}
+            borderRadius={1}
+            sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            Previous auction
+          </Typography>
+        </Link>
       </Box>
       <Box mt={1} border="1px solid grey" borderRadius={2} minHeight={150}>
-        {Date.now() > auction.auctionEnd && !isHistoricalView ? (
+        {Date.now() > auction.auctionEnd + V2_AUCTION_TIME_MILLIS && !isHistoricalView ? (
           <Typography textAlign="center" mt={3} variant="h6">
             No auctions scheduled yet!
           </Typography>
@@ -64,7 +88,7 @@ const Auction: React.FC = () => {
           </Box>
         )}
       </Box>
-      {Date.now() < auction.auctionEnd || isHistoricalView ? (
+      {Date.now() < auction.auctionEnd + V2_AUCTION_TIME_MILLIS || isHistoricalView ? (
         <>
           <Typography variant="h6" mt={4}>
             Bids

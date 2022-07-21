@@ -108,6 +108,7 @@ const BidForm: React.FC = () => {
   const totalWeth = Number(price) * Number(qty)
 
   const priceError = React.useMemo(() => {
+    if (auction.price === '0') return
     const aucPrice = convertBigNumber(auction.price, 18)
     if (auction.isSelling && Number(price) < Number(aucPrice)) {
       return 'Price should be greater than min price'
@@ -117,6 +118,7 @@ const BidForm: React.FC = () => {
   }, [auction.isSelling, auction.price, price])
 
   const quantityError = React.useMemo(() => {
+    if (auction.oSqthAmount === '0') return
     const aucQty = convertBigNumber(auction.oSqthAmount, 18)
     if (aucQty < Number(qty)) return 'Quantity should be less than auction quantity'
   }, [auction.oSqthAmount, qty])

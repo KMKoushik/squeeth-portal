@@ -15,3 +15,5 @@ export const MAX_UINT = '0xfffffffffffffffffffffffffffffffffffffffffffffffffffff
 export const AUCTION_TIME = 1200
 
 export const V2_AUCTION_TIME = 10 //10 mins
+
+export const V2_AUCTION_TIME_MILLIS = V2_AUCTION_TIME * 60 * 1000 //10 mins in milliseconds
