@@ -1,5 +1,6 @@
 import { Grid, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
+import { BigNumber } from 'bignumber.js'
 import React, { useEffect, useMemo } from 'react'
 import { useSigner } from 'wagmi'
 import shallow from 'zustand/shallow'
@@ -155,8 +156,12 @@ const BidForm: React.FC = () => {
   }, [auction.isSelling])
   
   const setMaxBalance = React.useCallback(async () => {
-    setQty(balance.toString())
-  }, [balance])
+    if (auction.isSelling) {
+      setQty(new BigNumber(balance).div(new BigNumber(price)).toFixed(4))
+    } else {
+      setQty(balance.toString())
+    }
+  }, [balance, price, auction.isSelling])
 
   const error = priceError || quantityError || approvalError || balanceError
 
