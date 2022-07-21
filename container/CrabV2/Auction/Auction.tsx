@@ -16,6 +16,7 @@ import Approvals from './Approvals'
 import { V2_AUCTION_TIME } from '../../../constants/numbers'
 import Countdown, { CountdownRendererFn } from 'react-countdown'
 import { AuctionStatus } from '../../../types'
+import AuctionInfo from './AuctionInfo'
 
 const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
   // Render a countdown
@@ -70,6 +71,9 @@ const Auction: React.FC = () => {
           </Typography>
           <Box display="flex" mt={1}>
             <AuctionBody />
+          </Box>
+          <Box display="flex" mt={1}>
+            <AuctionInfo />
           </Box>
         </>
       ) : null}
