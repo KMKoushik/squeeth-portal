@@ -5,10 +5,10 @@ import React from 'react'
 const AuctionBody: React.FC = () => {
   return (
     <Grid container spacing={5} mt={1} mb={5}>
-      <Grid item xs={12} md={12} lg={9}>
+      <Grid item xs={12} md={12} lg={8}>
         <AuctionDetails />
       </Grid>
-      <Grid item xs={12} md={12} lg={3}>
+      <Grid item xs={12} md={12} lg={4}>
         <AuctionUtils />
       </Grid>
     </Grid>
@@ -30,9 +30,19 @@ const AuctionDetails: React.FC = () => {
         Auction Details
       </Typography>
       <ul>
-        <li><Typography variant="body3">The auction will run approximately MWF at 9:30AM PT, but could be discretionarily more or less frequent</Typography></li>
-        <li><Typography variant="body3">Bids are selected by best price that will clear size</Typography></li>
-        <li><Typography variant="body3">The auction may be re-run infrequently if needed eg. ETH price moves, not enough bids</Typography></li>
+        <li>
+          <Typography variant="body3">
+            The auction will run approximately MWF at 9:30AM PT, but could be discretionarily more or less frequent
+          </Typography>
+        </li>
+        <li>
+          <Typography variant="body3">Bids are selected by best price that will clear size</Typography>
+        </li>
+        <li>
+          <Typography variant="body3">
+            The auction may be re-run infrequently if needed eg. ETH price moves, not enough bids
+          </Typography>
+        </li>
       </ul>
     </Box>
   )
@@ -53,8 +63,16 @@ const AuctionUtils: React.FC = () => {
         Utilities
       </Typography>
       <ul>
-        <li><a href="https://squeeth.opyn.co/"><Typography color="primary">Mint / burn oSQTH</Typography></a></li>
-        <li><a href="https://app.uniswap.org/#/swap"><Typography color="primary">Wrap / unwrap WETH</Typography></a></li>
+        <li>
+          <a href="https://squeeth.opyn.co/">
+            <Typography color="primary">Mint / burn oSQTH</Typography>
+          </a>
+        </li>
+        <li>
+          <a href="https://app.uniswap.org/#/swap">
+            <Typography color="primary">Wrap / unwrap WETH</Typography>
+          </a>
+        </li>
       </ul>
     </Box>
   )

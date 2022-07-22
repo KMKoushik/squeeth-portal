@@ -101,10 +101,7 @@ const Auction: React.FC = () => {
       </Box>
       {Date.now() < auction.auctionEnd + V2_AUCTION_TIME_MILLIS || isHistoricalView ? (
         <>
-          <Typography variant="h6" mt={4}>
-            Bids
-          </Typography>
-          <Box display="flex" mt={1}>
+          <Box>
             <AuctionBody />
           </Box>
           <Box display="flex" mt={1}>
@@ -199,10 +196,10 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
     <Box borderTop="1px solid grey" p={2} px={5} display="flex" alignItems="center">
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
-          {isUpcoming ? 'Estimated' : ''} Size
+          {isUpcoming && !auction.oSqthAmount ? 'Estimated' : ''} Size
         </Typography>
         <Typography textAlign="center" variant="numeric">
-          {formatBigNumber(isUpcoming ? osqthEstimate! : auction.oSqthAmount, 18, 2)} oSQTH
+          {formatBigNumber(isUpcoming && !auction.oSqthAmount ? osqthEstimate! : auction.oSqthAmount, 18, 2)} oSQTH
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />

@@ -11,49 +11,61 @@ import { formatBigNumber, wmul } from '../../../utils/math'
 import { BigNumber } from 'ethers'
 import useAccountStore from '../../../store/accountStore'
 import { Button } from '@mui/material'
-import { Bid, BidStatus } from '../../../types'
+import { Auction, Bid, BidStatus } from '../../../types'
 
-const Bids: React.FC = () => {
+const getBidStatus = (auction: Auction, isHistoricalView: boolean, bid: Bid) => {
+  if (isHistoricalView) {
+    return auction.winningBids.includes(`${bid.bidder}-${bid.order.nonce}`) ? BidStatus.INCLUDED : BidStatus.NO_APPROVAL
+  }
+  if (
+    (auction.isSelling && Number(bid.order.price) < Number(auction.price)) ||
+    (!auction.isSelling && Number(bid.order.price) > Number(auction.price))
+  ) {
+    return BidStatus.STALE_BID
+  }
+}
+
+const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
+  const address = useAccountStore(s => s.address)
   const auction = useCrabV2Store(s => s.auction)
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
 
   const bids = sortBids(auction)
+  const filteredBids = React.useMemo(() => {
+    return seeMyBids ? bids.filter(b => b.bidder.toLowerCase() === address?.toLowerCase()) : bids
+  }, [address, bids, seeMyBids])
 
   return (
-    <TableContainer sx={{ bgcolor: 'background.overlayDark', borderRadius: 2 }}>
-      <Table sx={{ minWidth: 650 }} aria-label="simple table">
-        <TableHead>
-          <TableRow>
-            <TableCell>Rank</TableCell>
-            <TableCell align="right">Quantity</TableCell>
-            <TableCell align="right">Price per oSQTH</TableCell>
-            <TableCell align="right">{auction.isSelling ? 'Total Payable' : 'Total to get'}</TableCell>
-            <TableCell align="right">{isHistoricalView ? 'Accepted' : 'Action'}</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {bids.map((bid, i) => (
-            <TableRow
-              key={`${bid.bidder}-${bid.order.nonce}`}
-              sx={{
-                '&:last-child td, &:last-child th': {
-                  border: 0,
-                },
-                bgcolor: getBgColor(
-                  isHistoricalView
-                    ? auction.winningBids.includes(`${bid.bidder}-${bid.order.nonce}`)
-                      ? BidStatus.INCLUDED
-                      : BidStatus.NO_APPROVAL
-                    : undefined,
-                ),
-              }}
-            >
-              <BidRow bid={bid} rank={i + 1} />
+    <>
+      <TableContainer sx={{ bgcolor: 'background.overlayDark', borderRadius: 2 }}>
+        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Rank</TableCell>
+              <TableCell align="right">Quantity</TableCell>
+              <TableCell align="right">Price per oSQTH</TableCell>
+              <TableCell align="right">{auction.isSelling ? 'Total Payable' : 'Total to get'}</TableCell>
+              <TableCell align="right">{isHistoricalView ? 'Accepted' : 'Action'}</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {filteredBids.map((bid, i) => (
+              <TableRow
+                key={`${bid.bidder}-${bid.order.nonce}`}
+                sx={{
+                  '&:last-child td, &:last-child th': {
+                    border: 0,
+                  },
+                  bgcolor: getBgColor(getBidStatus(auction, isHistoricalView, bid)),
+                }}
+              >
+                <BidRow bid={bid} rank={i + 1} />
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   )
 }
 

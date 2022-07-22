@@ -1,4 +1,4 @@
-import { Grid, InputAdornment, TextField, Typography } from '@mui/material'
+import { Button, Grid, InputAdornment, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useEffect, useMemo } from 'react'
 import { useSigner } from 'wagmi'
@@ -13,17 +13,37 @@ import { AuctionStatus, Order } from '../../../types'
 import { signOrder } from '../../../utils/auction'
 import { convertBigNumber, toBigNumber } from '../../../utils/math'
 import Bids from './Bids'
+import FilledBids from './FilledBids'
 
 const AuctionBody: React.FC = () => {
+  const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
+  const [seeMyBids, setSeeMyBids] = React.useState(false)
+
+  const toggleSeeMyBid = () => {
+    setSeeMyBids(!seeMyBids)
+  }
+
   return (
-    <Grid container spacing={5}>
-      <Grid item xs={12} md={12} lg={8}>
-        <Bids />
+    <>
+      <Box display="flex" gap={2} mt={4} mb={1}>
+        <Typography variant="h6">Bids</Typography>
+        {seeMyBids ? (
+          <Button color="error" onClick={toggleSeeMyBid}>
+            Show All bids
+          </Button>
+        ) : (
+          <Button onClick={toggleSeeMyBid}>Show My bids</Button>
+        )}
+      </Box>
+      <Grid container spacing={5}>
+        <Grid item xs={12} md={12} lg={8}>
+          <Bids seeMyBids={seeMyBids} />
+        </Grid>
+        <Grid item xs={12} md={12} lg={4}>
+          {isHistoricalView ? <FilledBids /> : <BidForm />}
+        </Grid>
       </Grid>
-      <Grid item xs={12} md={12} lg={4}>
-        <BidForm />
-      </Grid>
-    </Grid>
+    </>
   )
 }
 
@@ -147,7 +167,7 @@ const BidForm: React.FC = () => {
   return (
     <Box
       boxShadow={1}
-      py={5}
+      py={3}
       px={8}
       borderRadius={2}
       bgcolor="background.overlayDark"
@@ -220,7 +240,7 @@ const BidForm: React.FC = () => {
           <SecondaryButton onClick={() => setBidToEdit(null)} sx={{ mt: 2 }}>
             Don&apos;t Edit
           </SecondaryButton>
-          <DangerButton loading={deleteLoading} onClick={cancelBid} sx={{ mt: 2 }}>
+          <DangerButton disabled={!canPlaceBid} loading={deleteLoading} onClick={cancelBid} sx={{ mt: 2 }}>
             Cancel Bid
           </DangerButton>
         </>

@@ -52,6 +52,7 @@ export enum BidStatus {
   INCLUDED = 1,
   PARTIALLY_FILLED,
   ALREADY_FILLED,
+  STALE_BID,
   NO_BALANCE,
   NO_APPROVAL,
 }

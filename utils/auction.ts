@@ -25,8 +25,13 @@ export const createOrEditAuction = async (auction: Auction) => {
 export const sortBids = (auction: Auction) => {
   const bids = Object.values(auction.bids)
 
+  return sortBidsForBidArray(bids, auction.isSelling)
+}
+
+export const sortBidsForBidArray = (bids: Array<Bid>, isSelling: boolean) => {
   const sortedBids = bids.sort((a, b) => {
-    if (auction.isSelling) return Number(b.order.price) - Number(a.order.price)
+    if (b.order.price === a.order.price) return Number(a.order.nonce) - Number(b.order.nonce)
+    if (isSelling) return Number(b.order.price) - Number(a.order.price)
 
     return Number(a.order.price) - Number(b.order.price)
   })
@@ -51,6 +56,8 @@ export const filterBidsWithReason = (
   const approvalMap = { ..._approvalMap }
   const balanceMap = { ..._balanceMap }
   const quantity = BigNumber.from(auction.oSqthAmount)
+  const auctionPrice = BigNumber.from(auction.price)
+
   let filledAmt = BigNumber.from(0)
 
   const filteredBids = sortedBids
@@ -58,6 +65,9 @@ export const filterBidsWithReason = (
       const _osqth = BigNumber.from(b.order.quantity)
       const _price = BigNumber.from(b.order.price)
       const erc20Needed = auction.isSelling ? wmul(_osqth, _price) : _osqth
+
+      if ((auction.isSelling && _price.lt(auctionPrice)) || (!auction.isSelling && _price.gt(auctionPrice)))
+        return { ...b, status: BidStatus.STALE_BID }
 
       if (!approvalMap[b.bidder] || !approvalMap[b.bidder].gte(erc20Needed))
         return { ...b, status: BidStatus.NO_APPROVAL }
@@ -79,6 +89,29 @@ export const filterBidsWithReason = (
     .sort((a, b) => a.status - b.status)
 
   return filteredBids
+}
+
+export const getWinningBidsForUser = (auction: Auction, user: string) => {
+  let qtyLeft = BigNumber.from(auction.oSqthAmount)
+
+  const winningBids = auction.winningBids.map(wb => {
+    const bid = { ...auction.bids[wb] }
+    const filledAmount = qtyLeft.lt(bid.order.quantity) ? qtyLeft : BigNumber.from(bid.order.quantity)
+    qtyLeft = qtyLeft.sub(filledAmount)
+    return { ...auction.bids[wb], filledAmount }
+  })
+
+  return winningBids.filter(b => b.bidder.toLowerCase() === user.toLowerCase())
+}
+
+export const getQtyFromBids = (bids: Array<Bid & { status: BidStatus }>, maxQty: string) => {
+  const _max = BigNumber.from(maxQty)
+
+  const qty = bids.reduce((acc, b) => {
+    return acc.add(b.order.quantity)
+  }, BigNumber.from(0))
+
+  return qty.gt(_max) ? maxQty : qty.toString()
 }
 
 export const getAuctionStatus = (auction: Auction) => {

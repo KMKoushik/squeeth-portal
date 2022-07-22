@@ -10,9 +10,11 @@ import {
   convertArrayToMap,
   filterBidsWithReason,
   getBgColor,
+  getQtyFromBids,
   getTxBidsAndClearingPrice,
   getUniqueTraders,
   sortBids,
+  sortBidsForBidArray,
 } from '../../../../utils/auction'
 import { formatBigNumber, wmul } from '../../../../utils/math'
 import { BigNumber } from 'ethers'
@@ -21,7 +23,7 @@ import useApprovals from '../../../../hooks/useApprovals'
 import { CRAB_STRATEGY_V2, OSQUEETH, WETH } from '../../../../constants/address'
 import { useBalances } from '../../../../hooks/useBalances'
 import { PrimaryLoadingButton } from '../../../../components/button/PrimaryButton'
-import { Button, Typography } from '@mui/material'
+import { Button, Checkbox, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { SecondaryButton } from '../../../../components/button/SecondaryButton'
 import { useContract, useContractWrite, useSigner, useWaitForTransaction } from 'wagmi'
@@ -35,6 +37,7 @@ const getStatus = (status?: BidStatus) => {
   if (status === BidStatus.NO_APPROVAL) return 'Not enough approval'
   if (status === BidStatus.NO_BALANCE) return 'Not enough balance'
   if (status === BidStatus.ALREADY_FILLED) return 'Already filled'
+  if (status === BidStatus.STALE_BID) return 'Stale bid'
 
   return '--'
 }
@@ -49,6 +52,10 @@ const AdminBidView: React.FC = () => {
   const uniqueTraders = getUniqueTraders(bids)
   const { getApprovals } = useApprovals(uniqueTraders, auction.isSelling ? WETH : OSQUEETH, CRAB_STRATEGY_V2)
   const { getBalances } = useBalances(uniqueTraders, auction.isSelling ? WETH : OSQUEETH)
+
+  // Needed for manual hedge
+  const [manualBidMap, setManualBidMap] = React.useState<{ [key: string]: Bid & { status?: BidStatus } }>({})
+  const [manualQty, setManualQty] = React.useState('0')
 
   const { data: hedgeTx, writeAsync: hedge } = useContractWrite({
     ...CRAB_V2_CONTRACT,
@@ -91,9 +98,12 @@ const AdminBidView: React.FC = () => {
   const hedgeCB = async () => {
     try {
       const signature = await signer?.signMessage(KING_CRAB)
-      const orders = filteredBids!
+      const manualBids = Object.values(manualBidMap)
+      const orders = (manualBids.length ? manualBids : filteredBids!)
         .filter(fb => fb.status! <= BidStatus.PARTIALLY_FILLED)
         .map(b => ({ ...b.order, v: b.v, r: b.r, s: b.s }))
+
+      console.log(orders)
 
       const gasLimit = await crabV2.estimateGas.hedgeOTC(auction.oSqthAmount, clearingPrice, !auction.isSelling, orders)
 
@@ -107,7 +117,7 @@ const AdminBidView: React.FC = () => {
 
       const updatedAuction: Auction = {
         ...auction,
-        tx: tx.blockHash,
+        tx: tx.hash,
         clearingPrice,
         winningBids: orders.map(o => `${o.trader}-${o.nonce}`),
       }
@@ -125,7 +135,36 @@ const AdminBidView: React.FC = () => {
   const clearFilter = () => {
     setFilteredBids(undefined)
     setClearingPrice('')
+    setManualBidMap({})
+    setManualQty('0')
   }
+
+  const onManualCheck = React.useCallback(
+    (bidId: string) => {
+      const _manualBidMap = { ...manualBidMap }
+      const bid = auction.bids[bidId]
+      if (manualBidMap[bidId]) {
+        delete _manualBidMap[bidId]
+      } else {
+        _manualBidMap[bidId] = { ...bid, status: BidStatus.INCLUDED }
+      }
+
+      const sortedBids = sortBidsForBidArray(Object.values(_manualBidMap), auction.isSelling).map(b => ({
+        ...b,
+        status: BidStatus.INCLUDED,
+      }))
+
+      setManualBidMap(_manualBidMap)
+      setManualQty(getQtyFromBids(sortedBids, auction.oSqthAmount))
+      if (sortedBids.length) {
+        const { clearingPrice: _clPrice } = getTxBidsAndClearingPrice(sortedBids)
+        setClearingPrice(_clPrice)
+      } else {
+        filterBids()
+      }
+    },
+    [auction.bids, auction.isSelling, auction.oSqthAmount, filterBids, manualBidMap],
+  )
 
   return (
     <>
@@ -143,6 +182,7 @@ const AdminBidView: React.FC = () => {
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
             <TableRow>
+              <TableCell>Select</TableCell>
               <TableCell>Rank</TableCell>
               <TableCell>Trader</TableCell>
               <TableCell align="right">Quantity</TableCell>
@@ -152,7 +192,7 @@ const AdminBidView: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {(filteredBids || bids).map((bid, i) => (
+            {(filteredBids || bids).map((bid: Bid & { status?: BidStatus }, i) => (
               <TableRow
                 key={`${bid.bidder}-${bid.order.nonce}`}
                 sx={{
@@ -160,17 +200,33 @@ const AdminBidView: React.FC = () => {
                   bgcolor: getBgColor((bid as any).status),
                 }}
               >
-                <BidRow bid={bid} rank={i + 1} />
+                <BidRow
+                  bid={bid}
+                  rank={i + 1}
+                  checkEnabled={(bid.status || 0) !== 0 && (bid.status || 0) <= BidStatus.ALREADY_FILLED}
+                  checked={false}
+                  onCheck={() => onManualCheck(`${bid.bidder}-${bid.order.nonce}`)}
+                />
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
       <Box mt={2}>
+        <Typography mb={1}>{Number(manualQty) ? 'Using Manual bids' : 'Using Automated algo'}</Typography>
+        <Box>
+          <Typography variant="body1" component="span" color="textSecondary">
+            Clearing price:{' '}
+            <Typography fontWeight={600} variant="numeric" component="span" color="textPrimary" ml={2}>
+              {formatBigNumber(clearingPrice || '0', 18, 6)}
+            </Typography>{' '}
+            WETH
+          </Typography>
+        </Box>
         <Typography variant="body1" component="span" color="textSecondary">
-          Clearing price:{' '}
+          Hedge amount:{' '}
           <Typography fontWeight={600} variant="numeric" component="span" color="textPrimary" ml={2}>
-            {formatBigNumber(clearingPrice || '0', 18, 6)}
+            {formatBigNumber(manualQty === '0' ? auction.oSqthAmount : manualQty, 18, 6)}
           </Typography>{' '}
           WETH
         </Typography>
@@ -189,12 +245,23 @@ const AdminBidView: React.FC = () => {
   )
 }
 
-const BidRow: React.FC<{ bid: Bid & { status?: BidStatus }; rank: number }> = ({ bid, rank }) => {
+type BidRowProp = {
+  bid: Bid & { status?: BidStatus }
+  rank: number
+  checkEnabled: boolean
+  checked: boolean
+  onCheck: () => void
+}
+
+const BidRow: React.FC<BidRowProp> = ({ bid, rank, checkEnabled, onCheck }) => {
   const qty = BigNumber.from(bid.order.quantity)
   const price = BigNumber.from(bid.order.price)
 
   return (
     <>
+      <TableCell component="th" scope="row">
+        <Checkbox onChange={onCheck} disabled={!checkEnabled} color="primary" />
+      </TableCell>
       <TableCell component="th" scope="row">
         {rank}
       </TableCell>

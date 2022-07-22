@@ -1,6 +1,7 @@
 import { Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import Countdown, { CountdownRendererFn } from 'react-countdown'
+import { V2_AUCTION_TIME_MILLIS } from '../../../constants/numbers'
 import useCrabV2Store from '../../../store/crabV2Store'
 import { AuctionStatus } from '../../../types'
 import { formatNumber } from '../../../utils/math'
@@ -30,7 +31,7 @@ const AuctionBadge: React.FC = () => {
         </Typography>
       ) : auctionStatus === AuctionStatus.UPCOMING ? (
         <Typography variant="caption" color="warning.main" bgcolor="warning.light" px={2} py={0.5} borderRadius={1}>
-          Upcoming <Countdown date={auction.auctionEnd} renderer={renderer} />
+          Upcoming <Countdown date={auction.auctionEnd - V2_AUCTION_TIME_MILLIS} renderer={renderer} />
         </Typography>
       ) : null}
     </Box>
