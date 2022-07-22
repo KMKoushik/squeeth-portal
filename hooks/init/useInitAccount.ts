@@ -2,6 +2,7 @@ import { BigNumber } from 'ethers'
 import React from 'react'
 import { useContractReads } from 'wagmi'
 import { OSQUEETH_CONTRACT, WETH_CONTRACT } from '../../constants/contracts'
+import { BIG_ZERO } from '../../constants/numbers'
 import useAccountStore from '../../store/accountStore'
 
 const useInitAccount = () => {
@@ -29,9 +30,8 @@ const useInitAccount = () => {
     console.log(data, isLoading)
     if (isLoading || !data) return
 
-    console.log(data)
-    setOsqthBalance(data[0] as unknown as BigNumber)
-    setWethBalance(data[1] as unknown as BigNumber)
+    setOsqthBalance((data[0] as unknown as BigNumber) || BIG_ZERO)
+    setWethBalance((data[1] as unknown as BigNumber) || BIG_ZERO)
   }, [data, isLoading, setOsqthBalance, setWethBalance])
 }
 
