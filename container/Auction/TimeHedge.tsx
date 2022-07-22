@@ -19,7 +19,7 @@ const TimeHedge = React.memo(function TimeHedge() {
   const { isSelling, oSqthAmount } = useCrabStore(s => s.auctionDetails, shallow)
   const { erc20: squeethContract, erc20Loading } = useERC20(OSQUEETH)
   const { isApprovalNeeded, setIsApprovalNeeded, isApproved, setIsApproved, setTxLoading, txLoading } = useHedgeStore()
-  const [{ data: oSqthBalData, loading: balanceLoading }] = useBalance({ addressOrName: owner, token: OSQUEETH })
+  const { data: oSqthBalData, isLoading: balanceLoading } = useBalance({ addressOrName: owner, token: OSQUEETH })
 
   const checkApproval = React.useCallback(async () => {
     if (!owner || oSqthAmount.isZero()) return

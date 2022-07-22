@@ -3,14 +3,18 @@ import { BIG_ONE, FUNDING_PERIOD, INDEX_SCALE } from '../constants/numbers'
 
 export const { formatUnits, parseUnits } = ethers.utils
 
-export const formatBigNumber = (bn: BigNumber, decimals = 18, decimalsToShow = 4) => {
+export const formatBigNumber = (bn: BigNumber | string, decimals = 18, decimalsToShow = 4) => {
   return convertBigNumber(bn, decimals).toLocaleString(undefined, {
     maximumFractionDigits: decimalsToShow,
   })
 }
 
-export const convertBigNumber = (bn: BigNumber, decimals = 18) => {
+export const convertBigNumber = (bn: BigNumber | string, decimals = 18) => {
   return parseFloat(ethers.utils.formatUnits(bn, decimals))
+}
+
+export const toBigNumber = (num: number, decimals = 18) => {
+  return Number(num) * 10 ** 18
 }
 
 export const divideWithPrecision = (dividend: BigNumber, divisor: BigNumber, decimals = 4) => {

@@ -53,3 +53,8 @@ export const CRAB_MIGRATION = getAddress({
   1: '0xa1cab67a4383312718a5799eaa127906e9d4b19e',
   3: '0xD0fb9d47B5F65d76C6bDf1b9E43a4A2345080B2f',
 })
+
+export const CRAB_STRATEGY_V2 = getAddress({
+  1: '0x3b960e47784150f5a63777201ee2b15253d713e8',
+  3: '0xdd1e9c25115e0d6e531d9f9e6ab7dbbed15158ce',
+})

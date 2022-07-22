@@ -3,17 +3,20 @@ import { createTheme } from '@mui/material'
 declare module '@mui/material/styles' {
   interface TypographyVariants {
     numeric: React.CSSProperties
+    body3: React.CSSProperties
   }
 
   // allow configuration using `createTheme`
   interface TypographyVariantsOptions {
     numeric?: React.CSSProperties
+    body3?: React.CSSProperties
   }
 }
 
 declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
     numeric: true
+    body3: true
   }
 }
 
@@ -31,7 +34,12 @@ const darkTheme = createTheme({
       letterSpacing: 1.5,
     },
     body2: {
+      fontSize: 15,
       fontFamily: ['Space Mono'].join(','),
+    },
+    body3: {
+      fontSize: 15,
+      color: 'rgb(255 255 255 / 65%)',
     },
     numeric: {
       fontFamily: ['Space Mono', 'Michroma', 'Roboto'].join(','),
@@ -49,6 +57,7 @@ const darkTheme = createTheme({
     },
     error: {
       main: '#ff1f62',
+      light: '#ff1f6210',
     },
     warning: {
       light: '#F5B07326',
@@ -56,7 +65,7 @@ const darkTheme = createTheme({
     },
     success: {
       main: '#17ffa2',
-      light: '#B2F0C5',
+      light: '#17ffa210',
     },
     background: {
       base: '#1F2023',
