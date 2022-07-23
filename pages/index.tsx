@@ -81,7 +81,7 @@ const Home: NextPage = () => {
                   variants={initialAnimation}
                   custom={1}
                 >
-                  <Link href="/auction-admin" passHref>
+                  <Link href="/auction" passHref>
                     <AuctionCard>
                       <Typography textAlign="center" variant="h5" mb={4}>
                         Auction

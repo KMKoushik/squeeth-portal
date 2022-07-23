@@ -77,7 +77,7 @@ const Approvals: React.FC = () => {
   return (
     <Box display="flex">
       <Box display="flex" alignItems="center" mt={1} bgcolor="background.overlayDark" p={2} borderRadius={2}>
-        <Typography mr={4}>oSqth</Typography>
+        <Typography mr={4}>oSQTH</Typography>
         {isOsqthApproved ? (
           <SecondaryButton disabled size="small" sx={{ width: 120 }}>
             Approved
@@ -95,7 +95,7 @@ const Approvals: React.FC = () => {
       </Box>
 
       <Box display="flex" alignItems="center" mt={1} bgcolor="background.overlayDark" p={2} borderRadius={2} ml={4}>
-        <Typography mr={4}>weth</Typography>
+        <Typography mr={4}>WETH</Typography>
         {isWethApproved ? (
           <SecondaryButton disabled size="small" sx={{ width: 120 }}>
             Approved

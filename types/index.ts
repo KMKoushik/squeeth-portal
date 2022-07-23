@@ -52,6 +52,7 @@ export enum BidStatus {
   INCLUDED = 1,
   PARTIALLY_FILLED,
   ALREADY_FILLED,
+  STALE_BID,
   NO_BALANCE,
   NO_APPROVAL,
 }
@@ -61,6 +62,12 @@ export enum AuctionStatus {
   SETTLEMENT,
   SETTLED,
   UPCOMING,
+}
+
+export type Vault = {
+  address: string
+  shortAmount: BigNumber
+  collateral: BigNumber
 }
 
 export type BigNumMap = { [key: string]: BigNumber }

@@ -12,7 +12,8 @@ const useInitAuction = () => {
     const unSubscribe = onSnapshot(doc(db, 'auction', 'current'), d => {
       setAuctionLoading(false)
       if (d.exists()) {
-        setAuction(d.data() as Auction)
+        const auction = d.data() as Auction
+        setAuction(auction)
       }
     })
 

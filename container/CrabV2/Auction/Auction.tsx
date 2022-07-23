@@ -1,21 +1,23 @@
-import { Typography } from '@mui/material'
+import { Button, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { format } from 'date-fns'
 import add from 'date-fns/add'
-import { useSigner } from 'wagmi'
 import shallow from 'zustand/shallow'
-import PrimaryButton from '../../../components/button/PrimaryButton'
-import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import usePriceStore from '../../../store/priceStore'
 import useControllerStore from '../../../store/controllerStore'
-import { getAuctionStatus, signOrder } from '../../../utils/auction'
+import { estimateAuction, getAuctionStatus } from '../../../utils/auction'
 import { calculateIV, convertBigNumber, formatBigNumber, formatNumber } from '../../../utils/math'
 import AuctionBody from './AuctionBody'
 import Approvals from './Approvals'
-import { V2_AUCTION_TIME } from '../../../constants/numbers'
+import { BIG_ZERO, ETHERSCAN, V2_AUCTION_TIME, V2_AUCTION_TIME_MILLIS } from '../../../constants/numbers'
 import Countdown, { CountdownRendererFn } from 'react-countdown'
 import { AuctionStatus } from '../../../types'
+import AuctionInfo from './AuctionInfo'
+import Link from 'next/link'
+import useInterval from '../../../hooks/useInterval'
+import { useCallback, useEffect, useMemo } from 'react'
+import AuctionBadge from './AuctionBadge'
 
 const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
   // Render a countdown
@@ -30,46 +32,80 @@ const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
 
 const Auction: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
-  const auctionStatus = getAuctionStatus(auction)
+  const setAuctionStatus = useCrabV2Store(s => s.setAuctionStatus)
+  const auctionStatus = useCrabV2Store(s => s.auctionStatus)
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
+
+  const updateStatus = useCallback(() => {
+    setAuctionStatus(getAuctionStatus(auction))
+  }, [auction, setAuctionStatus])
+
+  const vault = useCrabV2Store(s => s.vault)
+  const oSqthPrice = usePriceStore(s => s.oSqthPrice)
+  const isUpcoming = auctionStatus === AuctionStatus.UPCOMING
+
+  const { isSellingAuction, oSqthAmount: oSqthAmountEst } = useMemo(() => {
+    if (!isUpcoming || !vault) return { isSellingAuction: true, oSqthAmount: BIG_ZERO, ethAmount: BIG_ZERO }
+
+    return estimateAuction(vault.shortAmount, vault.collateral, oSqthPrice)
+  }, [isUpcoming, oSqthPrice, vault])
+
+  console.log(isSellingAuction, oSqthAmountEst.toString())
+
+  useEffect(() => {
+    updateStatus()
+  }, [updateStatus])
+  useInterval(updateStatus, auction.auctionEnd ? Date.now() - auction.auctionEnd : null)
+  useInterval(updateStatus, auction.auctionEnd ? Date.now() - auction.auctionEnd - V2_AUCTION_TIME_MILLIS : null)
+  useInterval(updateStatus, auction.auctionEnd ? Date.now() - auction.auctionEnd + V2_AUCTION_TIME_MILLIS : null)
 
   return (
     <Box>
-      <Typography variant="h6">Token approvals</Typography>
+      <Typography variant="h6">Token Approvals</Typography>
       <Box mt={1}>
         <Approvals />
       </Box>
       <Box display="flex" mt={4} alignItems="center">
         <Typography variant="h6">Auction</Typography>
-        {auctionStatus === AuctionStatus.LIVE ? (
-          <Typography variant="caption" ml={4} color="success.main" bgcolor="success.light" px={2} borderRadius={1}>
-            Live Auction
+        <AuctionBadge />
+        <Link href={`/auctionHistory/${auction.currentAuctionId - 1}`} passHref>
+          <Typography
+            variant="body3"
+            ml={4}
+            color="primary.main"
+            px={2}
+            borderRadius={1}
+            sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            Previous auction
           </Typography>
-        ) : auctionStatus === AuctionStatus.SETTLEMENT ? (
-          <Typography variant="caption" ml={4} color="warning.main" bgcolor="warning.light" px={2} borderRadius={1}>
-            Settlement
-          </Typography>
-        ) : null}
+        </Link>
       </Box>
       <Box mt={1} border="1px solid grey" borderRadius={2} minHeight={150}>
-        {Date.now() > auction.auctionEnd && !isHistoricalView ? (
+        {Date.now() > auction.auctionEnd + V2_AUCTION_TIME_MILLIS && !isHistoricalView ? (
           <Typography textAlign="center" mt={3} variant="h6">
             No auctions scheduled yet!
           </Typography>
         ) : (
           <Box>
-            <AuctionDetailsHeader isAuctionLive={auctionStatus === AuctionStatus.LIVE} />
-            <AuctionHeaderBody />
+            <AuctionDetailsHeader
+              isAuctionLive={auctionStatus === AuctionStatus.LIVE}
+              isSelling={auctionStatus === AuctionStatus.UPCOMING ? isSellingAuction : auction.isSelling}
+            />
+            <AuctionHeaderBody
+              osqthEstimate={auctionStatus === AuctionStatus.UPCOMING ? oSqthAmountEst.toString() : undefined}
+              isUpcoming={isUpcoming}
+            />
           </Box>
         )}
       </Box>
-      {Date.now() < auction.auctionEnd || isHistoricalView ? (
+      {Date.now() < auction.auctionEnd + V2_AUCTION_TIME_MILLIS || isHistoricalView ? (
         <>
-          <Typography variant="h6" mt={4}>
-            Bids
-          </Typography>
-          <Box display="flex" mt={1}>
+          <Box>
             <AuctionBody />
+          </Box>
+          <Box display="flex" mt={1}>
+            <AuctionInfo />
           </Box>
         </>
       ) : null}
@@ -77,15 +113,34 @@ const Auction: React.FC = () => {
   )
 }
 
-const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean }> = ({ isAuctionLive }) => {
+const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolean }> = ({
+  isAuctionLive,
+  isSelling,
+}) => {
   const auction = useCrabV2Store(s => s.auction)
+  const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
+
+  const action = useMemo(() => {
+    if (isSelling) {
+      return isHistoricalView ? 'Sold' : 'Selling'
+    } else {
+      return isHistoricalView ? 'Bought' : 'Buying'
+    }
+  }, [isHistoricalView, isSelling])
 
   return (
     <Box p={3} px={5} display="flex" alignItems="center" justifyContent="space-between">
       <Box>
-        <Typography fontWeight={600} variant="body1">
-          {auction.isSelling ? 'Selling ' : 'Buying '}oSqth
-        </Typography>
+        <Box display="flex" alignItems="center">
+          <Typography fontWeight={600} variant="body1">
+            {action} oSQTH
+          </Typography>
+          {auction.tx ? (
+            <Button href={`${ETHERSCAN.url}/tx/${auction.tx}`} target="_blank" rel="noreferrer">
+              tx
+            </Button>
+          ) : null}
+        </Box>
         <Box display="flex" mt={0.5} alignItems="center" justifyContent="space-between" width={180}>
           <Typography variant="body3">Auction start</Typography>
           <Typography variant="body2">
@@ -104,9 +159,9 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean }> = ({ isAuctionL
         </Box>
       </Box>
       <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary">Clearing price(per oSqth)</Typography>
+        <Typography color="textSecondary">Estimated clearing price(per oSQTH)</Typography>
         <Typography textAlign="center" variant="numeric" color="primary">
-          .2 WETH
+          {formatBigNumber(auction.clearingPrice || '0', 18, 6)} WETH
         </Typography>
       </Box>
       <Box display="flex" flexDirection="column" justifyContent="center">
@@ -119,7 +174,10 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean }> = ({ isAuctionL
   )
 }
 
-const AuctionHeaderBody: React.FC = () => {
+const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean }> = ({
+  osqthEstimate,
+  isUpcoming,
+}) => {
   const auction = useCrabV2Store(s => s.auction)
   const { ethPriceBN, oSqthPriceBN } = usePriceStore(
     s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
@@ -138,16 +196,16 @@ const AuctionHeaderBody: React.FC = () => {
     <Box borderTop="1px solid grey" p={2} px={5} display="flex" alignItems="center">
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
-          Size
+          {isUpcoming && !auction.oSqthAmount ? 'Estimated' : ''} Size
         </Typography>
         <Typography textAlign="center" variant="numeric">
-          {formatBigNumber(auction.oSqthAmount, 18, 2)} oSQTH
+          {formatBigNumber(isUpcoming && !auction.oSqthAmount ? osqthEstimate! : auction.oSqthAmount, 18, 2)} oSQTH
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
-          {auction.isSelling ? 'Min price' : 'Max price'}
+          {auction.isSelling ? 'Min Price' : 'Max Price'}
         </Typography>
         <Typography textAlign="center" variant="numeric">
           {formatBigNumber(auction.price, 18, 6)} WETH
@@ -156,7 +214,7 @@ const AuctionHeaderBody: React.FC = () => {
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption" textAlign="center">
-          ETH price
+          ETH Price
         </Typography>
         <Typography variant="numeric" textAlign="center">
           ${ethPrice.toFixed(2)}
@@ -165,7 +223,7 @@ const AuctionHeaderBody: React.FC = () => {
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption" textAlign="center">
-          oSqth price
+          oSQTH Price
         </Typography>
         <Typography variant="numeric" textAlign="center">
           {oSqthPrice.toFixed(6)} ETH
@@ -174,7 +232,7 @@ const AuctionHeaderBody: React.FC = () => {
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption" textAlign="center">
-          index price
+          Index Price
         </Typography>
         <Typography variant="numeric" textAlign="center">
           ${formatBigNumber(indexPrice, 18, 0)}
@@ -183,7 +241,7 @@ const AuctionHeaderBody: React.FC = () => {
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption" textAlign="center">
-          mark price
+          Mark Price
         </Typography>
         <Typography variant="numeric" textAlign="center">
           ${formatBigNumber(markPrice, 18, 0)}
@@ -192,7 +250,7 @@ const AuctionHeaderBody: React.FC = () => {
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption" textAlign="center">
-          IV
+          Squeeth IV
         </Typography>
         <Typography variant="numeric" textAlign="center">
           {(calculateIV(oSqthPrice, nf, ethPrice) * 100).toFixed(2)}%
