@@ -220,25 +220,6 @@ const BidForm: React.FC = () => {
         label="Quantity"
         variant="outlined"
         size="small"
-        sx={{ mt: 3 }}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <Typography variant="caption" color="textSecondary">
-                WETH
-              </Typography>
-            </InputAdornment>
-          ),
-        }}
-      />
-      <TextField
-        value={qty}
-        onChange={e => setQty(e.target.value)}
-        type="number"
-        id="quantity"
-        label="Quantity"
-        variant="outlined"
-        size="small"
         sx={{ mt: 4 }}
         InputProps={{
           endAdornment: (
