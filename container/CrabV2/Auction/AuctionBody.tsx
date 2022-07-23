@@ -1,5 +1,6 @@
 import { Button, Grid, InputAdornment, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
+import { BigNumber } from 'bignumber.js'
 import React, { useEffect, useMemo } from 'react'
 import { useSigner } from 'wagmi'
 import shallow from 'zustand/shallow'
@@ -160,6 +161,30 @@ const BidForm: React.FC = () => {
     }
   }, [auction.isSelling, oSqthBalance, qty, totalWeth, wethBalance])
 
+  const balance = React.useMemo(() => {
+    if (auction.isSelling) {
+      return convertBigNumber(wethBalance)
+    } else {
+      return convertBigNumber(oSqthBalance)
+    }
+  }, [auction.isSelling, oSqthBalance, wethBalance])
+
+  const balanceToken = React.useMemo(() => {
+    if (auction.isSelling) {
+      return "WETH"
+    } else {
+      return "oSQTH"
+    }
+  }, [auction.isSelling])
+  
+  const setMaxBalance = React.useCallback(async () => {
+    if (auction.isSelling) {
+      setQty(new BigNumber(balance).div(new BigNumber(price)).toFixed(4))
+    } else {
+      setQty(balance.toString())
+    }
+  }, [balance, price, auction.isSelling])
+
   const error = priceError || quantityError || approvalError || balanceError
 
   const canPlaceBid = auctionStatus === AuctionStatus.LIVE || auctionStatus === AuctionStatus.UPCOMING
@@ -215,6 +240,23 @@ const BidForm: React.FC = () => {
           ),
         }}
       />
+      <Box 
+        py={0.5}
+        px={1}
+        borderRadius={2}
+        bgcolor="background.overlayLight"
+        display="flex"
+        justifyContent="space-between"
+        onClick={setMaxBalance}
+      >
+        <Typography variant="body3">Balance</Typography>
+        <Typography variant="body3" color="textSecondary">
+          <Typography color="textSecondary" component="span">
+            {balance.toFixed(4)}
+          </Typography>{' '}
+          {balanceToken}
+        </Typography>
+      </Box>
       <Box display="flex" mt={2} justifyContent="space-between">
         <Typography variant="body3">Total</Typography>
         <Typography variant="body2" color="textSecondary">
