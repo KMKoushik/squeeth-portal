@@ -32,7 +32,7 @@ const AuctionDetails: React.FC = () => {
       <ul>
         <li>
           <Typography variant="body3">
-            The auction will run approximately MWF at 9:30AM PT, but could be discretionarily more or less frequent
+            The auction will run approximately MWF at 9:30AM PT, but could be more or less frequent
           </Typography>
         </li>
         <li>
@@ -64,12 +64,12 @@ const AuctionUtils: React.FC = () => {
       </Typography>
       <ul>
         <li>
-          <a href="https://squeeth.opyn.co/">
+          <a href="https://squeeth.opyn.co/" target="_blank" rel="noreferrer">
             <Typography color="primary">Mint / burn oSQTH</Typography>
           </a>
         </li>
         <li>
-          <a href="https://app.uniswap.org/#/swap">
+          <a href="https://app.uniswap.org/#/swap" target="_blank" rel="noreferrer">
             <Typography color="primary">Wrap / unwrap WETH</Typography>
           </a>
         </li>

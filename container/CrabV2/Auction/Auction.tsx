@@ -61,7 +61,7 @@ const Auction: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h6">Token approvals</Typography>
+      <Typography variant="h6">Token Approvals</Typography>
       <Box mt={1}>
         <Approvals />
       </Box>
@@ -133,7 +133,7 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
       <Box>
         <Box display="flex" alignItems="center">
           <Typography fontWeight={600} variant="body1">
-            {action} oSqth
+            {action} oSQTH
           </Typography>
           {auction.tx ? (
             <Button href={`${ETHERSCAN.url}/tx/${auction.tx}`} target="_blank" rel="noreferrer">
@@ -159,7 +159,7 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
         </Box>
       </Box>
       <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary">Clearing price(per oSqth)</Typography>
+        <Typography color="textSecondary">Estimated clearing price(per oSQTH)</Typography>
         <Typography textAlign="center" variant="numeric" color="primary">
           {formatBigNumber(auction.clearingPrice || '0', 18, 6)} WETH
         </Typography>
@@ -205,7 +205,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
-          {auction.isSelling ? 'Min price' : 'Max price'}
+          {auction.isSelling ? 'Min Price' : 'Max Price'}
         </Typography>
         <Typography textAlign="center" variant="numeric">
           {formatBigNumber(auction.price, 18, 6)} WETH
@@ -214,7 +214,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption" textAlign="center">
-          ETH price
+          ETH Price
         </Typography>
         <Typography variant="numeric" textAlign="center">
           ${ethPrice.toFixed(2)}
@@ -223,7 +223,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption" textAlign="center">
-          oSqth price
+          oSQTH Price
         </Typography>
         <Typography variant="numeric" textAlign="center">
           {oSqthPrice.toFixed(6)} ETH
@@ -232,7 +232,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption" textAlign="center">
-          index price
+          Index Price
         </Typography>
         <Typography variant="numeric" textAlign="center">
           ${formatBigNumber(indexPrice, 18, 0)}
@@ -241,7 +241,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption" textAlign="center">
-          mark price
+          Mark Price
         </Typography>
         <Typography variant="numeric" textAlign="center">
           ${formatBigNumber(markPrice, 18, 0)}
@@ -250,7 +250,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption" textAlign="center">
-          IV
+          Squeeth IV
         </Typography>
         <Typography variant="numeric" textAlign="center">
           {(calculateIV(oSqthPrice, nf, ethPrice) * 100).toFixed(2)}%
