@@ -177,26 +177,14 @@ export const estimateAuction = (debt: BigNumber, ethDelta: BigNumber, sqthPrice:
   const oSqthDelta = wmul(wmul(debt, BigNumber.from(BIG_ONE).mul(2)), sqthPrice)
 
   const getAuctionTypeAndTargetHedge = () => {
-    if (oSqthDelta.gt(ethDelta)) {
-      return { isSellingAuction: false, target: wdiv(oSqthDelta.sub(ethDelta), sqthPrice) }
-    }
-    return { isSellingAuction: true, target: wdiv(ethDelta.sub(oSqthDelta), sqthPrice) }
+    const delta = oSqthDelta.gt(ethDelta) ? oSqthDelta.sub(ethDelta) : ethDelta.sub(oSqthDelta)
+    return { isSellingAuction: true, target: wdiv(delta, sqthPrice), delta }
   }
 
-  const { isSellingAuction, target } = getAuctionTypeAndTargetHedge()
+  const { isSellingAuction, target, delta } = getAuctionTypeAndTargetHedge()
   const ethProceeds = wmul(target, sqthPrice)
-  console.log(
-    ethProceeds.toString(),
-    target.toString(),
-    sqthPrice.toString(),
-    oSqthDelta.toString(),
-    'Is Selling',
-    !oSqthDelta.gt(ethDelta),
-    ethDelta.toString(),
-    oSqthDelta.sub(ethDelta).toString(),
-  )
 
-  return { isSellingAuction, oSqthAmount: target, ethAmount: ethProceeds }
+  return { isSellingAuction, oSqthAmount: target, ethAmount: ethProceeds, delta }
 }
 
 export const getBgColor = (status?: BidStatus) => {

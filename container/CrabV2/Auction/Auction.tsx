@@ -33,6 +33,7 @@ const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
 const Auction: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
   const setAuctionStatus = useCrabV2Store(s => s.setAuctionStatus)
+  const setAuction = useCrabV2Store(s => s.setAuction)
   const auctionStatus = useCrabV2Store(s => s.auctionStatus)
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
 
@@ -50,7 +51,14 @@ const Auction: React.FC = () => {
     return estimateAuction(vault.shortAmount, vault.collateral, oSqthPrice)
   }, [isUpcoming, oSqthPrice, vault])
 
-  console.log(isSellingAuction, oSqthAmountEst.toString())
+  useEffect(() => {
+    if (auction.oSqthAmount !== '0') return
+
+    setAuction({
+      ...auction,
+      isSelling: isSellingAuction,
+    })
+  }, [auction, isSellingAuction, setAuction])
 
   useEffect(() => {
     updateStatus()
@@ -66,8 +74,25 @@ const Auction: React.FC = () => {
         <Approvals />
       </Box>
       <Box display="flex" mt={4} alignItems="center">
-        <Typography variant="h6">Auction</Typography>
+        <Typography variant="h6" mr={2}>
+          Auction
+        </Typography>
         <AuctionBadge />
+        {isHistoricalView ? (
+          <Link href={`/auction`} passHref>
+            <Typography
+              variant="body3"
+              ml={4}
+              color="primary.main"
+              px={2}
+              borderRadius={1}
+              sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Current Auction
+            </Typography>
+          </Link>
+        ) : null}
+
         <Link href={`/auctionHistory/${auction.currentAuctionId - 1}`} passHref>
           <Typography
             variant="body3"
@@ -90,7 +115,11 @@ const Auction: React.FC = () => {
           <Box>
             <AuctionDetailsHeader
               isAuctionLive={auctionStatus === AuctionStatus.LIVE}
-              isSelling={auctionStatus === AuctionStatus.UPCOMING ? isSellingAuction : auction.isSelling}
+              isSelling={
+                auctionStatus === AuctionStatus.UPCOMING && auction.oSqthAmount === '0'
+                  ? isSellingAuction
+                  : auction.isSelling
+              }
             />
             <AuctionHeaderBody
               osqthEstimate={auctionStatus === AuctionStatus.UPCOMING ? oSqthAmountEst.toString() : undefined}
@@ -133,10 +162,10 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
       <Box>
         <Box display="flex" alignItems="center">
           <Typography fontWeight={600} variant="body1">
-            {action} oSQTH
+            Strategy {action} oSQTH
           </Typography>
           {auction.tx ? (
-            <Button href={`${ETHERSCAN.url}/tx/${auction.tx}`} target="_blank" rel="noreferrer">
+            <Button sx={{ ml: 2 }} href={`${ETHERSCAN.url}/tx/${auction.tx}`} target="_blank" rel="noreferrer">
               tx
             </Button>
           ) : null}
@@ -196,10 +225,11 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
     <Box borderTop="1px solid grey" p={2} px={5} display="flex" alignItems="center">
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
-          {isUpcoming && !auction.oSqthAmount ? 'Estimated' : ''} Size
+          {isUpcoming && auction.oSqthAmount === '0' ? 'Estimated' : ''} Size
         </Typography>
         <Typography textAlign="center" variant="numeric">
-          {formatBigNumber(isUpcoming && !auction.oSqthAmount ? osqthEstimate! : auction.oSqthAmount, 18, 2)} oSQTH
+          {formatBigNumber(isUpcoming && auction.oSqthAmount === '0' ? osqthEstimate! : auction.oSqthAmount, 18, 2)}{' '}
+          oSQTH
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />

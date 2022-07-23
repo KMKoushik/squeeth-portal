@@ -127,6 +127,7 @@ const AdminBidView: React.FC = () => {
         body: JSON.stringify({ signature, auction: updatedAuction }),
         headers: { 'Content-Type': 'application/json' },
       })
+      clearFilter()
     } catch (e) {
       console.log(e)
     }
@@ -228,7 +229,7 @@ const AdminBidView: React.FC = () => {
           <Typography fontWeight={600} variant="numeric" component="span" color="textPrimary" ml={2}>
             {formatBigNumber(manualQty === '0' ? auction.oSqthAmount : manualQty, 18, 6)}
           </Typography>{' '}
-          WETH
+          oSQTH
         </Typography>
       </Box>
       <Box mt={4}>

@@ -20,7 +20,7 @@ const AuctionBadge: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
 
   return (
-    <Box ml={4}>
+    <Box>
       {auctionStatus === AuctionStatus.LIVE ? (
         <Typography variant="caption" color="success.main" bgcolor="success.light" px={2} py={0.5} borderRadius={1}>
           Live Auction
@@ -28,6 +28,10 @@ const AuctionBadge: React.FC = () => {
       ) : auctionStatus === AuctionStatus.SETTLEMENT ? (
         <Typography variant="caption" color="warning.main" bgcolor="warning.light" px={2} py={0.5} borderRadius={1}>
           Settlement
+        </Typography>
+      ) : auctionStatus === AuctionStatus.SETTLED ? (
+        <Typography variant="caption" color="warning.main" bgcolor="warning.light" px={2} py={0.5} borderRadius={1}>
+          Settled
         </Typography>
       ) : auctionStatus === AuctionStatus.UPCOMING ? (
         <Typography variant="caption" color="warning.main" bgcolor="warning.light" px={2} py={0.5} borderRadius={1}>

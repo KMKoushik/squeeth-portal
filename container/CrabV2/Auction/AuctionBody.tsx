@@ -171,12 +171,12 @@ const BidForm: React.FC = () => {
 
   const balanceToken = React.useMemo(() => {
     if (auction.isSelling) {
-      return "WETH"
+      return 'WETH'
     } else {
-      return "oSQTH"
+      return 'oSQTH'
     }
   }, [auction.isSelling])
-  
+
   const setMaxBalance = React.useCallback(async () => {
     if (auction.isSelling) {
       setQty(new BigNumber(balance).div(new BigNumber(price)).toFixed(4))
@@ -240,7 +240,7 @@ const BidForm: React.FC = () => {
           ),
         }}
       />
-      <Box 
+      <Box
         py={0.5}
         px={1}
         borderRadius={2}

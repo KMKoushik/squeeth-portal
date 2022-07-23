@@ -13,13 +13,10 @@ import useCrabV2Store from '../store/crabV2Store'
 
 const AuctionPage: NextPage = () => {
   useInitCrabV2()
-  useInitAuction()
+  useInitAuction(false)
   useController()
   const isLoading = useCrabV2Store(s => s.isLoading)
-  const setIsHistoricalView = useCrabV2Store(s => s.setIsHistoricalView)
   const address = useAccountStore(s => s.address)
-
-  setIsHistoricalView(false)
 
   return (
     <div>
