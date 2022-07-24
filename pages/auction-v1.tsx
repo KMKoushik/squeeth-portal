@@ -15,12 +15,12 @@ import { BIG_ONE, BIG_ZERO } from '../constants/numbers'
 import { bnComparator } from '../utils'
 import LiveAuction from '../container/Auction/LiveAuction'
 import NoAuction from '../container/Auction/NoAuction'
-import useCatLoaderStore from '../store/catLoaderStore'
+import useAppStore from '../store/appStore'
 import { Pages } from '../constants/analytics'
 
 const Auction: NextPage = () => {
   const { crabLoaded } = useCrab()
-  const setLoading = useCatLoaderStore(s => s.setOpen)
+  const setLoading = useAppStore(s => s.setOpenCat)
 
   React.useEffect(() => {
     fetch(`/api/views/${Pages.auction}`, {

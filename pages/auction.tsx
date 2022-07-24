@@ -2,19 +2,23 @@ import { Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { NextPage } from 'next'
 import Head from 'next/head'
+import { useEffect } from 'react'
 import CrabLoader from '../components/loaders/CrabLoader'
 import Auction from '../container/CrabV2/Auction/Auction'
 import { Nav } from '../container/Nav'
 import useInitAuction from '../hooks/init/useInitAuction'
+import useInitFeeData from '../hooks/init/useInitFeeData'
 import useController from '../hooks/useController'
 import { useInitCrabV2 } from '../hooks/useCrabV2'
 import useAccountStore from '../store/accountStore'
+import useAppStore from '../store/appStore'
 import useCrabV2Store from '../store/crabV2Store'
 
 const AuctionPage: NextPage = () => {
   useInitCrabV2()
   useInitAuction(false)
   useController()
+  useInitFeeData()
   const isLoading = useCrabV2Store(s => s.isLoading)
   const address = useAccountStore(s => s.address)
 

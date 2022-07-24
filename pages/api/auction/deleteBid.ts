@@ -27,5 +27,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   delete auction.bids[bidId]
   await addOrUpdateAuction(auction)
 
-  res.status(200).json({ message: 'success' })
+  res.status(200).json({ message: 'Successfully deleted bid' })
 }

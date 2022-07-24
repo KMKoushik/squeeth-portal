@@ -35,5 +35,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   auction.bids[`${bid.bidder}-${order.nonce}`] = bid
 
   await addOrUpdateAuction(auction)
-  res.status(200).json({ message: 'success' })
+  res.status(200).json({ message: 'Successfully placed/updated bid' })
 }

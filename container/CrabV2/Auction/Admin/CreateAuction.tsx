@@ -9,6 +9,7 @@ import { useSigner } from 'wagmi'
 import { PrimaryLoadingButton } from '../../../../components/button/PrimaryButton'
 import { KING_CRAB } from '../../../../constants/message'
 import { BIG_ONE } from '../../../../constants/numbers'
+import useToaster from '../../../../hooks/useToaster'
 import useCrabV2Store from '../../../../store/crabV2Store'
 import { Auction } from '../../../../types'
 import { createOrEditAuction } from '../../../../utils/auction'
@@ -26,6 +27,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const [loading, setLoading] = React.useState(false)
 
   const { data: signer } = useSigner()
+  const showMessageFromServer = useToaster()
 
   const updateSqthAmount = React.useCallback(
     (v: string) => {
@@ -60,13 +62,12 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
         body: JSON.stringify({ signature, auction: updatedAuction }),
         headers: { 'Content-Type': 'application/json' },
       })
-
-      console.log(resp.status)
+      showMessageFromServer(resp)
     } catch (e) {
       console.log(e)
     }
     setLoading(false)
-  }, [auction, isNew, oSqthAmount, price, endDate, isSelling, signer])
+  }, [signer, auction, isNew, oSqthAmount, price, endDate, isSelling, showMessageFromServer])
 
   return (
     <Box width={300} display="flex" flexDirection="column" justifyContent="center">

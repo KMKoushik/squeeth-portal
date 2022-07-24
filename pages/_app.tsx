@@ -16,6 +16,7 @@ import { infuraProvider } from 'wagmi/providers/infura'
 import { publicProvider } from 'wagmi/providers/public'
 import { CHAIN_ID } from '../constants/numbers'
 import useInitAccount from '../hooks/init/useInitAccount'
+import ToastMessage from '../container/Toast'
 
 // API key for Ethereum node
 // Two popular services are Infura (infura.io) and Alchemy (alchemy.com)
@@ -97,6 +98,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           <ThemeProvider theme={theme}>
             <CssBaseline />
             <InitializePrice />
+            <ToastMessage />
             <Component {...pageProps} />
             <CatLoader />
           </ThemeProvider>

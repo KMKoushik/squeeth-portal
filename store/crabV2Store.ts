@@ -16,6 +16,7 @@ interface CrabV2Store {
   wethApproval: BigNumber
   auctionStatus: AuctionStatus
   vault: Vault | null
+  minOrder: number
   setOwner: (owner: string) => void
   setIsContractLoading: (isLoading: boolean) => void
   setAuction: (a: Auction) => void
@@ -26,6 +27,7 @@ interface CrabV2Store {
   setWethApproval: (approval: BigNumber) => void
   setAuctionStatus: (status: AuctionStatus) => void
   setVault: (v: Vault) => void
+  setMinOrder: (m: number) => void
 }
 
 const useCrabV2Store = create<CrabV2Store>((set, get) => ({
@@ -40,6 +42,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   wethApproval: BIG_ZERO,
   auctionStatus: AuctionStatus.UPCOMING,
   vault: null,
+  minOrder: 0,
   setOwner: owner => set({ owner }),
   setIsContractLoading: l => set({ isContractLoading: l, isLoading: l || get().auctionLoading }),
   setAuction: auction => set({ auction }),
@@ -51,6 +54,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   setWethApproval: approval => set({ wethApproval: approval }),
   setAuctionStatus: status => set({ auctionStatus: status }),
   setVault: vault => set({ vault }),
+  setMinOrder: m => set({ minOrder: m }),
 }))
 
 export default useCrabV2Store

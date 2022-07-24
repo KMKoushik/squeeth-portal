@@ -16,7 +16,7 @@ import { AuctionStatus } from '../../../types'
 import AuctionInfo from './AuctionInfo'
 import Link from 'next/link'
 import useInterval from '../../../hooks/useInterval'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import AuctionBadge from './AuctionBadge'
 
 const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
@@ -51,14 +51,17 @@ const Auction: React.FC = () => {
     return estimateAuction(vault.shortAmount, vault.collateral, oSqthPrice)
   }, [isUpcoming, oSqthPrice, vault])
 
+  const [auctionInitialized, setAuctionInitialized] = useState(false)
+
   useEffect(() => {
-    if (auction.oSqthAmount !== '0') return
+    if (auction.oSqthAmount !== '0' || auctionInitialized) return
 
     setAuction({
       ...auction,
       isSelling: isSellingAuction,
     })
-  }, [auction, isSellingAuction, setAuction])
+    setAuctionInitialized(true)
+  }, [auction, auctionInitialized, isSellingAuction, oSqthAmountEst, setAuction])
 
   useEffect(() => {
     updateStatus()
@@ -208,6 +211,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
   isUpcoming,
 }) => {
   const auction = useCrabV2Store(s => s.auction)
+  const minSize = useCrabV2Store(s => s.minOrder)
   const { ethPriceBN, oSqthPriceBN } = usePriceStore(
     s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
     shallow,
@@ -239,6 +243,15 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
         </Typography>
         <Typography textAlign="center" variant="numeric">
           {formatBigNumber(auction.price, 18, 6)} WETH
+        </Typography>
+      </Box>
+      <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
+      <Box display="flex" flexDirection="column" justifyContent="center">
+        <Typography color="textSecondary" variant="caption">
+          Min Size
+        </Typography>
+        <Typography textAlign="center" variant="numeric">
+          {minSize.toFixed(1)} oSQTH
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />

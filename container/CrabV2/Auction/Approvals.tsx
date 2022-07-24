@@ -1,5 +1,6 @@
 import { Typography } from '@mui/material'
 import { Box } from '@mui/system'
+import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
 import { BigNumber, ethers } from 'ethers'
 import { useEffect, useMemo } from 'react'
 import { useContractReads, useContractWrite, useWaitForTransaction } from 'wagmi'
@@ -15,6 +16,7 @@ const Approvals: React.FC = () => {
   const address = useAccountStore(s => s.address)
   const setOsqthApproval = useCrabV2Store(s => s.setOsqthApproval)
   const setWethApproval = useCrabV2Store(s => s.setWethApproval)
+  const addRecentTransaction = useAddRecentTransaction()
 
   const { data, isLoading, refetch } = useContractReads({
     contracts: [
@@ -35,12 +37,28 @@ const Approvals: React.FC = () => {
     ...OSQUEETH_CONTRACT,
     functionName: 'approve',
     args: [CRAB_STRATEGY_V2, ethers.constants.MaxUint256],
+    onSettled: data => {
+      if (data?.hash) {
+        addRecentTransaction({
+          hash: data?.hash,
+          description: 'Approve oSQTH',
+        })
+      }
+    },
   })
 
   const { data: wethApproveTx, writeAsync: approveWeth } = useContractWrite({
     ...WETH_CONTRACT,
     functionName: 'approve',
     args: [CRAB_STRATEGY_V2, ethers.constants.MaxUint256],
+    onSettled: data => {
+      if (data?.hash) {
+        addRecentTransaction({
+          hash: data?.hash,
+          description: 'Approve WETH',
+        })
+      }
+    },
   })
 
   const { isLoading: isOsqthApproveLoading } = useWaitForTransaction({

@@ -8,6 +8,7 @@ import DangerButton from '../../../components/button/DangerButton'
 import { BoxLoadingButton } from '../../../components/button/PrimaryButton'
 import { SecondaryButton } from '../../../components/button/SecondaryButton'
 import { MM_CANCEL } from '../../../constants/message'
+import useToaster from '../../../hooks/useToaster'
 import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import { AuctionStatus, Order } from '../../../types'
@@ -58,6 +59,7 @@ const BidForm: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
   const address = useAccountStore(s => s.address)
   const bidToEdit = useCrabV2Store(s => s.bidToEdit)
+  const minSize = useCrabV2Store(s => s.minOrder)
   const setBidToEdit = useCrabV2Store(s => s.setBidToEdit)
   const { oSqthApproval, wethApproval, auctionStatus } = useCrabV2Store(
     s => ({ oSqthApproval: s.oSqthApproval, wethApproval: s.wethApproval, auctionStatus: s.auctionStatus }),
@@ -67,6 +69,8 @@ const BidForm: React.FC = () => {
     s => ({ oSqthBalance: s.oSqthBalance, wethBalance: s.wethBalance }),
     shallow,
   )
+
+  const showMessageFromServer = useToaster()
 
   const isEditBid = useMemo(() => {
     return bidToEdit && !!auction.bids[bidToEdit]
@@ -100,13 +104,25 @@ const BidForm: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
       })
 
-      console.log(resp.status)
+      showMessageFromServer(resp)
     } catch (e) {
       console.log(e)
     }
 
     setLoading(false)
-  }, [address, auction, bidToEdit, isEditBid, price, qty, signer])
+  }, [
+    address,
+    auction.auctionEnd,
+    auction.bids,
+    auction.currentAuctionId,
+    auction.isSelling,
+    bidToEdit,
+    isEditBid,
+    price,
+    qty,
+    showMessageFromServer,
+    signer,
+  ])
 
   const cancelBid = React.useCallback(async () => {
     setDeleteLoading(true)
@@ -114,17 +130,18 @@ const BidForm: React.FC = () => {
       const signature = await signer?.signMessage(MM_CANCEL)
 
       if (bidToEdit) {
-        await fetch('/api/auction/deleteBid', {
+        const resp = await fetch('/api/auction/deleteBid', {
           method: 'POST',
           body: JSON.stringify({ signature, bidId: bidToEdit }),
           headers: { 'Content-Type': 'application/json' },
         })
+        showMessageFromServer(resp)
       }
     } catch (e) {
       console.log(e)
     }
     setDeleteLoading(false)
-  }, [bidToEdit, signer])
+  }, [bidToEdit, showMessageFromServer, signer])
 
   const totalWeth = Number(price) * Number(qty)
 
@@ -139,10 +156,11 @@ const BidForm: React.FC = () => {
   }, [auction.isSelling, auction.price, price])
 
   const quantityError = React.useMemo(() => {
+    if (minSize > Number(qty)) return `Qty should be more than min size: ${minSize.toFixed(1)}`
     if (auction.oSqthAmount === '0') return
     const aucQty = convertBigNumber(auction.oSqthAmount, 18)
     if (aucQty < Number(qty)) return 'Quantity should be less than auction quantity'
-  }, [auction.oSqthAmount, qty])
+  }, [auction.oSqthAmount, minSize, qty])
 
   const approvalError = React.useMemo(() => {
     if (auction.isSelling && totalWeth > convertBigNumber(wethApproval)) {

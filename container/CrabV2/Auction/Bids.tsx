@@ -45,7 +45,7 @@ const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
               <TableCell align="right">Quantity</TableCell>
               <TableCell align="right">Price per oSQTH</TableCell>
               <TableCell align="right">{auction.isSelling ? 'Total Payable' : 'Total to get'}</TableCell>
-              <TableCell align="right">{isHistoricalView ? 'Accepted' : 'Action'}</TableCell>
+              <TableCell align="right">{isHistoricalView ? 'Filled' : 'Action'}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

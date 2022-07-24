@@ -30,13 +30,15 @@ import { useContract, useContractWrite, useSigner, useWaitForTransaction } from 
 import { CRAB_V2_CONTRACT } from '../../../../constants/contracts'
 import { CrabStrategyV2 } from '../../../../types/contracts'
 import { KING_CRAB } from '../../../../constants/message'
+import useToaster from '../../../../hooks/useToaster'
+import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
 
 const getStatus = (status?: BidStatus) => {
   if (status === BidStatus.INCLUDED) return 'Included'
   if (status === BidStatus.PARTIALLY_FILLED) return 'Partially included'
   if (status === BidStatus.NO_APPROVAL) return 'Not enough approval'
   if (status === BidStatus.NO_BALANCE) return 'Not enough balance'
-  if (status === BidStatus.ALREADY_FILLED) return 'Already filled'
+  if (status === BidStatus.ALREADY_FILLED) return 'Not included'
   if (status === BidStatus.STALE_BID) return 'Stale bid'
 
   return '--'
@@ -52,6 +54,8 @@ const AdminBidView: React.FC = () => {
   const uniqueTraders = getUniqueTraders(bids)
   const { getApprovals } = useApprovals(uniqueTraders, auction.isSelling ? WETH : OSQUEETH, CRAB_STRATEGY_V2)
   const { getBalances } = useBalances(uniqueTraders, auction.isSelling ? WETH : OSQUEETH)
+  const showMessageFromServer = useToaster()
+  const addRecentTransaction = useAddRecentTransaction()
 
   // Needed for manual hedge
   const [manualBidMap, setManualBidMap] = React.useState<{ [key: string]: Bid & { status?: BidStatus } }>({})
@@ -113,6 +117,10 @@ const AdminBidView: React.FC = () => {
           gasLimit: gasLimit.mul(110).div(100),
         },
       })
+      addRecentTransaction({
+        hash: tx.hash,
+        description: 'Hedge OTC',
+      })
       await tx.wait()
 
       const updatedAuction: Auction = {
@@ -122,11 +130,12 @@ const AdminBidView: React.FC = () => {
         winningBids: orders.map(o => `${o.trader}-${o.nonce}`),
       }
 
-      await fetch('/api/auction/submitAuction', {
+      const resp = await fetch('/api/auction/submitAuction', {
         method: 'POST',
         body: JSON.stringify({ signature, auction: updatedAuction }),
         headers: { 'Content-Type': 'application/json' },
       })
+      showMessageFromServer(resp)
       clearFilter()
     } catch (e) {
       console.log(e)
