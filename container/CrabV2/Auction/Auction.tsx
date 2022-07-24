@@ -190,12 +190,14 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
           </Typography>
         </Box>
       </Box>
-      <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary">Estimated clearing price(per oSQTH)</Typography>
-        <Typography textAlign="center" variant="numeric" color="primary">
-          {formatBigNumber(auction.clearingPrice || '0', 18, 6)} WETH
-        </Typography>
-      </Box>
+      {isHistoricalView ? (
+        <Box display="flex" flexDirection="column" justifyContent="center">
+          <Typography color="textSecondary">Estimated clearing price(per oSQTH)</Typography>
+          <Typography textAlign="center" variant="numeric" color="primary">
+            {formatBigNumber(auction.clearingPrice || '0', 18, 6)} WETH
+          </Typography>
+        </Box>
+      ) : null}
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary">Auction</Typography>
         <Typography textAlign="center" variant="numeric" color="primary">
