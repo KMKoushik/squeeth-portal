@@ -10,9 +10,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     auction = getAuctionById(auctionId)
-    // if (!auction) return res.status(401).json({ message: 'Auction not found' })
+    // if (!auction) return res.status(400).json({ message: 'Auction not found' })
   } catch (e) {
-    return res.status(401).json({ message: "Auction not found" })
+    return res.status(400).json({ message: "Auction not found" })
   }
 
   res.status(200).json({ auction: auction })
