@@ -28,6 +28,10 @@ export const getAuction = () => {
   return dbAdmin.collection('auction').doc('current').get()
 }
 
+export const getAuctionById = (auctionId: number): Auction => {
+  return dbAdmin.collection('auction').doc(auctionId.toString()).get() as Auction
+}
+
 export const createNewAuction = async () => {
   const auctionDoc = await getAuction()
   const auction = auctionDoc.data() as Auction
