@@ -71,3 +71,8 @@ export type Vault = {
 }
 
 export type BigNumMap = { [key: string]: BigNumber }
+
+export type MessageWithTimeSignature = {
+  message: string
+  time: number
+}

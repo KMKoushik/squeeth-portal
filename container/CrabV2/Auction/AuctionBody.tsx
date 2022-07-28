@@ -11,8 +11,8 @@ import { MM_CANCEL } from '../../../constants/message'
 import useToaster from '../../../hooks/useToaster'
 import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
-import { AuctionStatus, Order } from '../../../types'
-import { signOrder } from '../../../utils/auction'
+import { AuctionStatus, Order, MessageWithTimeSignature } from '../../../types'
+import { signOrder, signMessageWithTime } from '../../../utils/auction'
 import { convertBigNumber, toBigNumber } from '../../../utils/math'
 import Bids from './Bids'
 import FilledBids from './FilledBids'
@@ -127,12 +127,18 @@ const BidForm: React.FC = () => {
   const cancelBid = React.useCallback(async () => {
     setDeleteLoading(true)
     try {
-      const signature = await signer?.signMessage(MM_CANCEL)
+
+      const mandate: MessageWithTimeSignature = {
+        message: MM_CANCEL,
+        time: Date.now()
+      }
+
+      const signature = await signMessageWithTime(signer,mandate)
 
       if (bidToEdit) {
         const resp = await fetch('/api/auction/deleteBid', {
-          method: 'POST',
-          body: JSON.stringify({ signature, bidId: bidToEdit }),
+          method: 'Delete',
+          body: JSON.stringify({ signature, bidId: bidToEdit, mandate}),
           headers: { 'Content-Type': 'application/json' },
         })
         showMessageFromServer(resp)
