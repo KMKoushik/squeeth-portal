@@ -35,3 +35,7 @@ export const createNewAuction = async () => {
   await dbAdmin.collection('auction').doc(auction!.currentAuctionId.toString()).set(auction!)
   return dbAdmin.collection('auction').doc('current').set({ ...emptyAuction, nextAuctionId: auction.nextAuctionId + 1, currentAuctionId: auction.nextAuctionId })
 }
+
+export const getLAuction = () => {
+  return dbAdmin.collection('auction').doc('current').get()
+}
