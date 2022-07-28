@@ -3,13 +3,14 @@ import { initializeApp, cert } from 'firebase-admin/app'
 import { apps, auth, firestore } from 'firebase-admin'
 import { Auction } from '../../types'
 import { emptyAuction } from '../../utils/auction'
+import { CHAIN_ID } from '../../constants/numbers'
 
 export const appAdmin =
   apps.length > 0
     ? apps[0]
     : initializeApp({
       credential: cert({
-        projectId: 'crab-v2-testnet',
+        projectId: CHAIN_ID===3 ? 'crab-v2-testnet' : 'crab-v2-mainnet',
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         privateKey: process.env.FIREBASE_PRIVATE_KEY,
       }),
