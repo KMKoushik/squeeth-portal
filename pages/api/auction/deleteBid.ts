@@ -7,12 +7,12 @@ import { Auction, AuctionStatus, MessageWithTimeSignature } from '../../../types
 import { getAuctionStatus, verifyMessageWithTime } from '../../../utils/auction'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'DELETE') return res.status(400).json({ message: 'Only post is allowed' })
+  if (req.method !== 'DELETE') return res.status(400).json({ message: 'Only delete method is allowed' })
   const { signature, bidId, mandate } = req.body
 
   let typeMessage = mandate as MessageWithTimeSignature
 
-  if(!typeMessage.message || typeMessage.message !== MM_CANCEL || !typeMessage.time  )
+  if(!typeMessage?.message || typeMessage.message !== MM_CANCEL || !typeMessage?.time  )
   return res.status(400).json({ message: "Invalid Message" })
 
   let diffInMillis = (Date.now() - typeMessage.time) / 1000; 
