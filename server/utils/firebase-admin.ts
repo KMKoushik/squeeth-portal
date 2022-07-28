@@ -19,9 +19,13 @@ export const appAdmin =
       }),
     })
 
+console.log("initialized")
+
 export const authAdmin = auth()
 
 export const dbAdmin = firestore()
+
+console.log("db initialized")
 
 export const addOrUpdateAuction = (auction: Auction, merge?: boolean) => {
   return dbAdmin.collection('auction').doc('current').set(auction, { merge })
