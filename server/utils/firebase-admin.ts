@@ -8,7 +8,7 @@ import { CHAIN_ID } from '../../constants/numbers'
 
 console.log(CHAIN_ID === 3 ? 'crab-v2-testnet' : 'crab-v2-mainnet', process.env.FIREBASE_CLIENT_EMAIL, process.env.FIREBASE_PRIVATE_KEY)
 
-export const appAdmin =
+try {
   apps.length > 0
     ? apps[0]
     : initializeApp({
@@ -18,6 +18,9 @@ export const appAdmin =
         privateKey: process.env.FIREBASE_PRIVATE_KEY,
       }),
     })
+} catch (e) {
+  console.log('error in init', e)
+}
 
 console.log("initialized")
 
