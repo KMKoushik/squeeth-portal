@@ -5,12 +5,15 @@ import { Auction } from '../../types'
 import { emptyAuction } from '../../utils/auction'
 import { CHAIN_ID } from '../../constants/numbers'
 
+
+console.log(CHAIN_ID === 3 ? 'crab-v2-testnet' : 'crab-v2-mainnet', process.env.FIREBASE_CLIENT_EMAIL, process.env.FIREBASE_PRIVATE_KEY)
+
 export const appAdmin =
   apps.length > 0
     ? apps[0]
     : initializeApp({
       credential: cert({
-        projectId: CHAIN_ID===3 ? 'crab-v2-testnet' : 'crab-v2-mainnet',
+        projectId: CHAIN_ID === 3 ? 'crab-v2-testnet' : 'crab-v2-mainnet',
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         privateKey: process.env.FIREBASE_PRIVATE_KEY,
       }),
