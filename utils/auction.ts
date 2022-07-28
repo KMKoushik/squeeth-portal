@@ -178,7 +178,7 @@ export const estimateAuction = (debt: BigNumber, ethDelta: BigNumber, sqthPrice:
 
   const getAuctionTypeAndTargetHedge = () => {
     const delta = oSqthDelta.gt(ethDelta) ? oSqthDelta.sub(ethDelta) : ethDelta.sub(oSqthDelta)
-    return { isSellingAuction: true, target: wdiv(delta, sqthPrice), delta }
+    return { isSellingAuction: !oSqthDelta.gt(ethDelta), target: wdiv(delta, sqthPrice), delta }
   }
 
   const { isSellingAuction, target, delta } = getAuctionTypeAndTargetHedge()
