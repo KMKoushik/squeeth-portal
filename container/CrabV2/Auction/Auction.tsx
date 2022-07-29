@@ -192,7 +192,7 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
       </Box>
       {isHistoricalView ? (
         <Box display="flex" flexDirection="column" justifyContent="center">
-          <Typography color="textSecondary">Estimated clearing price(per oSQTH)</Typography>
+          <Typography color="textSecondary">clearing price(per oSQTH)</Typography>
           <Typography textAlign="center" variant="numeric" color="primary">
             {formatBigNumber(auction.clearingPrice || '0', 18, 6)} WETH
           </Typography>

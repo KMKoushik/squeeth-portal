@@ -6,7 +6,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import useCrabV2Store from '../../../store/crabV2Store'
-import { getBgColor, sortBids } from '../../../utils/auction'
+import { getBgColor, getUserBids, sortBids } from '../../../utils/auction'
 import { formatBigNumber, wmul } from '../../../utils/math'
 import { BigNumber } from 'ethers'
 import useAccountStore from '../../../store/accountStore'
@@ -32,7 +32,7 @@ const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
 
   const bids = sortBids(auction)
   const filteredBids = React.useMemo(() => {
-    return seeMyBids ? bids.filter(b => b.bidder.toLowerCase() === address?.toLowerCase()) : bids
+    return seeMyBids ? getUserBids(bids, address!) : bids
   }, [address, bids, seeMyBids])
 
   return (

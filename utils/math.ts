@@ -21,8 +21,8 @@ export const divideWithPrecision = (dividend: BigNumber, divisor: BigNumber, dec
   return dividend.mul(BigNumber.from(10).pow(4)).div(divisor).toNumber() / Math.pow(10, decimals)
 }
 
-export const wmul = (num1: BigNumber, num2: BigNumber) => {
-  return num1.mul(num2).div(BIG_ONE)
+export const wmul = (num1: BigNumber | string, num2: BigNumber | string) => {
+  return BigNumber.from(num1).mul(num2).div(BIG_ONE)
 }
 
 export const wdiv = (dividend: BigNumber | number, divisor: BigNumber | number) => {

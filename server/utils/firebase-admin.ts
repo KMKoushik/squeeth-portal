@@ -6,7 +6,6 @@ import { emptyAuction } from '../../utils/auction'
 import { CHAIN_ID } from '../../constants/numbers'
 
 
-console.log(CHAIN_ID === 3 ? 'crab-v2-testnet' : 'crab-v2-mainnet', process.env.FIREBASE_CLIENT_EMAIL, process.env.FIREBASE_PRIVATE_KEY)
 
 try {
   apps.length > 0

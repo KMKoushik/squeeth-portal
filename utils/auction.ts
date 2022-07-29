@@ -114,6 +114,10 @@ export const getQtyFromBids = (bids: Array<Bid & { status: BidStatus }>, maxQty:
   return qty.gt(_max) ? maxQty : qty.toString()
 }
 
+export const getUserBids = (bids: Bid[], user: string) => {
+  return bids.filter(b => b.bidder.toLowerCase() === user.toLowerCase())
+}
+
 export const getAuctionStatus = (auction: Auction) => {
   const currentMillis = Date.now()
   if (currentMillis < auction.auctionEnd && currentMillis > auction.auctionEnd - V2_AUCTION_TIME_MILLIS)
