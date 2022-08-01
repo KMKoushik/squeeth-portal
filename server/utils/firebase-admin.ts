@@ -38,8 +38,8 @@ export const getAuction = () => {
   return dbAdmin.collection('auction').doc('current').get()
 }
 
-export const getAuctionById = (auctionId: string): Auction => {
-  return dbAdmin.collection('auction').doc(auctionId).get() as Auction
+export const getAuctionById = (auctionId: string) =>  {
+    return dbAdmin.collection('auction').doc(auctionId).get()
 }
 
 export const createNewAuction = async () => {
