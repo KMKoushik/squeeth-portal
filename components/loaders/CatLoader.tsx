@@ -1,12 +1,11 @@
 import * as React from 'react'
-import { Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import Image from 'next/image'
-import useCatLoaderStore from '../../store/catLoaderStore'
+import useAppStore from '../../store/appStore'
 
 const CatLoader = React.memo(function CatLoader() {
-  const isLoading = useCatLoaderStore(s => s.open)
+  const isLoading = useAppStore(s => s.openCat)
   return (
     <>
       {isLoading ? (
