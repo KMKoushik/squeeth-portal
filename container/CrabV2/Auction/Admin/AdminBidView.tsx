@@ -8,7 +8,7 @@ import TableRow from '@mui/material/TableRow'
 import useCrabV2Store from '../../../../store/crabV2Store'
 import {
   convertArrayToMap,
-  filterBidsWithReason,
+  categorizeBidsWithReason,
   getBgColor,
   getQtyFromBids,
   getTxBidsAndClearingPrice,
@@ -49,8 +49,7 @@ const AdminBidView: React.FC = () => {
   const [filterLoading, setFilterLoading] = React.useState(false)
   const [clearingPrice, setClearingPrice] = React.useState('')
   const auction = useCrabV2Store(s => s.auction)
-
-  const bids = sortBids(auction)
+  const bids = useCrabV2Store(s => s.sortedBids)
   const uniqueTraders = getUniqueTraders(bids)
   const { getApprovals } = useApprovals(uniqueTraders, auction.isSelling ? WETH : OSQUEETH, CRAB_STRATEGY_V2)
   const { getBalances } = useBalances(uniqueTraders, auction.isSelling ? WETH : OSQUEETH)
@@ -92,7 +91,7 @@ const AdminBidView: React.FC = () => {
     const approvalMap = convertArrayToMap<BigNumber>(uniqueTraders, approvals as any as Array<BigNumber>)
     const balanceMap = convertArrayToMap<BigNumber>(uniqueTraders, balances as any as Array<BigNumber>)
 
-    const _filteredBids = filterBidsWithReason(bids, auction, approvalMap, balanceMap)
+    const _filteredBids = categorizeBidsWithReason(bids, auction, approvalMap, balanceMap)
     setFilteredBids(_filteredBids)
     const { clearingPrice: _clPrice } = getTxBidsAndClearingPrice(_filteredBids)
     setClearingPrice(_clPrice)

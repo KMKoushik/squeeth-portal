@@ -10,7 +10,6 @@ const useInitAccount = () => {
   const setOsqthBalance = useAccountStore(s => s.setOsqthBalance)
   const setWethBalance = useAccountStore(s => s.setWethBalance)
 
-  console.log('Init called')
   const { data, isLoading } = useContractReads({
     contracts: [
       {
