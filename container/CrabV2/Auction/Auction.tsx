@@ -6,7 +6,7 @@ import shallow from 'zustand/shallow'
 import useCrabV2Store from '../../../store/crabV2Store'
 import usePriceStore from '../../../store/priceStore'
 import useControllerStore from '../../../store/controllerStore'
-import { estimateAuction, getAuctionStatus } from '../../../utils/auction'
+import { estimateAuction, getAuctionStatus, getEstimatedClearingPrice } from '../../../utils/auction'
 import { calculateIV, convertBigNumber, formatBigNumber, formatNumber } from '../../../utils/math'
 import AuctionBody from './AuctionBody'
 import Approvals from './Approvals'
@@ -110,7 +110,7 @@ const Auction: React.FC = () => {
         </Link>
       </Box>
       <Box mt={1} border="1px solid grey" borderRadius={2} minHeight={150}>
-        {Date.now() > auction.auctionEnd + V2_AUCTION_TIME_MILLIS && !isHistoricalView ? (
+        {Date.now() > auction.auctionEnd + 30 * 60 * 1000 && !isHistoricalView ? (
           <Typography textAlign="center" mt={3} variant="h6">
             No auctions scheduled yet!
           </Typography>
@@ -151,6 +151,7 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
 }) => {
   const auction = useCrabV2Store(s => s.auction)
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
+  const sortedBids = useCrabV2Store(s => s.sortedBids)
 
   const action = useMemo(() => {
     if (isSelling) {
@@ -159,6 +160,12 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
       return isHistoricalView ? 'Bought' : 'Buying'
     }
   }, [isHistoricalView, isSelling])
+
+  const estClearingPrice = useMemo(() => {
+    if (isHistoricalView) return '0'
+
+    return getEstimatedClearingPrice(sortedBids, auction.oSqthAmount)
+  }, [isHistoricalView, sortedBids, auction.oSqthAmount])
 
   return (
     <Box p={3} px={5} display="flex" alignItems="center" justifyContent="space-between">
@@ -197,7 +204,14 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
             {formatBigNumber(auction.clearingPrice || '0', 18, 6)} WETH
           </Typography>
         </Box>
-      ) : null}
+      ) : (
+        <Box display="flex" flexDirection="column" justifyContent="center">
+          <Typography color="textSecondary">Estimated clearing price(per oSQTH)</Typography>
+          <Typography textAlign="center" variant="numeric" color="primary">
+            {formatBigNumber(estClearingPrice, 18, 6)} WETH
+          </Typography>
+        </Box>
+      )}
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary">Auction</Typography>
         <Typography textAlign="center" variant="numeric" color="primary">
@@ -213,7 +227,6 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
   isUpcoming,
 }) => {
   const auction = useCrabV2Store(s => s.auction)
-  const minSize = useCrabV2Store(s => s.minOrder)
   const { ethPriceBN, oSqthPriceBN } = usePriceStore(
     s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
     shallow,
@@ -253,7 +266,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
           Min Size
         </Typography>
         <Typography textAlign="center" variant="numeric">
-          {minSize.toFixed(1)} oSQTH
+          {(auction.minSize || 0).toFixed(1)} oSQTH
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />

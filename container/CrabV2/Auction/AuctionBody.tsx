@@ -14,7 +14,7 @@ import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import { AuctionStatus, Order } from '../../../types'
 import { getUserBids, signOrder } from '../../../utils/auction'
-import { convertBigNumber, formatBigNumber, toBigNumber } from '../../../utils/math'
+import { convertBigNumber, formatBigNumber, toBigNumber, wmul } from '../../../utils/math'
 import Bids from './Bids'
 import FilledBids from './FilledBids'
 
@@ -63,7 +63,6 @@ const BidForm: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
   const address = useAccountStore(s => s.address)
   const bidToEdit = useCrabV2Store(s => s.bidToEdit)
-  const minSize = useCrabV2Store(s => s.minOrder)
   const setBidToEdit = useCrabV2Store(s => s.setBidToEdit)
   const { oSqthApproval, wethApproval, auctionStatus } = useCrabV2Store(
     s => ({ oSqthApproval: s.oSqthApproval, wethApproval: s.wethApproval, auctionStatus: s.auctionStatus }),
@@ -95,18 +94,19 @@ const BidForm: React.FC = () => {
 
   const totalToSpendAcrossBids = useMemo(
     () =>
-      userBids.reduce((acc, bid) => {
-        if (auction.isSelling) {
-          acc = acc.add(Number(bid.order.price) * Number(bid.order.quantity))
-        } else {
-          acc = acc.add(bid.order.quantity)
-        }
-        return acc
-      }, BIG_ZERO),
-    [auction.isSelling, userBids],
+      userBids.reduce(
+        (acc, bid) => {
+          if (auction.isSelling) {
+            acc = acc.add(wmul(bid.order.price, bid.order.quantity))
+          } else {
+            acc = acc.add(bid.order.quantity)
+          }
+          return acc
+        },
+        isEditBid ? BIG_ZERO.sub(auction.bids[bidToEdit!].order.quantity) : BIG_ZERO,
+      ),
+    [auction.bids, auction.isSelling, bidToEdit, isEditBid, userBids],
   )
-
-  console.log('Total to spen', totalToSpendAcrossBids)
 
   const placeBid = React.useCallback(async () => {
     setLoading(true)
@@ -181,11 +181,11 @@ const BidForm: React.FC = () => {
   }, [auction.isSelling, auction.price, price])
 
   const quantityError = React.useMemo(() => {
-    if (minSize > Number(qty)) return `Qty should be more than min size: ${minSize.toFixed(1)}`
+    if (auction.minSize > Number(qty)) return `Qty should be more than min size: ${auction.minSize.toFixed(1)}`
     if (auction.oSqthAmount === '0') return
     const aucQty = convertBigNumber(auction.oSqthAmount, 18)
     if (aucQty < Number(qty)) return 'Quantity should be less than auction quantity'
-  }, [auction.oSqthAmount, minSize, qty])
+  }, [auction.minSize, auction.oSqthAmount, qty])
 
   const approvalError = React.useMemo(() => {
     if (auction.isSelling && totalWeth > convertBigNumber(wethApproval)) {
@@ -256,6 +256,7 @@ const BidForm: React.FC = () => {
         variant="outlined"
         size="small"
         sx={{ mt: 3 }}
+        onWheel={e => (e.target as any).blur()}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
@@ -275,6 +276,7 @@ const BidForm: React.FC = () => {
         variant="outlined"
         size="small"
         sx={{ mt: 4 }}
+        onWheel={e => (e.target as any).blur()}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">

@@ -29,8 +29,8 @@ const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
   const address = useAccountStore(s => s.address)
   const auction = useCrabV2Store(s => s.auction)
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
+  const bids = useCrabV2Store(s => s.sortedBids)
 
-  const bids = sortBids(auction)
   const filteredBids = React.useMemo(() => {
     return seeMyBids ? getUserBids(bids, address!) : bids
   }, [address, bids, seeMyBids])

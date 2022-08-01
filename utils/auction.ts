@@ -1,8 +1,8 @@
-import { BigNumber, ethers, Signer } from 'ethers'
-import { doc, increment, setDoc } from 'firebase/firestore'
+import { BigNumber, ethers } from 'ethers'
+import { doc, setDoc } from 'firebase/firestore'
 import { CRAB_STRATEGY_V2 } from '../constants/address'
-import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
-import { Auction, AuctionStatus, Bid, BidStatus, BigNumMap, Order } from '../types'
+import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
+import { Auction, AuctionStatus, Bid, BidStatus, BidWithStatus, BigNumMap, Order } from '../types'
 import { db } from './firebase'
 import { wdiv, wmul } from './math'
 
@@ -16,6 +16,7 @@ export const emptyAuction: Auction = {
   bids: {},
   winningBids: [],
   clearingPrice: '0',
+  minSize: 0,
 }
 
 export const createOrEditAuction = async (auction: Auction) => {
@@ -47,7 +48,7 @@ export const getUniqueTraders = (bids: Array<Bid>) => {
   return Object.keys(uniqueApprovalMap)
 }
 
-export const filterBidsWithReason = (
+export const categorizeBidsWithReason = (
   sortedBids: Array<Bid>,
   auction: Auction,
   _approvalMap: BigNumMap,
@@ -104,7 +105,7 @@ export const getWinningBidsForUser = (auction: Auction, user: string) => {
   return winningBids.filter(b => b.bidder.toLowerCase() === user.toLowerCase())
 }
 
-export const getQtyFromBids = (bids: Array<Bid & { status: BidStatus }>, maxQty: string) => {
+export const getQtyFromBids = (bids: Array<BidWithStatus>, maxQty: string) => {
   const _max = BigNumber.from(maxQty)
 
   const qty = bids.reduce((acc, b) => {
@@ -129,10 +130,33 @@ export const getAuctionStatus = (auction: Auction) => {
   return AuctionStatus.SETTLED
 }
 
-export const getTxBidsAndClearingPrice = (filteredBids: Array<Bid & { status: BidStatus }>) => {
+export const getTxBidsAndClearingPrice = (filteredBids: Array<BidWithStatus>) => {
   const bids = filteredBids.filter(b => b.status <= BidStatus.PARTIALLY_FILLED)
 
   return { bids, clearingPrice: bids[bids.length - 1].order.price }
+}
+
+export const getEstimatedClearingPrice = (bids: Bid[], qty: string) => {
+  const quantity = BigNumber.from(qty)
+  let clearingPrice = ''
+  let usedQty = BIG_ZERO
+  for (const bid of bids) {
+    if (usedQty.lte(quantity)) {
+      usedQty = usedQty.add(bid.order.quantity)
+      clearingPrice = bid.order.price
+    } else {
+      break
+    }
+  }
+
+  return clearingPrice
+}
+
+export const getMinSize = (maxFeePerGas: BigNumber, oSqthPrice: number) => {
+  const minEth = (Number(maxFeePerGas.toString()) * 125_000) / 1e18 / 0.005
+  const minSqth = minEth / oSqthPrice
+
+  return Math.ceil(minSqth * 10) / 10
 }
 
 export function convertArrayToMap<Type>(arr1: Array<string>, arr2: Array<Type>) {
