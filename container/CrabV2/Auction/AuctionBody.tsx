@@ -8,33 +8,37 @@ import DangerButton from '../../../components/button/DangerButton'
 import { BoxLoadingButton } from '../../../components/button/PrimaryButton'
 import { SecondaryButton } from '../../../components/button/SecondaryButton'
 import { MM_CANCEL } from '../../../constants/message'
+import { BIG_ZERO } from '../../../constants/numbers'
 import useToaster from '../../../hooks/useToaster'
 import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import { AuctionStatus, Order } from '../../../types'
-import { signOrder } from '../../../utils/auction'
-import { convertBigNumber, toBigNumber } from '../../../utils/math'
+import { getUserBids, signOrder } from '../../../utils/auction'
+import { convertBigNumber, formatBigNumber, toBigNumber, wmul } from '../../../utils/math'
 import Bids from './Bids'
 import FilledBids from './FilledBids'
 
 const AuctionBody: React.FC = () => {
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
+  const auction = useCrabV2Store(s => s.auction)
   const [seeMyBids, setSeeMyBids] = React.useState(false)
 
   const toggleSeeMyBid = () => {
     setSeeMyBids(!seeMyBids)
   }
 
+  const action = auction.isSelling ? 'Bids' : 'Offers'
+
   return (
     <>
       <Box display="flex" gap={2} mt={4} mb={1}>
-        <Typography variant="h6">Bids</Typography>
+        <Typography variant="h6">{action}</Typography>
         {seeMyBids ? (
           <Button color="error" onClick={toggleSeeMyBid}>
-            Show All bids
+            Show All {action}
           </Button>
         ) : (
-          <Button onClick={toggleSeeMyBid}>Show My bids</Button>
+          <Button onClick={toggleSeeMyBid}>Show My {action}</Button>
         )}
       </Box>
       <Grid container spacing={5}>
@@ -59,7 +63,6 @@ const BidForm: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
   const address = useAccountStore(s => s.address)
   const bidToEdit = useCrabV2Store(s => s.bidToEdit)
-  const minSize = useCrabV2Store(s => s.minOrder)
   const setBidToEdit = useCrabV2Store(s => s.setBidToEdit)
   const { oSqthApproval, wethApproval, auctionStatus } = useCrabV2Store(
     s => ({ oSqthApproval: s.oSqthApproval, wethApproval: s.wethApproval, auctionStatus: s.auctionStatus }),
@@ -76,12 +79,34 @@ const BidForm: React.FC = () => {
     return bidToEdit && !!auction.bids[bidToEdit]
   }, [auction.bids, bidToEdit])
 
+  const action = auction.isSelling ? 'Bid' : 'Offer'
+
   useEffect(() => {
     if (bidToEdit && isEditBid) {
       setPrice(convertBigNumber(auction.bids[bidToEdit].order.price, 18).toString())
       setQty(convertBigNumber(auction.bids[bidToEdit].order.quantity, 18).toString())
     }
   }, [auction.bids, bidToEdit, isEditBid])
+
+  const userBids = useMemo(() => {
+    return getUserBids(Object.values(auction.bids), address!)
+  }, [address, auction.bids])
+
+  const totalToSpendAcrossBids = useMemo(
+    () =>
+      userBids.reduce(
+        (acc, bid) => {
+          if (auction.isSelling) {
+            acc = acc.add(wmul(bid.order.price, bid.order.quantity))
+          } else {
+            acc = acc.add(bid.order.quantity)
+          }
+          return acc
+        },
+        isEditBid ? BIG_ZERO.sub(auction.bids[bidToEdit!].order.quantity) : BIG_ZERO,
+      ),
+    [auction.bids, auction.isSelling, bidToEdit, isEditBid, userBids],
+  )
 
   const placeBid = React.useCallback(async () => {
     setLoading(true)
@@ -156,11 +181,11 @@ const BidForm: React.FC = () => {
   }, [auction.isSelling, auction.price, price])
 
   const quantityError = React.useMemo(() => {
-    if (minSize > Number(qty)) return `Qty should be more than min size: ${minSize.toFixed(1)}`
+    if (auction.minSize > Number(qty)) return `Qty should be more than min size: ${auction.minSize.toFixed(1)}`
     if (auction.oSqthAmount === '0') return
     const aucQty = convertBigNumber(auction.oSqthAmount, 18)
     if (aucQty < Number(qty)) return 'Quantity should be less than auction quantity'
-  }, [auction.oSqthAmount, minSize, qty])
+  }, [auction.minSize, auction.oSqthAmount, qty])
 
   const approvalError = React.useMemo(() => {
     if (auction.isSelling && totalWeth > convertBigNumber(wethApproval)) {
@@ -171,13 +196,15 @@ const BidForm: React.FC = () => {
   }, [auction.isSelling, oSqthApproval, qty, totalWeth, wethApproval])
 
   const balanceError = React.useMemo(() => {
-    console.log(wethBalance.toString())
-    if (auction.isSelling && totalWeth > convertBigNumber(wethBalance)) {
+    if (auction.isSelling && totalWeth > convertBigNumber(wethBalance) - convertBigNumber(totalToSpendAcrossBids)) {
       return 'Need more WETH'
-    } else if (!auction.isSelling && Number(qty) > convertBigNumber(oSqthBalance)) {
+    } else if (
+      !auction.isSelling &&
+      Number(qty) > convertBigNumber(oSqthBalance) - convertBigNumber(totalToSpendAcrossBids)
+    ) {
       return 'Need more oSQTH'
     }
-  }, [auction.isSelling, oSqthBalance, qty, totalWeth, wethBalance])
+  }, [auction.isSelling, oSqthBalance, qty, totalToSpendAcrossBids, totalWeth, wethBalance])
 
   const balance = React.useMemo(() => {
     if (auction.isSelling) {
@@ -218,7 +245,7 @@ const BidForm: React.FC = () => {
       flexDirection="column"
     >
       <Typography align="center" color="primary">
-        {isEditBid ? 'Edit Bid' : 'Place Bid'}
+        {isEditBid ? `Edit ${action}` : `Place ${action}`}
       </Typography>
       <TextField
         value={price}
@@ -229,6 +256,7 @@ const BidForm: React.FC = () => {
         variant="outlined"
         size="small"
         sx={{ mt: 3 }}
+        onWheel={e => (e.target as any).blur()}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
@@ -248,6 +276,7 @@ const BidForm: React.FC = () => {
         variant="outlined"
         size="small"
         sx={{ mt: 4 }}
+        onWheel={e => (e.target as any).blur()}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
@@ -284,6 +313,15 @@ const BidForm: React.FC = () => {
           WETH
         </Typography>
       </Box>
+      <Box display="flex" mt={2} justifyContent="space-between">
+        <Typography variant="body3">Total spending across bids</Typography>
+        <Typography variant="body2" color="textSecondary">
+          <Typography color="textPrimary" component="span" variant="numeric">
+            {formatBigNumber(totalToSpendAcrossBids, 18)}
+          </Typography>{' '}
+          {auction.isSelling ? 'WETH' : 'oSQTH'}
+        </Typography>
+      </Box>
       <Typography align="center" mt={3} color="error.main" variant="body3">
         {error}
       </Typography>
@@ -293,7 +331,7 @@ const BidForm: React.FC = () => {
           : ''}
       </Typography>
       <BoxLoadingButton disabled={!!error || !canPlaceBid} onClick={placeBid} sx={{ mt: 1 }} loading={isLoading}>
-        {isEditBid ? 'Edit Bid' : 'Place Bid'}
+        {isEditBid ? `Edit ${action}` : `Place ${action}`}
       </BoxLoadingButton>
       {isEditBid ? (
         <>
@@ -301,7 +339,7 @@ const BidForm: React.FC = () => {
             Don&apos;t Edit
           </SecondaryButton>
           <DangerButton disabled={!canPlaceBid} loading={deleteLoading} onClick={cancelBid} sx={{ mt: 2 }}>
-            Cancel Bid
+            Cancel {action}
           </DangerButton>
         </>
       ) : null}

@@ -1,7 +1,7 @@
 import { BigNumber, ethers } from 'ethers'
 import { BIG_ONE, FUNDING_PERIOD, INDEX_SCALE } from '../constants/numbers'
 
-export const { formatUnits, parseUnits } = ethers.utils
+export const { formatUnits, parseUnits, parseEther } = ethers.utils
 
 export const formatBigNumber = (bn: BigNumber | string, decimals = 18, decimalsToShow = 4) => {
   return convertBigNumber(bn, decimals).toLocaleString(undefined, {
@@ -14,15 +14,15 @@ export const convertBigNumber = (bn: BigNumber | string, decimals = 18) => {
 }
 
 export const toBigNumber = (num: number, decimals = 18) => {
-  return Number(num) * 10 ** 18
+  return parseUnits(num.toString(), decimals)
 }
 
 export const divideWithPrecision = (dividend: BigNumber, divisor: BigNumber, decimals = 4) => {
   return dividend.mul(BigNumber.from(10).pow(4)).div(divisor).toNumber() / Math.pow(10, decimals)
 }
 
-export const wmul = (num1: BigNumber, num2: BigNumber) => {
-  return num1.mul(num2).div(BIG_ONE)
+export const wmul = (num1: BigNumber | string, num2: BigNumber | string) => {
+  return BigNumber.from(num1).mul(num2).div(BIG_ONE)
 }
 
 export const wdiv = (dividend: BigNumber | number, divisor: BigNumber | number) => {

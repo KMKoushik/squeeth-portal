@@ -17,7 +17,6 @@ import useInterval from '../hooks/useInterval'
 import useAccountStore from '../store/accountStore'
 import useCrabV2Store from '../store/crabV2Store'
 import { getAuctionStatus } from '../utils/auction'
-import auction from './auction'
 
 const AuctionAdmin: NextPage = () => {
   useInitCrabV2()
