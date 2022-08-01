@@ -35,6 +35,8 @@ export type Bid = {
   bidder: string
 }
 
+export type BidWithStatus = Bid & { status: BidStatus }
+
 export type Auction = {
   currentAuctionId: number
   nextAuctionId: number
@@ -46,6 +48,7 @@ export type Auction = {
   bids: { [k: string]: Bid }
   winningBids: Array<string>
   clearingPrice: string
+  minSize: number
 }
 
 export enum BidStatus {

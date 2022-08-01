@@ -11,6 +11,7 @@ import useController from '../../hooks/useController'
 import { useInitCrabV2 } from '../../hooks/useCrabV2'
 import useCrabV2Store from '../../store/crabV2Store'
 import { Auction } from '../../types'
+import { sortBids } from '../../utils/auction'
 import { db } from '../../utils/firebase'
 
 const AuctionHistory: NextPage = () => {
@@ -21,23 +22,23 @@ const AuctionHistory: NextPage = () => {
   const { id } = router.query
 
   const setAuction = useCrabV2Store(s => s.setAuction)
+  const setSortedBids = useCrabV2Store(s => s.setSortedBids)
   const setAuctionLoading = useCrabV2Store(s => s.setAuctionLoading)
   const setIsHistoricalView = useCrabV2Store(s => s.setIsHistoricalView)
   const isLoading = useCrabV2Store(s => s.isLoading)
 
   React.useEffect(() => {
-    console.log(id)
     if (id) {
       getDoc(doc(db, 'auction', id as string)).then(d => {
         setAuctionLoading(false)
-        console.log(d.exists(), d.data())
         if (d.exists()) {
           const data = d.data() as Auction
           setAuction(data)
+          setSortedBids(sortBids(data))
         }
       })
     }
-  }, [id, setAuction, setAuctionLoading])
+  }, [id, setAuction, setAuctionLoading, setSortedBids])
 
   React.useEffect(() => {
     setIsHistoricalView(true)

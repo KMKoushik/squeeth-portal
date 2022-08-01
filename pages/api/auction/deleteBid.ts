@@ -13,11 +13,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let typeMessage = mandate as MessageWithTimeSignature
 
   if(!typeMessage?.message || typeMessage.message !== MM_CANCEL || !typeMessage?.time  )
-  return res.status(400).json({ message: "Invalid Message" })
+  return res.status(400).json({ message: 'Invalid Message' })
 
   let diffInMillis = (Date.now() - typeMessage.time) / 1000; 
   if(diffInMillis < 0 || diffInMillis > V2_BID_REQUEST_USAGE_EXPIRY_TIME_MILLIS )
-  return res.status(400).json({ message: "Invalid timestamp submitted for bid" })
+  return res.status(400).json({ message: 'Invalid timestamp submitted for bid' })
 
  
   const auction = (await getAuction()).data() as Auction

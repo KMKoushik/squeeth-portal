@@ -2,7 +2,7 @@ import { Box, Typography } from '@mui/material'
 import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import { getWinningBidsForUser } from '../../../utils/auction'
-import { formatBigNumber } from '../../../utils/math'
+import { formatBigNumber, wmul } from '../../../utils/math'
 
 const FilledBids: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
@@ -18,7 +18,7 @@ const FilledBids: React.FC = () => {
     <Box
       boxShadow={1}
       py={2}
-      px={8}
+      px={6}
       borderRadius={2}
       bgcolor="background.overlayDark"
       display="flex"
@@ -31,8 +31,8 @@ const FilledBids: React.FC = () => {
         <Typography key={`${b.bidder}-${b.order.nonce}`} mt={1}>
           <Typography variant="numeric">{formatBigNumber(b.filledAmount, 18)}</Typography>
           <Typography variant="body3"> oSQTH for </Typography>
-          <Typography variant="numeric">{formatBigNumber(auction.clearingPrice)}</Typography>
-          <Typography variant="body3"> WETH per oSQTH</Typography>
+          <Typography variant="numeric">{formatBigNumber(wmul(auction.clearingPrice, b.filledAmount), 18)}</Typography>
+          <Typography variant="body3"> WETH at {formatBigNumber(auction.clearingPrice, 18)} per oSQTH</Typography>
         </Typography>
       ))}
     </Box>
