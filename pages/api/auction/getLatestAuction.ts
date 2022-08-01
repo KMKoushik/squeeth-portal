@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!auction) res.status(200).json({ isLive: false, message: 'No auction created' })
 
   const status = getAuctionStatus(auction)
-  const isLive = !(status === AuctionStatus.SETTLED || status === AuctionStatus.SETTLEMENT)
+  const isLive = status === AuctionStatus.LIVE ? true: false;
 
   res.status(200).json({ auction: auction, isLive: isLive, status: status, message: 'Retrieve successful' })
 }
