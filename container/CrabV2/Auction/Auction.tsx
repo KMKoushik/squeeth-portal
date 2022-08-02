@@ -162,7 +162,7 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
   }, [isHistoricalView, isSelling])
 
   const estClearingPrice = useMemo(() => {
-    if (isHistoricalView) return '0'
+    if (isHistoricalView || sortedBids.length === 0) return '0'
 
     return getEstimatedClearingPrice(sortedBids, auction.oSqthAmount)
   }, [isHistoricalView, sortedBids, auction.oSqthAmount])
