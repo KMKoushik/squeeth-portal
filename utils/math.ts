@@ -13,7 +13,7 @@ export const convertBigNumber = (bn: BigNumber | string, decimals = 18) => {
   return parseFloat(ethers.utils.formatUnits(bn, decimals))
 }
 
-export const toBigNumber = (num: number, decimals = 18) => {
+export const toBigNumber = (num: number | string, decimals = 18) => {
   return parseUnits(num.toString(), decimals)
 }
 

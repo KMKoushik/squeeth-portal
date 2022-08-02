@@ -75,6 +75,8 @@ const Approvals: React.FC = () => {
     },
   })
 
+  console.log(data)
+
   const [osqthApproval, wethApproval] = useMemo(() => {
     if (!data) return [BIG_ZERO, BIG_ZERO]
 
@@ -89,8 +91,8 @@ const Approvals: React.FC = () => {
     setWethApproval(wethApproval)
   }, [wethApproval, setWethApproval])
 
-  const isOsqthApproved = osqthApproval.eq(ethers.constants.MaxUint256)
-  const isWethApproved = wethApproval.eq(ethers.constants.MaxUint256)
+  const isOsqthApproved = !osqthApproval.isZero()
+  const isWethApproved = !wethApproval.isZero()
 
   return (
     <Box display="flex">
