@@ -14,9 +14,15 @@ import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import { AuctionStatus, Order } from '../../../types'
 import { getUserBids, signOrder } from '../../../utils/auction'
-import { convertBigNumber, formatBigNumber, toBigNumber, wmul } from '../../../utils/math'
+import { convertBigNumber, formatBigNumber, toBigNumber, wmul , calculateDollarValue, calculateIV} from '../../../utils/math'
 import Bids from './Bids'
 import FilledBids from './FilledBids'
+import usePriceStore from '../../../store/priceStore'
+import useControllerStore from '../../../store/controllerStore'
+import InfoIcon from '@mui/icons-material/Info';
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 
 const AuctionBody: React.FC = () => {
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
@@ -46,7 +52,8 @@ const AuctionBody: React.FC = () => {
           <Bids seeMyBids={seeMyBids} />
         </Grid>
         <Grid item xs={12} md={12} lg={4}>
-          {isHistoricalView ? <FilledBids /> : <BidForm />}
+          {/* {isHistoricalView ? <FilledBids /> : <BidForm />} */}
+          {isHistoricalView ? <BidForm />  :  <FilledBids />}
         </Grid>
       </Grid>
     </>
@@ -72,6 +79,20 @@ const BidForm: React.FC = () => {
     s => ({ oSqthBalance: s.oSqthBalance, wethBalance: s.wethBalance }),
     shallow,
   )
+
+  const { nfBN } = useControllerStore(
+    s => ({ nfBN: s.normFactor }),
+    shallow,
+  )
+
+  const { ethPriceBN, oSqthPriceBN } = usePriceStore(
+    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice  }),
+    shallow,
+  )
+
+  const ethPrice = convertBigNumber(ethPriceBN, 18)
+  const oSqthPrice = convertBigNumber(oSqthPriceBN, 18)
+  const nf = convertBigNumber(nfBN, 18)
 
   const showMessageFromServer = useToaster()
 
@@ -241,7 +262,7 @@ const BidForm: React.FC = () => {
 
   const error = priceError || quantityError || approvalError || balanceError
 
-  const canPlaceBid = auctionStatus === AuctionStatus.LIVE || auctionStatus === AuctionStatus.UPCOMING
+  const canPlaceBid =  auctionStatus === AuctionStatus.LIVE || auctionStatus === AuctionStatus.UPCOMING
 
   return (
     <Box
@@ -319,7 +340,7 @@ const BidForm: React.FC = () => {
           <Typography color="textPrimary" component="span" variant="numeric">
             {totalWeth.toFixed(4)}
           </Typography>{' '}
-          WETH
+          WETH  
         </Typography>
       </Box>
       <Box display="flex" mt={2} justifyContent="space-between">
@@ -356,7 +377,7 @@ const BidForm: React.FC = () => {
             Cancel {action}
           </DangerButton>
         </>
-      ) : null}
+       ) : null} 
     </Box>
   )
 }

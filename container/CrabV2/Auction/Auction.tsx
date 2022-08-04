@@ -7,7 +7,7 @@ import useCrabV2Store from '../../../store/crabV2Store'
 import usePriceStore from '../../../store/priceStore'
 import useControllerStore from '../../../store/controllerStore'
 import { estimateAuction, getAuctionStatus, getEstimatedClearingPrice } from '../../../utils/auction'
-import { calculateIV, convertBigNumber, formatBigNumber, formatNumber } from '../../../utils/math'
+import { calculateDollarValue, calculateIV, convertBigNumber, formatBigNumber, formatNumber } from '../../../utils/math'
 import AuctionBody from './AuctionBody'
 import Approvals from './Approvals'
 import { BIG_ZERO, ETHERSCAN, V2_AUCTION_TIME, V2_AUCTION_TIME_MILLIS } from '../../../constants/numbers'
@@ -150,8 +150,20 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
   isSelling,
 }) => {
   const auction = useCrabV2Store(s => s.auction)
+  const { ethPriceBN,oSqthPriceBN } = usePriceStore(
+    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
+    shallow,
+  )
+  const { indexPrice, markPrice, nfBN } = useControllerStore(
+    s => ({ indexPrice: s.indexPrice, markPrice: s.markPrice, nfBN: s.normFactor }),
+    shallow,
+  )
+
+  const ethPrice = convertBigNumber(ethPriceBN, 18)
+  const oSqthPrice = convertBigNumber(oSqthPriceBN, 18)
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
   const sortedBids = useCrabV2Store(s => s.sortedBids)
+  const nf = convertBigNumber(nfBN, 18)
 
   const action = useMemo(() => {
     if (isSelling) {
@@ -202,6 +214,8 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
           <Typography color="textSecondary">clearing price(per oSQTH)</Typography>
           <Typography textAlign="center" variant="numeric" color="primary">
             {formatBigNumber(auction.clearingPrice || '0', 18, 6)} WETH
+           <Typography textAlign="center" variant="numeric"  color="textSecondary">  ${(calculateDollarValue(convertBigNumber(auction.clearingPrice, 18), ethPrice)).toFixed(2)}  </Typography> 
+            <Typography  variant="numeric"  color="textSecondary">  {(calculateIV(oSqthPrice, nf, convertBigNumber(auction.clearingPrice, 18)) * 100).toFixed(2)}% </Typography>
           </Typography>
         </Box>
       ) : (
@@ -209,6 +223,8 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
           <Typography color="textSecondary">Estimated clearing price(per oSQTH)</Typography>
           <Typography textAlign="center" variant="numeric" color="primary">
             {formatBigNumber(estClearingPrice, 18, 6)} WETH
+            <Typography textAlign="center" variant="numeric"  color="textSecondary">  ${(calculateDollarValue(convertBigNumber(estClearingPrice, 18), ethPrice)).toFixed(2)}  </Typography> 
+            <Typography  variant="numeric"  color="textSecondary">  {(calculateIV(oSqthPrice, nf, convertBigNumber(estClearingPrice, 18)) * 100).toFixed(2)}% </Typography> 
           </Typography>
         </Box>
       )}
@@ -258,6 +274,8 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
         </Typography>
         <Typography textAlign="center" variant="numeric">
           {formatBigNumber(auction.price, 18, 6)} WETH
+        <small> <Typography textAlign="center" variant="numeric"  color="textSecondary">  ${(calculateDollarValue(convertBigNumber(auction.price, 18), ethPrice)).toFixed(2)}  </Typography> 
+          <Typography  variant="numeric"  color="textSecondary">  {(calculateIV(oSqthPrice, nf, convertBigNumber(auction.price, 18)) * 100).toFixed(2)}% </Typography> </small> 
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
