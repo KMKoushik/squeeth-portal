@@ -70,6 +70,8 @@ const Auction: React.FC = () => {
   useInterval(updateStatus, auction.auctionEnd ? Date.now() - auction.auctionEnd - V2_AUCTION_TIME_MILLIS : null)
   useInterval(updateStatus, auction.auctionEnd ? Date.now() - auction.auctionEnd + V2_AUCTION_TIME_MILLIS : null)
 
+
+
   return (
     <Box>
       <Typography variant="h6">Token Approvals</Typography>
@@ -309,6 +311,15 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption" textAlign="center">
           Squeeth IV
+        </Typography>
+        <Typography variant="numeric" textAlign="center">
+          {(calculateIV(oSqthPrice, nf, ethPrice) * 100).toFixed(2)}%
+        </Typography>
+      </Box>
+      <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
+      <Box display="flex" flexDirection="column" justifyContent="center">
+        <Typography color="textSecondary" variant="caption" textAlign="center">
+          DVOL  
         </Typography>
         <Typography variant="numeric" textAlign="center">
           {(calculateIV(oSqthPrice, nf, ethPrice) * 100).toFixed(2)}%
