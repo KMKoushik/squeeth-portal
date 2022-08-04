@@ -1,20 +1,29 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { MM_CANCEL } from '../../../constants/message'
-import { verifyMessage } from '../../../server/utils/ether'
+import { V2_BID_REQUEST_USAGE_EXPIRY_TIME_MILLIS } from '../../../constants/numbers'
 import { addOrUpdateAuction, getAuction } from '../../../server/utils/firebase-admin'
-import { Auction, AuctionStatus } from '../../../types'
-import { getAuctionStatus } from '../../../utils/auction'
+import { Auction, AuctionStatus, MessageWithTimeSignature } from '../../../types'
+import { getAuctionStatus, verifyMessageWithTime } from '../../../utils/auction'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(400).json({ message: 'Only post is allowed' })
-  const { signature, bidId } = req.body
+  if (req.method !== 'DELETE') return res.status(400).json({ message: 'Only delete method is allowed' })
+  const { signature, bidId, mandate } = req.body
+
+  const typeMessage = mandate as MessageWithTimeSignature
+
+  if (!typeMessage?.message || typeMessage.message !== MM_CANCEL || !typeMessage?.time)
+    return res.status(400).json({ message: 'Invalid Message' })
+
+  const diffInMillis = (Date.now() - typeMessage.time) / 1000
+  if (diffInMillis < 0 || diffInMillis > V2_BID_REQUEST_USAGE_EXPIRY_TIME_MILLIS)
+    return res.status(400).json({ message: 'Invalid timestamp submitted for bid' })
 
   const auction = (await getAuction()).data() as Auction
 
   const bid = auction.bids[bidId]
 
   try {
-    const isOwner = verifyMessage(MM_CANCEL, signature, bid.bidder)
+    const isOwner = verifyMessageWithTime(mandate, signature, bid.bidder)
     if (!isOwner) return res.status(401).json({ message: 'Not owner' })
   } catch (e) {
     return res.status(401).json({ message: "Signature can't be verified" })
