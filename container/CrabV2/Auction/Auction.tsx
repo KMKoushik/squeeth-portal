@@ -18,6 +18,7 @@ import Link from 'next/link'
 import useInterval from '../../../hooks/useInterval'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AuctionBadge from './AuctionBadge'
+import useIndexStore from '../../../store/indexStore'
 
 const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
   // Render a countdown
@@ -233,6 +234,10 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
     s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
     shallow,
   )
+  const { ethDvol } = useIndexStore(
+    s => ({ ethDvol: s.ethDvolIndex }),
+    shallow,
+  )
   const { indexPrice, markPrice, nfBN } = useControllerStore(
     s => ({ indexPrice: s.indexPrice, markPrice: s.markPrice, nfBN: s.normFactor }),
     shallow,
@@ -322,7 +327,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
           DVOL  
         </Typography>
         <Typography variant="numeric" textAlign="center">
-          {(calculateIV(oSqthPrice, nf, ethPrice) * 100).toFixed(2)}%
+          {ethDvol}%
         </Typography>
       </Box>
     </Box>

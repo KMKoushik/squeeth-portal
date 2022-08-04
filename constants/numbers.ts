@@ -3,6 +3,8 @@ import { etherscanBlockExplorers } from 'wagmi'
 
 export const BIG_ZERO = BigNumber.from(0)
 
+export const ZERO = 0
+
 export const BIG_ONE = BigNumber.from(10).pow(18)
 
 export const INDEX_SCALE = 10000
