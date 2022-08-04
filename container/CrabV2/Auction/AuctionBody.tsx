@@ -8,12 +8,13 @@ import DangerButton from '../../../components/button/DangerButton'
 import { BoxLoadingButton } from '../../../components/button/PrimaryButton'
 import { SecondaryButton } from '../../../components/button/SecondaryButton'
 import { MM_CANCEL } from '../../../constants/message'
+
 import { BIG_ZERO } from '../../../constants/numbers'
 import useToaster from '../../../hooks/useToaster'
 import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
-import { AuctionStatus, Order } from '../../../types'
-import { getUserBids, signOrder } from '../../../utils/auction'
+import { AuctionStatus, Order, MessageWithTimeSignature } from '../../../types'
+import { getUserBids, signOrder, signMessageWithTime } from '../../../utils/auction'
 import { convertBigNumber, formatBigNumber, toBigNumber, wmul } from '../../../utils/math'
 import Bids from './Bids'
 import FilledBids from './FilledBids'
@@ -161,12 +162,18 @@ const BidForm: React.FC = () => {
   const cancelBid = React.useCallback(async () => {
     setDeleteLoading(true)
     try {
-      const signature = await signer?.signMessage(MM_CANCEL)
+
+      const mandate: MessageWithTimeSignature = {
+        message: MM_CANCEL,
+        time: Date.now()
+      }
+
+      const signature = await signMessageWithTime(signer,mandate)
 
       if (bidToEdit) {
         const resp = await fetch('/api/auction/deleteBid', {
-          method: 'POST',
-          body: JSON.stringify({ signature, bidId: bidToEdit }),
+          method: 'Delete',
+          body: JSON.stringify({ signature, bidId: bidToEdit, mandate}),
           headers: { 'Content-Type': 'application/json' },
         })
         showMessageFromServer(resp)
