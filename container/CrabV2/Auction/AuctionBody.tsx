@@ -104,7 +104,13 @@ const BidForm: React.FC = () => {
           }
           return acc
         },
-        isEditBid ? BIG_ZERO.sub(auction.bids[bidToEdit!].order.quantity) : BIG_ZERO,
+        isEditBid
+          ? BIG_ZERO.sub(
+              auction.isSelling
+                ? wmul(auction.bids[bidToEdit!].order.price, auction.bids[bidToEdit!].order.quantity)
+                : auction.bids[bidToEdit!].order.quantity,
+            )
+          : BIG_ZERO,
       ),
     [auction.bids, auction.isSelling, bidToEdit, isEditBid, userBids],
   )
@@ -130,6 +136,8 @@ const BidForm: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
       })
 
+      setBidToEdit(null)
+
       showMessageFromServer(resp)
     } catch (e) {
       console.log(e)
@@ -146,6 +154,7 @@ const BidForm: React.FC = () => {
     isEditBid,
     price,
     qty,
+    setBidToEdit,
     showMessageFromServer,
     signer,
   ])
@@ -324,7 +333,12 @@ const BidForm: React.FC = () => {
         <Typography variant="body3">Total spending across bids</Typography>
         <Typography variant="body2" color="textSecondary">
           <Typography color="textPrimary" component="span" variant="numeric">
-            {formatBigNumber(totalToSpendAcrossBids, 18)}
+            {formatBigNumber(
+              totalToSpendAcrossBids.add(
+                auction.isSelling ? wmul(toBigNumber(qty || 0), toBigNumber(price || 0)) : toBigNumber(qty),
+              ),
+              18,
+            )}
           </Typography>{' '}
           {auction.isSelling ? 'WETH' : 'oSQTH'}
         </Typography>
