@@ -48,3 +48,17 @@ export const createNewAuction = async () => {
   await dbAdmin.collection('auction').doc(auction!.currentAuctionId.toString()).set(auction!)
   return dbAdmin.collection('auction').doc('current').set({ ...emptyAuction, nextAuctionId: auction.nextAuctionId + 1, currentAuctionId: auction.nextAuctionId })
 }
+
+export const getUserBids = async (userAddress: string) => {
+
+  const auctionDoc = await getAuction()
+  const auction = auctionDoc.data() as Auction
+
+  let bidObjArray = Object.values(auction.bids)
+  let bids =  bidObjArray.filter(o => o.bidder === userAddress)
+
+  let orders = bids.map((item) => {
+    return item.order
+  });
+  return  orders
+}
