@@ -1,8 +1,8 @@
-import { BigNumber, ethers } from 'ethers'
-import { doc, setDoc } from 'firebase/firestore'
+import { BigNumber, ethers, Signer } from 'ethers'
+import { doc, increment, setDoc } from 'firebase/firestore'
 import { CRAB_STRATEGY_V2 } from '../constants/address'
-import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
-import { Auction, AuctionStatus, Bid, BidStatus, BidWithStatus, BigNumMap, Order } from '../types'
+import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
+import { Auction, AuctionStatus, Bid, BidStatus, BidWithStatus, BigNumMap, MessageWithTimeSignature, Order } from '../types'
 import { db } from './firebase'
 import { wdiv, wmul } from './math'
 
@@ -189,6 +189,13 @@ export const type = {
   ],
 }
 
+export const messageWithTimeType = {
+  Mandate: [
+    { type: 'string', name: 'message' },
+    { type: 'uint256', name: 'time' },
+  ],
+}
+
 export const signOrder = async (signer: any, order: Order) => {
   const signature = await signer._signTypedData(domain, type, order)
   const { r, s, v } = ethers.utils.splitSignature(signature)
@@ -222,4 +229,16 @@ export const getBgColor = (status?: BidStatus) => {
   if (status === BidStatus.PARTIALLY_FILLED) return 'warning.light'
 
   return 'success.light'
+}
+
+export const signMessageWithTime = async (signer: any, data: MessageWithTimeSignature) => {
+  const signature = await signer._signTypedData(domain, messageWithTimeType, data)
+  const { r, s, v } = ethers.utils.splitSignature(signature)
+
+  return { signature, r, s, v }
+}
+
+export const verifyMessageWithTime = (data: MessageWithTimeSignature, signature: string, address: string) => {
+  const addr = ethers.utils.verifyTypedData(domain, messageWithTimeType, data, signature!)
+  return address.toLowerCase() === addr.toLowerCase()
 }

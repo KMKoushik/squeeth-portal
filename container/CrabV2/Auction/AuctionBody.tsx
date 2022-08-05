@@ -12,17 +12,14 @@ import { BIG_ZERO } from '../../../constants/numbers'
 import useToaster from '../../../hooks/useToaster'
 import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
-import { AuctionStatus, Order } from '../../../types'
-import { getUserBids, signOrder } from '../../../utils/auction'
-import { convertBigNumber, formatBigNumber, toBigNumber, wmul , calculateDollarValue, calculateIV} from '../../../utils/math'
+import { AuctionStatus, Order, MessageWithTimeSignature } from '../../../types'
+import { getUserBids, signOrder, signMessageWithTime } from '../../../utils/auction'
+import { convertBigNumber, formatBigNumber, toBigNumber, wmul, calculateDollarValue, calculateIV } from '../../../utils/math'
 import Bids from './Bids'
 import FilledBids from './FilledBids'
 import usePriceStore from '../../../store/priceStore'
 import useControllerStore from '../../../store/controllerStore'
-import InfoIcon from '@mui/icons-material/Info';
-import DeleteIcon from '@mui/icons-material/Delete';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
+
 
 const AuctionBody: React.FC = () => {
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
@@ -182,12 +179,17 @@ const BidForm: React.FC = () => {
   const cancelBid = React.useCallback(async () => {
     setDeleteLoading(true)
     try {
-      const signature = await signer?.signMessage(MM_CANCEL)
+      const mandate: MessageWithTimeSignature = {
+        message: MM_CANCEL,
+        time:  Date.now()
+      }
 
+      const signature = await signMessageWithTime(signer,mandate)
+   
       if (bidToEdit) {
         const resp = await fetch('/api/auction/deleteBid', {
-          method: 'POST',
-          body: JSON.stringify({ signature, bidId: bidToEdit }),
+          method: 'Delete',
+          body: JSON.stringify({ signature, bidId: bidToEdit, mandate}),
           headers: { 'Content-Type': 'application/json' },
         })
         showMessageFromServer(resp)
