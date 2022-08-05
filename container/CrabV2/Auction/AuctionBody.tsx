@@ -162,14 +162,13 @@ const BidForm: React.FC = () => {
   const cancelBid = React.useCallback(async () => {
     setDeleteLoading(true)
     try {
-
       const mandate: MessageWithTimeSignature = {
         message: MM_CANCEL,
-        time: Date.now()
+        time:  Date.now()
       }
 
       const signature = await signMessageWithTime(signer,mandate)
-
+   
       if (bidToEdit) {
         const resp = await fetch('/api/auction/deleteBid', {
           method: 'Delete',
