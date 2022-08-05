@@ -44,8 +44,8 @@ const wagmiClient = createClient({
 })
 
 const getDvolIndex = async () => {
-  return getDvolIndexDeribit(deribitBaseUrl);
-};
+  return getDvolIndexDeribit(deribitBaseUrl)
+}
 
 const InitializePrice = React.memo(function InitializePrice() {
   useInitAccount()
@@ -54,9 +54,7 @@ const InitializePrice = React.memo(function InitializePrice() {
     s => ({ setEthPrice: s.setEthPrice, setOsqthPrice: s.setOsqthPrice }),
     shallow,
   )
-  const { setEthDvolIndex } = useIndexStore(
-    s => ({ setEthDvolIndex: s.setEthDvolIndex }), shallow,
-  )
+  const { setEthDvolIndex } = useIndexStore(s => ({ setEthDvolIndex: s.setEthDvolIndex }), shallow)
 
   React.useEffect(() => {
     const p1 = oracle.getTwap(SQUEETH_UNI_POOL, OSQUEETH, WETH, 1, true)
