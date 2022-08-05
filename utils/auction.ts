@@ -189,6 +189,13 @@ export const type = {
   ],
 }
 
+export const messageWithTimeType = {
+  Mandate: [
+    { type: 'string', name: 'message' },
+    { type: 'uint256', name: 'time' },
+  ],
+}
+
 export const signOrder = async (signer: any, order: Order) => {
   const signature = await signer._signTypedData(domain, type, order)
   const { r, s, v } = ethers.utils.splitSignature(signature)
@@ -225,13 +232,13 @@ export const getBgColor = (status?: BidStatus) => {
 }
 
 export const signMessageWithTime = async (signer: any, data: MessageWithTimeSignature) => {
-  const signature = await signer._signTypedData(domain, type, data)
+  const signature = await signer._signTypedData(domain, messageWithTimeType, data)
   const { r, s, v } = ethers.utils.splitSignature(signature)
 
   return { signature, r, s, v }
 }
 
 export const verifyMessageWithTime = (data: MessageWithTimeSignature, signature: string, address: string) => {
-  const addr = ethers.utils.verifyTypedData(domain, type, data, signature!)
+  const addr = ethers.utils.verifyTypedData(domain, messageWithTimeType, data, signature!)
   return address.toLowerCase() === addr.toLowerCase()
 }
