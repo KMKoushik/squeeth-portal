@@ -270,7 +270,7 @@ const BidForm: React.FC = () => {
     <Box
       boxShadow={1}
       py={3}
-      px={8}
+      px={3}
       borderRadius={2}
       bgcolor="background.overlayDark"
       display="flex"
@@ -345,6 +345,19 @@ const BidForm: React.FC = () => {
           WETH  
         </Typography>
       </Box>
+      {totalWeth > 0 ? (
+        <>
+      <Box display="flex" mt={2} justifyContent="space-between">
+        <Typography variant="body3">Total IV</Typography>
+        <Typography variant="body2" color="textSecondary">
+          <Typography color="textPrimary" component="span" variant="numeric">
+            {(calculateIV(totalWeth, nf, ethPrice) * 100).toFixed(2)}
+          </Typography>{' '}
+          %  
+        </Typography>
+      </Box> 
+      </>
+      ) : null}
       <Box display="flex" mt={2} justifyContent="space-between">
         <Typography variant="body3">Total spending across bids</Typography>
         <Typography variant="body2" color="textSecondary">

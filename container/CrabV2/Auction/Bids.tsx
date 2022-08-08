@@ -104,7 +104,7 @@ const BidRow: React.FC<{ bid: Bid; rank: number }> = ({ bid, rank }) => {
       <TableCell align="right">{formatBigNumber(qty, 18)} oSQTH</TableCell>
       <TableCell align="right">{formatBigNumber(price, 18)} WETH
       <small>   <Typography textAlign="center" variant="numeric"  color="textSecondary">${(calculateDollarValue(convertBigNumber(price, 18), ethPrice)).toFixed(2)} </Typography> 
-          <Typography  variant="numeric"  color="textSecondary">  {(calculateIV(oSqthPrice, nf, convertBigNumber(price, 18)) * 100).toFixed(2)}% </Typography> </small> 
+          <Typography  variant="numeric"  color="textSecondary">  {(calculateIV(convertBigNumber(price, 18), nf, ethPrice) * 100).toFixed(2)}% </Typography> </small> 
       </TableCell>
       <TableCell align="right">{formatBigNumber(wmul(qty, price), 18)} WETH</TableCell>
       {isHistoricalView ? (
