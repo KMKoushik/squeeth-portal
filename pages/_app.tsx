@@ -17,8 +17,8 @@ import { publicProvider } from 'wagmi/providers/public'
 import { CHAIN_ID } from '../constants/numbers'
 import useInitAccount from '../hooks/init/useInitAccount'
 import ToastMessage from '../container/Toast'
-import useIndexStore from '../store/indexStore'
 import { getDvolIndexDeribit } from '../utils/external'
+import useCrabV2Store from '../store/crabV2Store'
 
 // API key for Ethereum node
 // Two popular services are Infura (infura.io) and Alchemy (alchemy.com)
@@ -54,7 +54,7 @@ const InitializePrice = React.memo(function InitializePrice() {
     s => ({ setEthPrice: s.setEthPrice, setOsqthPrice: s.setOsqthPrice }),
     shallow,
   )
-  const { setEthDvolIndex } = useIndexStore(s => ({ setEthDvolIndex: s.setEthDvolIndex }), shallow)
+  const { setEthDvolIndex } = useCrabV2Store(s => ({ setEthDvolIndex: s.setEthDvolIndex }), shallow)
 
   React.useEffect(() => {
     const p1 = oracle.getTwap(SQUEETH_UNI_POOL, OSQUEETH, WETH, 1, true)

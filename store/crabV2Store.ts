@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers'
 import create from 'zustand'
-import { BIG_ZERO } from '../constants/numbers'
+import { BIG_ZERO,ZERO } from '../constants/numbers'
 import { Auction, AuctionStatus, Bid, BidWithStatus, Vault } from '../types'
 import { emptyAuction } from '../utils/auction'
 
@@ -18,6 +18,7 @@ interface CrabV2Store {
   vault: Vault | null
   sortedBids: Bid[]
   categorizedBids: BidWithStatus[]
+  ethDvolIndex: Number
   setOwner: (owner: string) => void
   setIsContractLoading: (isLoading: boolean) => void
   setAuction: (a: Auction) => void
@@ -30,6 +31,7 @@ interface CrabV2Store {
   setVault: (v: Vault) => void
   setSortedBids: (bids: Bid[]) => void
   setCategorizedBids: (bids: BidWithStatus[]) => void
+  setEthDvolIndex: (p: Number) => void
 }
 
 const useCrabV2Store = create<CrabV2Store>((set, get) => ({
@@ -46,6 +48,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   vault: null,
   sortedBids: [],
   categorizedBids: [],
+  ethDvolIndex: ZERO,
   setOwner: owner => set({ owner }),
   setIsContractLoading: l => set({ isContractLoading: l, isLoading: l || get().auctionLoading }),
   setAuction: auction => set({ auction }),
@@ -59,6 +62,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   setVault: vault => set({ vault }),
   setSortedBids: bids => set({ sortedBids: bids }),
   setCategorizedBids: bids => set({ categorizedBids: bids }),
+  setEthDvolIndex: p => set({ ethDvolIndex: p })
 }))
 
 export default useCrabV2Store
