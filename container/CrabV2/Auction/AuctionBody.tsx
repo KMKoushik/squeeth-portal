@@ -8,16 +8,18 @@ import DangerButton from '../../../components/button/DangerButton'
 import { BoxLoadingButton } from '../../../components/button/PrimaryButton'
 import { SecondaryButton } from '../../../components/button/SecondaryButton'
 import { MM_CANCEL } from '../../../constants/message'
-
 import { BIG_ZERO } from '../../../constants/numbers'
 import useToaster from '../../../hooks/useToaster'
 import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import { AuctionStatus, Order, MessageWithTimeSignature } from '../../../types'
 import { getUserBids, signOrder, signMessageWithTime } from '../../../utils/auction'
-import { convertBigNumber, formatBigNumber, toBigNumber, wmul } from '../../../utils/math'
+import { convertBigNumber, formatBigNumber, toBigNumber, wmul, calculateDollarValue, calculateIV } from '../../../utils/math'
 import Bids from './Bids'
 import FilledBids from './FilledBids'
+import usePriceStore from '../../../store/priceStore'
+import useControllerStore from '../../../store/controllerStore'
+
 
 const AuctionBody: React.FC = () => {
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
@@ -47,7 +49,8 @@ const AuctionBody: React.FC = () => {
           <Bids seeMyBids={seeMyBids} />
         </Grid>
         <Grid item xs={12} md={12} lg={4}>
-          {isHistoricalView ? <FilledBids /> : <BidForm />}
+          {/* {isHistoricalView ? <FilledBids /> : <BidForm />} */}
+          {isHistoricalView ? <BidForm />  :  <FilledBids />}
         </Grid>
       </Grid>
     </>
@@ -73,6 +76,20 @@ const BidForm: React.FC = () => {
     s => ({ oSqthBalance: s.oSqthBalance, wethBalance: s.wethBalance }),
     shallow,
   )
+
+  const { nfBN } = useControllerStore(
+    s => ({ nfBN: s.normFactor }),
+    shallow,
+  )
+
+  const { ethPriceBN, oSqthPriceBN } = usePriceStore(
+    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice  }),
+    shallow,
+  )
+
+  const ethPrice = convertBigNumber(ethPriceBN, 18)
+  const oSqthPrice = convertBigNumber(oSqthPriceBN, 18)
+  const nf = convertBigNumber(nfBN, 18)
 
   const showMessageFromServer = useToaster()
 
@@ -247,13 +264,13 @@ const BidForm: React.FC = () => {
 
   const error = priceError || quantityError || approvalError || balanceError
 
-  const canPlaceBid = auctionStatus === AuctionStatus.LIVE || auctionStatus === AuctionStatus.UPCOMING
+  const canPlaceBid =  auctionStatus === AuctionStatus.LIVE || auctionStatus === AuctionStatus.UPCOMING
 
   return (
     <Box
       boxShadow={1}
       py={3}
-      px={8}
+      px={3}
       borderRadius={2}
       bgcolor="background.overlayDark"
       display="flex"
@@ -325,9 +342,22 @@ const BidForm: React.FC = () => {
           <Typography color="textPrimary" component="span" variant="numeric">
             {totalWeth.toFixed(4)}
           </Typography>{' '}
-          WETH
+          WETH  
         </Typography>
       </Box>
+      {totalWeth > 0 ? (
+        <>
+      <Box display="flex" mt={2} justifyContent="space-between">
+        <Typography variant="body3">Total IV</Typography>
+        <Typography variant="body2" color="textSecondary">
+          <Typography color="textPrimary" component="span" variant="numeric">
+            {(calculateIV(totalWeth, nf, ethPrice) * 100).toFixed(2)}
+          </Typography>{' '}
+          %  
+        </Typography>
+      </Box> 
+      </>
+      ) : null}
       <Box display="flex" mt={2} justifyContent="space-between">
         <Typography variant="body3">Total spending across bids</Typography>
         <Typography variant="body2" color="textSecondary">
@@ -362,7 +392,7 @@ const BidForm: React.FC = () => {
             Cancel {action}
           </DangerButton>
         </>
-      ) : null}
+       ) : null} 
     </Box>
   )
 }

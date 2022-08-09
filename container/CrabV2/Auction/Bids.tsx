@@ -7,11 +7,14 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import useCrabV2Store from '../../../store/crabV2Store'
 import { getBgColor, getUserBids, sortBids } from '../../../utils/auction'
-import { formatBigNumber, wmul } from '../../../utils/math'
+import { calculateDollarValue, calculateIV, convertBigNumber, formatBigNumber, wmul } from '../../../utils/math'
 import { BigNumber } from 'ethers'
 import useAccountStore from '../../../store/accountStore'
-import { Button } from '@mui/material'
+import { Button, Typography } from '@mui/material'
 import { Auction, Bid, BidStatus } from '../../../types'
+import usePriceStore from '../../../store/priceStore'
+import shallow from 'zustand/shallow'
+import useControllerStore from '../../../store/controllerStore'
 
 const getBidStatus = (auction: Auction, isHistoricalView: boolean, bid: Bid) => {
   if (isHistoricalView) {
@@ -30,7 +33,7 @@ const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
   const auction = useCrabV2Store(s => s.auction)
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
   const bids = useCrabV2Store(s => s.sortedBids)
-
+ 
   const filteredBids = React.useMemo(() => {
     return seeMyBids ? getUserBids(bids, address!) : bids
   }, [address, bids, seeMyBids])
@@ -78,13 +81,31 @@ const BidRow: React.FC<{ bid: Bid; rank: number }> = ({ bid, rank }) => {
   const qty = BigNumber.from(bid.order.quantity)
   const price = BigNumber.from(bid.order.price)
 
+  const { ethPriceBN, oSqthPriceBN } = usePriceStore(
+    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice  }),
+    shallow,
+  )
+
+  const { nfBN } = useControllerStore(
+    s => ({ nfBN: s.normFactor }),
+    shallow,
+  )
+
+
+  const ethPrice = convertBigNumber(ethPriceBN, 18)
+  const oSqthPrice = convertBigNumber(oSqthPriceBN, 18)
+  const nf = convertBigNumber(nfBN, 18)
+
   return (
     <>
       <TableCell component="th" scope="row">
         {rank}
       </TableCell>
       <TableCell align="right">{formatBigNumber(qty, 18)} oSQTH</TableCell>
-      <TableCell align="right">{formatBigNumber(price, 18)} WETH</TableCell>
+      <TableCell align="right">{formatBigNumber(price, 18)} WETH
+      <small>   <Typography textAlign="center" variant="numeric"  color="textSecondary">${(calculateDollarValue(convertBigNumber(price, 18), ethPrice)).toFixed(2)} </Typography> 
+          <Typography  variant="numeric"  color="textSecondary">  {(calculateIV(convertBigNumber(price, 18), nf, ethPrice) * 100).toFixed(2)}% </Typography> </small> 
+      </TableCell>
       <TableCell align="right">{formatBigNumber(wmul(qty, price), 18)} WETH</TableCell>
       {isHistoricalView ? (
         <TableCell align="right">
