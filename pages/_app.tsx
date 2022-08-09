@@ -17,12 +17,16 @@ import { publicProvider } from 'wagmi/providers/public'
 import { CHAIN_ID } from '../constants/numbers'
 import useInitAccount from '../hooks/init/useInitAccount'
 import ToastMessage from '../container/Toast'
+import { getDvolIndexDeribit } from '../utils/external'
+import useCrabV2Store from '../store/crabV2Store'
 
 // API key for Ethereum node
 // Two popular services are Infura (infura.io) and Alchemy (alchemy.com)
 const infuraId = process.env.NEXT_PUBLIC_INFURA_API_KEY
 
 const appChain = CHAIN_ID === 1 ? chain.mainnet : chain.ropsten
+
+const deribitBaseUrl = process.env.NEXT_PUBLIC_DERIBIT_BASE_URL
 
 // Chains for connectors to support
 const { chains, provider } = configureChains([appChain], [infuraProvider({ infuraId }), publicProvider()])
@@ -39,6 +43,10 @@ const wagmiClient = createClient({
   provider,
 })
 
+const getDvolIndex = async () => {
+  return getDvolIndexDeribit(deribitBaseUrl)
+}
+
 const InitializePrice = React.memo(function InitializePrice() {
   useInitAccount()
   const oracle = useOracle()
@@ -46,17 +54,20 @@ const InitializePrice = React.memo(function InitializePrice() {
     s => ({ setEthPrice: s.setEthPrice, setOsqthPrice: s.setOsqthPrice }),
     shallow,
   )
+  const { setEthDvolIndex } = useCrabV2Store(s => ({ setEthDvolIndex: s.setEthDvolIndex }), shallow)
 
   React.useEffect(() => {
     const p1 = oracle.getTwap(SQUEETH_UNI_POOL, OSQUEETH, WETH, 1, true)
     const p2 = oracle.getTwap(WETH_USDC_POOL, WETH, USDC, 1, true)
+    const p3 = getDvolIndex()
 
-    Promise.all([p1, p2]).then(prices => {
-      const [_sqthPrice, _ethPrice] = prices
+    Promise.all([p1, p2, p3]).then(prices => {
+      const [_sqthPrice, _ethPrice, _dvolIndex] = prices
       setOsqthPrice(_sqthPrice)
       setEthPrice(_ethPrice)
+      setEthDvolIndex(_dvolIndex)
     })
-  }, [oracle, setEthPrice, setOsqthPrice])
+  }, [oracle, setEthPrice, setOsqthPrice, setEthDvolIndex])
 
   return <></>
 })
