@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Button, Grid, InputAdornment, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { BigNumber } from 'bignumber.js'
@@ -277,7 +278,8 @@ const BidForm: React.FC = () => {
       return `You are quoting a worse price than the est. clearing price: ${_estPrice.toFixed(4)}`
     }
     if (auctionStatus === AuctionStatus.UPCOMING) {
-      return 'Auction not started yet. If the price not matched, bid will be cancelled'
+      return `Auction not started yet. If the ${auction.isSelling ? 'min' : 'max'
+        } price not matched, order will be cancelled`
     }
   }, [auction.isSelling, auctionStatus, estClearingPrice, price])
 
