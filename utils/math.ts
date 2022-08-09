@@ -42,3 +42,7 @@ export const getCurrentSeconds = () => Number((Date.now() / 1000).toFixed(0))
 export const calculateIV = (oSqthPrice: number, normFactor: number, ethPrice: number) => {
   return Math.sqrt(Math.log((oSqthPrice * INDEX_SCALE) / (normFactor * ethPrice)) / (FUNDING_PERIOD / 365))
 }
+
+export const calculateDollarValue = (ethPrice: number, ethToUSD: number) => {
+  return (ethToUSD * ethPrice)
+}
