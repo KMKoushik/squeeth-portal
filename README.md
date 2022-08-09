@@ -17,6 +17,7 @@ First, create a .env file with following keys
 ```
 NEXT_PUBLIC_INFURA_API_KEY=*************
 NEXT_PUBLIC_CHAIN_ID=1
+NEXT_PUBLIC_DERIBIT_BASE_URL=https://test.deribit.com
 ```
 
 NEXT_PUBLIC_CHAIN_ID - 1 for mainnet and 3 for ropsten
