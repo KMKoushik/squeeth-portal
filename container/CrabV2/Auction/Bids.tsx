@@ -16,7 +16,7 @@ import usePriceStore from '../../../store/priceStore'
 import shallow from 'zustand/shallow'
 import useControllerStore from '../../../store/controllerStore'
 
-const getBidStatus = (auction: Auction, isHistoricalView: boolean, bid: Bid) => {
+const getBidStatus = (auction: Auction, isHistoricalView: boolean, bid: Bid, clearingPrice: string) => {
   if (isHistoricalView) {
     return auction.winningBids.includes(`${bid.bidder}-${bid.order.nonce}`) ? BidStatus.INCLUDED : BidStatus.NO_APPROVAL
   }
@@ -26,6 +26,14 @@ const getBidStatus = (auction: Auction, isHistoricalView: boolean, bid: Bid) => 
   ) {
     return BidStatus.STALE_BID
   }
+  if (
+    (auction.isSelling && Number(bid.order.price) < Number(clearingPrice)) ||
+    (!auction.isSelling && Number(bid.order.price) > Number(clearingPrice))
+  ) {
+    return BidStatus.ALREADY_FILLED
+  }
+
+  return BidStatus.INCLUDED
 }
 
 const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
@@ -33,7 +41,8 @@ const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
   const auction = useCrabV2Store(s => s.auction)
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
   const bids = useCrabV2Store(s => s.sortedBids)
- 
+  const estClearingPrice = useCrabV2Store(s => s.estClearingPrice)
+
   const filteredBids = React.useMemo(() => {
     return seeMyBids ? getUserBids(bids, address!) : bids
   }, [address, bids, seeMyBids])
@@ -59,7 +68,7 @@ const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
                   '&:last-child td, &:last-child th': {
                     border: 0,
                   },
-                  bgcolor: getBgColor(getBidStatus(auction, isHistoricalView, bid)),
+                  bgcolor: getBgColor(getBidStatus(auction, isHistoricalView, bid, estClearingPrice)),
                 }}
               >
                 <BidRow bid={bid} rank={i + 1} />
@@ -82,15 +91,11 @@ const BidRow: React.FC<{ bid: Bid; rank: number }> = ({ bid, rank }) => {
   const price = BigNumber.from(bid.order.price)
 
   const { ethPriceBN, oSqthPriceBN } = usePriceStore(
-    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice  }),
+    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
     shallow,
   )
 
-  const { nfBN } = useControllerStore(
-    s => ({ nfBN: s.normFactor }),
-    shallow,
-  )
-
+  const { nfBN } = useControllerStore(s => ({ nfBN: s.normFactor }), shallow)
 
   const ethPrice = convertBigNumber(ethPriceBN, 18)
   const oSqthPrice = convertBigNumber(oSqthPriceBN, 18)
@@ -102,9 +107,18 @@ const BidRow: React.FC<{ bid: Bid; rank: number }> = ({ bid, rank }) => {
         {rank}
       </TableCell>
       <TableCell align="right">{formatBigNumber(qty, 18)} oSQTH</TableCell>
-      <TableCell align="right">{formatBigNumber(price, 18)} WETH
-      <small>   <Typography textAlign="center" variant="numeric"  color="textSecondary">${(calculateDollarValue(convertBigNumber(price, 18), ethPrice)).toFixed(2)} </Typography> 
-          <Typography  variant="numeric"  color="textSecondary">  {(calculateIV(convertBigNumber(price, 18), nf, ethPrice) * 100).toFixed(2)}% </Typography> </small> 
+      <TableCell align="right">
+        {formatBigNumber(price, 18)} WETH
+        <small>
+          {' '}
+          <Typography textAlign="center" variant="numeric" color="textSecondary">
+            ${calculateDollarValue(convertBigNumber(price, 18), ethPrice).toFixed(2)}{' '}
+          </Typography>
+          <Typography variant="numeric" color="textSecondary">
+            {' '}
+            {(calculateIV(convertBigNumber(price, 18), nf, ethPrice) * 100).toFixed(2)}%{' '}
+          </Typography>{' '}
+        </small>
       </TableCell>
       <TableCell align="right">{formatBigNumber(wmul(qty, price), 18)} WETH</TableCell>
       {isHistoricalView ? (

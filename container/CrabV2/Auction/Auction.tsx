@@ -70,8 +70,6 @@ const Auction: React.FC = () => {
   useInterval(updateStatus, auction.auctionEnd ? Date.now() - auction.auctionEnd - V2_AUCTION_TIME_MILLIS : null)
   useInterval(updateStatus, auction.auctionEnd ? Date.now() - auction.auctionEnd + V2_AUCTION_TIME_MILLIS : null)
 
-
-
   return (
     <Box>
       <Typography variant="h6">Token Approvals</Typography>
@@ -152,10 +150,7 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
   isSelling,
 }) => {
   const auction = useCrabV2Store(s => s.auction)
-  const { ethPriceBN } = usePriceStore(
-    s => ({ ethPriceBN: s.ethPrice }),
-    shallow,
-  )
+  const { ethPriceBN } = usePriceStore(s => ({ ethPriceBN: s.ethPrice }), shallow)
   const { indexPrice, markPrice, nfBN } = useControllerStore(
     s => ({ indexPrice: s.indexPrice, markPrice: s.markPrice, nfBN: s.normFactor }),
     shallow,
@@ -164,8 +159,8 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
   const ethPrice = convertBigNumber(ethPriceBN, 18)
 
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
-  const sortedBids = useCrabV2Store(s => s.sortedBids)
   const nf = convertBigNumber(nfBN, 18)
+  const estClearingPrice = useCrabV2Store(s => s.estClearingPrice)
 
   const action = useMemo(() => {
     if (isSelling) {
@@ -174,12 +169,6 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
       return isHistoricalView ? 'Bought' : 'Buying'
     }
   }, [isHistoricalView, isSelling])
-
-  const estClearingPrice = useMemo(() => {
-    if (isHistoricalView || sortedBids.length === 0) return '0'
-
-    return getEstimatedClearingPrice(sortedBids, auction.oSqthAmount)
-  }, [isHistoricalView, sortedBids, auction.oSqthAmount])
 
   return (
     <Box p={3} px={5} display="flex" alignItems="center" justifyContent="space-between">
@@ -216,8 +205,14 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
           <Typography color="textSecondary">clearing price(per oSQTH)</Typography>
           <Typography textAlign="center" variant="numeric" color="primary">
             {formatBigNumber(auction.clearingPrice || '0', 18, 6)} WETH
-           <Typography textAlign="center" variant="numeric"  color="textSecondary">  ${(calculateDollarValue(convertBigNumber(auction.clearingPrice, 18), ethPrice)).toFixed(2)}  </Typography> 
-            <Typography  variant="numeric"  color="textSecondary">  {(calculateIV(convertBigNumber(auction.clearingPrice, 18), nf, ethPrice) * 100).toFixed(2)}% </Typography>
+            <Typography textAlign="center" variant="numeric" color="textSecondary">
+              {' '}
+              ${calculateDollarValue(convertBigNumber(auction.clearingPrice, 18), ethPrice).toFixed(2)}{' '}
+            </Typography>
+            <Typography variant="numeric" color="textSecondary">
+              {' '}
+              {(calculateIV(convertBigNumber(auction.clearingPrice, 18), nf, ethPrice) * 100).toFixed(2)}%{' '}
+            </Typography>
           </Typography>
         </Box>
       ) : (
@@ -225,8 +220,14 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
           <Typography color="textSecondary">Estimated clearing price(per oSQTH)</Typography>
           <Typography textAlign="center" variant="numeric" color="primary">
             {formatBigNumber(estClearingPrice, 18, 6)} WETH
-            <Typography textAlign="center" variant="numeric"  color="textSecondary">  ${(calculateDollarValue(convertBigNumber(estClearingPrice, 18), ethPrice)).toFixed(2)}  </Typography> 
-            <Typography  variant="numeric"  color="textSecondary">  {(calculateIV(convertBigNumber(auction.clearingPrice, 18), nf, ethPrice) * 100).toFixed(2)}% </Typography> 
+            <Typography textAlign="center" variant="numeric" color="textSecondary">
+              {' '}
+              ${calculateDollarValue(convertBigNumber(estClearingPrice, 18), ethPrice).toFixed(2)}{' '}
+            </Typography>
+            <Typography variant="numeric" color="textSecondary">
+              {' '}
+              {(calculateIV(convertBigNumber(auction.clearingPrice, 18), nf, ethPrice) * 100).toFixed(2)}%{' '}
+            </Typography>
           </Typography>
         </Box>
       )}
@@ -249,10 +250,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
     s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
     shallow,
   )
-  const { ethDvol } = useCrabV2Store(
-    s => ({ ethDvol: s.ethDvolIndex }),
-    shallow,
-  )
+  const { ethDvol } = useCrabV2Store(s => ({ ethDvol: s.ethDvolIndex }), shallow)
   const { indexPrice, markPrice, nfBN } = useControllerStore(
     s => ({ indexPrice: s.indexPrice, markPrice: s.markPrice, nfBN: s.normFactor }),
     shallow,
@@ -280,8 +278,17 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
         </Typography>
         <Typography textAlign="center" variant="numeric">
           {formatBigNumber(auction.price, 18, 6)} WETH
-        <small> <Typography textAlign="center" variant="numeric"  color="textSecondary">  ${(calculateDollarValue(convertBigNumber(auction.price, 18), ethPrice)).toFixed(2)}  </Typography> 
-          <Typography  variant="numeric"  color="textSecondary">  {(calculateIV(convertBigNumber(auction.price, 18), nf, ethPrice) * 100).toFixed(2)}% </Typography> </small> 
+          <small>
+            {' '}
+            <Typography textAlign="center" variant="numeric" color="textSecondary">
+              {' '}
+              ${calculateDollarValue(convertBigNumber(auction.price, 18), ethPrice).toFixed(2)}{' '}
+            </Typography>
+            <Typography variant="numeric" color="textSecondary">
+              {' '}
+              {(calculateIV(convertBigNumber(auction.price, 18), nf, ethPrice) * 100).toFixed(2)}%{' '}
+            </Typography>{' '}
+          </small>
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
@@ -341,7 +348,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption" textAlign="center">
-          DVOL  
+          DVOL
         </Typography>
         <Typography variant="numeric" textAlign="center">
           {ethDvol}%

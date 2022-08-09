@@ -68,8 +68,13 @@ const BidForm: React.FC = () => {
   const address = useAccountStore(s => s.address)
   const bidToEdit = useCrabV2Store(s => s.bidToEdit)
   const setBidToEdit = useCrabV2Store(s => s.setBidToEdit)
-  const { oSqthApproval, wethApproval, auctionStatus } = useCrabV2Store(
-    s => ({ oSqthApproval: s.oSqthApproval, wethApproval: s.wethApproval, auctionStatus: s.auctionStatus }),
+  const { oSqthApproval, wethApproval, auctionStatus, estClearingPrice } = useCrabV2Store(
+    s => ({
+      oSqthApproval: s.oSqthApproval,
+      wethApproval: s.wethApproval,
+      auctionStatus: s.auctionStatus,
+      estClearingPrice: s.estClearingPrice,
+    }),
     shallow,
   )
   const { oSqthBalance, wethBalance } = useAccountStore(
@@ -123,10 +128,10 @@ const BidForm: React.FC = () => {
         },
         isEditBid
           ? BIG_ZERO.sub(
-              auction.isSelling
-                ? wmul(auction.bids[bidToEdit!].order.price, auction.bids[bidToEdit!].order.quantity)
-                : auction.bids[bidToEdit!].order.quantity,
-            )
+            auction.isSelling
+              ? wmul(auction.bids[bidToEdit!].order.price, auction.bids[bidToEdit!].order.quantity)
+              : auction.bids[bidToEdit!].order.quantity,
+          )
           : BIG_ZERO,
       ),
     [auction.bids, auction.isSelling, bidToEdit, isEditBid, userBids],
@@ -181,15 +186,15 @@ const BidForm: React.FC = () => {
     try {
       const mandate: MessageWithTimeSignature = {
         message: MM_CANCEL,
-        time:  Date.now()
+        time: Date.now(),
       }
 
-      const signature = await signMessageWithTime(signer,mandate)
-   
+      const signature = await signMessageWithTime(signer, mandate)
+
       if (bidToEdit) {
         const resp = await fetch('/api/auction/deleteBid', {
           method: 'Delete',
-          body: JSON.stringify({ signature, bidId: bidToEdit, mandate}),
+          body: JSON.stringify({ signature, bidId: bidToEdit, mandate }),
           headers: { 'Content-Type': 'application/json' },
         })
         showMessageFromServer(resp)
@@ -265,6 +270,16 @@ const BidForm: React.FC = () => {
   const error = priceError || quantityError || approvalError || balanceError
 
   const canPlaceBid =  auctionStatus === AuctionStatus.LIVE || auctionStatus === AuctionStatus.UPCOMING
+
+  const warning = useMemo(() => {
+    const _estPrice = convertBigNumber(estClearingPrice, 18)
+    if ((auction.isSelling && Number(price) < _estPrice) || (!auction.isSelling && Number(price) > _estPrice)) {
+      return `You are quoting a worse price than the est. clearing price: ${_estPrice.toFixed(4)}`
+    }
+    if (auctionStatus === AuctionStatus.UPCOMING) {
+      return 'Auction not started yet. If the price not matched, bid will be cancelled'
+    }
+  }, [auction.isSelling, auctionStatus, estClearingPrice, price])
 
   return (
     <Box
@@ -376,9 +391,7 @@ const BidForm: React.FC = () => {
         {error}
       </Typography>
       <Typography align="center" mt={3} color="warning.main" variant="body3">
-        {auctionStatus === AuctionStatus.UPCOMING
-          ? 'Auction not started yet. If the price not matched, bid will be cancelled'
-          : ''}
+        {warning}
       </Typography>
       <BoxLoadingButton disabled={!!error || !canPlaceBid} onClick={placeBid} sx={{ mt: 1 }} loading={isLoading}>
         {isEditBid ? `Edit ${action}` : `Place ${action}`}
