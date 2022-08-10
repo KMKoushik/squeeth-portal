@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Button, Grid, InputAdornment, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { BigNumber } from 'bignumber.js'
@@ -49,8 +50,7 @@ const AuctionBody: React.FC = () => {
           <Bids seeMyBids={seeMyBids} />
         </Grid>
         <Grid item xs={12} md={12} lg={4}>
-          {/* {isHistoricalView ? <FilledBids /> : <BidForm />} */}
-          {isHistoricalView ? <BidForm />  :  <FilledBids />}
+          {isHistoricalView ? <FilledBids /> : <BidForm />}
         </Grid>
       </Grid>
     </>
@@ -68,8 +68,13 @@ const BidForm: React.FC = () => {
   const address = useAccountStore(s => s.address)
   const bidToEdit = useCrabV2Store(s => s.bidToEdit)
   const setBidToEdit = useCrabV2Store(s => s.setBidToEdit)
-  const { oSqthApproval, wethApproval, auctionStatus } = useCrabV2Store(
-    s => ({ oSqthApproval: s.oSqthApproval, wethApproval: s.wethApproval, auctionStatus: s.auctionStatus }),
+  const { oSqthApproval, wethApproval, auctionStatus, estClearingPrice } = useCrabV2Store(
+    s => ({
+      oSqthApproval: s.oSqthApproval,
+      wethApproval: s.wethApproval,
+      auctionStatus: s.auctionStatus,
+      estClearingPrice: s.estClearingPrice,
+    }),
     shallow,
   )
   const { oSqthBalance, wethBalance } = useAccountStore(
@@ -83,7 +88,7 @@ const BidForm: React.FC = () => {
   )
 
   const { ethPriceBN, oSqthPriceBN } = usePriceStore(
-    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice  }),
+    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
     shallow,
   )
 
@@ -123,10 +128,10 @@ const BidForm: React.FC = () => {
         },
         isEditBid
           ? BIG_ZERO.sub(
-              auction.isSelling
-                ? wmul(auction.bids[bidToEdit!].order.price, auction.bids[bidToEdit!].order.quantity)
-                : auction.bids[bidToEdit!].order.quantity,
-            )
+            auction.isSelling
+              ? wmul(auction.bids[bidToEdit!].order.price, auction.bids[bidToEdit!].order.quantity)
+              : auction.bids[bidToEdit!].order.quantity,
+          )
           : BIG_ZERO,
       ),
     [auction.bids, auction.isSelling, bidToEdit, isEditBid, userBids],
@@ -181,15 +186,15 @@ const BidForm: React.FC = () => {
     try {
       const mandate: MessageWithTimeSignature = {
         message: MM_CANCEL,
-        time:  Date.now()
+        time: Date.now(),
       }
 
-      const signature = await signMessageWithTime(signer,mandate)
-   
+      const signature = await signMessageWithTime(signer, mandate)
+
       if (bidToEdit) {
         const resp = await fetch('/api/auction/deleteBid', {
           method: 'Delete',
-          body: JSON.stringify({ signature, bidId: bidToEdit, mandate}),
+          body: JSON.stringify({ signature, bidId: bidToEdit, mandate }),
           headers: { 'Content-Type': 'application/json' },
         })
         showMessageFromServer(resp)
@@ -256,7 +261,7 @@ const BidForm: React.FC = () => {
 
   const setMaxBalance = React.useCallback(async () => {
     if (auction.isSelling) {
-      setQty(new BigNumber(balance).div(new BigNumber(price)).toFixed(4))
+      setQty(new BigNumber(balance).div(new BigNumber(price)).toFixed(5))
     } else {
       setQty(balance.toString())
     }
@@ -264,7 +269,18 @@ const BidForm: React.FC = () => {
 
   const error = priceError || quantityError || approvalError || balanceError
 
-  const canPlaceBid =  auctionStatus === AuctionStatus.LIVE || auctionStatus === AuctionStatus.UPCOMING
+  const canPlaceBid = auctionStatus === AuctionStatus.LIVE || auctionStatus === AuctionStatus.UPCOMING
+
+  const warning = useMemo(() => {
+    const _estPrice = convertBigNumber(estClearingPrice, 18)
+    if ((auction.isSelling && Number(price) < _estPrice) || (!auction.isSelling && Number(price) > _estPrice)) {
+      return `You are quoting a worse price than the est. clearing price: ${_estPrice.toFixed(5)}`
+    }
+    if (auctionStatus === AuctionStatus.UPCOMING) {
+      return `Auction not started yet. If the ${auction.isSelling ? 'min' : 'max'
+        } price not matched, order will be cancelled`
+    }
+  }, [auction.isSelling, auctionStatus, estClearingPrice, price])
 
   return (
     <Box
@@ -331,7 +347,7 @@ const BidForm: React.FC = () => {
         <Typography variant="body3">Balance</Typography>
         <Typography variant="body3" color="textSecondary">
           <Typography color="textSecondary" component="span">
-            {balance.toFixed(4)}
+            {balance.toFixed(5)}
           </Typography>{' '}
           {balanceToken}
         </Typography>
@@ -340,25 +356,25 @@ const BidForm: React.FC = () => {
         <Typography variant="body3">Total</Typography>
         <Typography variant="body2" color="textSecondary">
           <Typography color="textPrimary" component="span" variant="numeric">
-            {totalWeth.toFixed(4)}
+            {totalWeth.toFixed(5)}
           </Typography>{' '}
-          WETH  
+          WETH
         </Typography>
       </Box>
-      {totalWeth > 0 ? (
+      {price ? (
         <>
-      <Box display="flex" mt={2} justifyContent="space-between">
-        <Typography variant="body3">Total IV</Typography>
-        <Typography variant="body2" color="textSecondary">
-          <Typography color="textPrimary" component="span" variant="numeric">
-            {(calculateIV(totalWeth, nf, ethPrice) * 100).toFixed(2)}
-          </Typography>{' '}
-          %  
-        </Typography>
-      </Box> 
-      </>
+          <Box display="flex" mt={1} justifyContent="space-between">
+            <Typography variant="body3">IV</Typography>
+            <Typography variant="body2" color="textSecondary">
+              <Typography color="textPrimary" component="span" variant="numeric">
+                {(calculateIV(Number(price), nf, ethPrice) * 100).toFixed(2)}
+              </Typography>{' '}
+              %
+            </Typography>
+          </Box>
+        </>
       ) : null}
-      <Box display="flex" mt={2} justifyContent="space-between">
+      <Box display="flex" mt={1} justifyContent="space-between">
         <Typography variant="body3">Total spending across bids</Typography>
         <Typography variant="body2" color="textSecondary">
           <Typography color="textPrimary" component="span" variant="numeric">
@@ -376,9 +392,7 @@ const BidForm: React.FC = () => {
         {error}
       </Typography>
       <Typography align="center" mt={3} color="warning.main" variant="body3">
-        {auctionStatus === AuctionStatus.UPCOMING
-          ? 'Auction not started yet. If the price not matched, bid will be cancelled'
-          : ''}
+        {warning}
       </Typography>
       <BoxLoadingButton disabled={!!error || !canPlaceBid} onClick={placeBid} sx={{ mt: 1 }} loading={isLoading}>
         {isEditBid ? `Edit ${action}` : `Place ${action}`}
@@ -392,7 +406,7 @@ const BidForm: React.FC = () => {
             Cancel {action}
           </DangerButton>
         </>
-       ) : null} 
+      ) : null}
     </Box>
   )
 }

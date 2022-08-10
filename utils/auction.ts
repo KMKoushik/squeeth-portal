@@ -138,7 +138,7 @@ export const getTxBidsAndClearingPrice = (filteredBids: Array<BidWithStatus>) =>
 
 export const getEstimatedClearingPrice = (bids: Bid[], qty: string) => {
   const quantity = BigNumber.from(qty)
-  let clearingPrice = ''
+  let clearingPrice = '0'
   let usedQty = BIG_ZERO
   for (const bid of bids) {
     if (usedQty.lte(quantity)) {

@@ -2,7 +2,7 @@ import { doc, getDoc, onSnapshot } from 'firebase/firestore'
 import React from 'react'
 import useCrabV2Store from '../../store/crabV2Store'
 import { Auction } from '../../types'
-import { sortBids } from '../../utils/auction'
+import { getEstimatedClearingPrice, sortBids } from '../../utils/auction'
 import { db } from '../../utils/firebase'
 
 const useInitAuction = (isAdmin: boolean) => {
@@ -10,6 +10,7 @@ const useInitAuction = (isAdmin: boolean) => {
   const setAuctionLoading = useCrabV2Store(s => s.setAuctionLoading)
   const setIsHistoricalView = useCrabV2Store(s => s.setIsHistoricalView)
   const setSortedBids = useCrabV2Store(s => s.setSortedBids)
+  const setEstClearingPrice = useCrabV2Store(s => s.setEstClearingPrice)
 
   React.useEffect(() => {
     const unSubscribe = onSnapshot(doc(db, 'auction', 'current'), d => {
@@ -29,13 +30,15 @@ const useInitAuction = (isAdmin: boolean) => {
         } else {
           setAuction(auction)
           setIsHistoricalView(false)
-          setSortedBids(sortBids(auction))
+          const _sortedBids = sortBids(auction)
+          setSortedBids(_sortedBids)
+          setEstClearingPrice(getEstimatedClearingPrice(_sortedBids, auction.oSqthAmount))
         }
       }
     })
 
     return unSubscribe
-  }, [isAdmin, setAuction, setAuctionLoading, setIsHistoricalView, setSortedBids])
+  }, [isAdmin, setAuction, setAuctionLoading, setEstClearingPrice, setIsHistoricalView, setSortedBids])
 }
 
 export default useInitAuction
