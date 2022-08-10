@@ -50,8 +50,7 @@ const AuctionBody: React.FC = () => {
           <Bids seeMyBids={seeMyBids} />
         </Grid>
         <Grid item xs={12} md={12} lg={4}>
-          {/* {isHistoricalView ? <FilledBids /> : <BidForm />} */}
-          {isHistoricalView ? <BidForm />  :  <FilledBids />}
+          {isHistoricalView ? <FilledBids /> : <BidForm />}
         </Grid>
       </Grid>
     </>
@@ -89,7 +88,7 @@ const BidForm: React.FC = () => {
   )
 
   const { ethPriceBN, oSqthPriceBN } = usePriceStore(
-    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice  }),
+    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
     shallow,
   )
 
@@ -262,7 +261,7 @@ const BidForm: React.FC = () => {
 
   const setMaxBalance = React.useCallback(async () => {
     if (auction.isSelling) {
-      setQty(new BigNumber(balance).div(new BigNumber(price)).toFixed(4))
+      setQty(new BigNumber(balance).div(new BigNumber(price)).toFixed(5))
     } else {
       setQty(balance.toString())
     }
@@ -270,12 +269,12 @@ const BidForm: React.FC = () => {
 
   const error = priceError || quantityError || approvalError || balanceError
 
-  const canPlaceBid =  auctionStatus === AuctionStatus.LIVE || auctionStatus === AuctionStatus.UPCOMING
+  const canPlaceBid = auctionStatus === AuctionStatus.LIVE || auctionStatus === AuctionStatus.UPCOMING
 
   const warning = useMemo(() => {
     const _estPrice = convertBigNumber(estClearingPrice, 18)
     if ((auction.isSelling && Number(price) < _estPrice) || (!auction.isSelling && Number(price) > _estPrice)) {
-      return `You are quoting a worse price than the est. clearing price: ${_estPrice.toFixed(4)}`
+      return `You are quoting a worse price than the est. clearing price: ${_estPrice.toFixed(5)}`
     }
     if (auctionStatus === AuctionStatus.UPCOMING) {
       return `Auction not started yet. If the ${auction.isSelling ? 'min' : 'max'
@@ -348,7 +347,7 @@ const BidForm: React.FC = () => {
         <Typography variant="body3">Balance</Typography>
         <Typography variant="body3" color="textSecondary">
           <Typography color="textSecondary" component="span">
-            {balance.toFixed(4)}
+            {balance.toFixed(5)}
           </Typography>{' '}
           {balanceToken}
         </Typography>
@@ -357,25 +356,25 @@ const BidForm: React.FC = () => {
         <Typography variant="body3">Total</Typography>
         <Typography variant="body2" color="textSecondary">
           <Typography color="textPrimary" component="span" variant="numeric">
-            {totalWeth.toFixed(4)}
+            {totalWeth.toFixed(5)}
           </Typography>{' '}
-          WETH  
+          WETH
         </Typography>
       </Box>
-      {totalWeth > 0 ? (
+      {price ? (
         <>
-      <Box display="flex" mt={2} justifyContent="space-between">
-        <Typography variant="body3">Total IV</Typography>
-        <Typography variant="body2" color="textSecondary">
-          <Typography color="textPrimary" component="span" variant="numeric">
-            {(calculateIV(totalWeth, nf, ethPrice) * 100).toFixed(2)}
-          </Typography>{' '}
-          %  
-        </Typography>
-      </Box> 
-      </>
+          <Box display="flex" mt={1} justifyContent="space-between">
+            <Typography variant="body3">IV</Typography>
+            <Typography variant="body2" color="textSecondary">
+              <Typography color="textPrimary" component="span" variant="numeric">
+                {(calculateIV(Number(price), nf, ethPrice) * 100).toFixed(2)}
+              </Typography>{' '}
+              %
+            </Typography>
+          </Box>
+        </>
       ) : null}
-      <Box display="flex" mt={2} justifyContent="space-between">
+      <Box display="flex" mt={1} justifyContent="space-between">
         <Typography variant="body3">Total spending across bids</Typography>
         <Typography variant="body2" color="textSecondary">
           <Typography color="textPrimary" component="span" variant="numeric">
@@ -407,7 +406,7 @@ const BidForm: React.FC = () => {
             Cancel {action}
           </DangerButton>
         </>
-       ) : null} 
+      ) : null}
     </Box>
   )
 }

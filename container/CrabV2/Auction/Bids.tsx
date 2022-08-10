@@ -112,15 +112,15 @@ const BidRow: React.FC<{ bid: Bid; rank: number }> = ({ bid, rank }) => {
         <small>
           {' '}
           <Typography textAlign="center" variant="numeric" color="textSecondary">
-            ${calculateDollarValue(convertBigNumber(price, 18), ethPrice).toFixed(2)}{' '}
+            ${calculateDollarValue(convertBigNumber(price, 18), ethPrice).toFixed(1)}{' '}
           </Typography>
           <Typography variant="numeric" color="textSecondary">
-            {' '}
-            {(calculateIV(convertBigNumber(price, 18), nf, ethPrice) * 100).toFixed(2)}%{' '}
+            {'('}
+            {(calculateIV(convertBigNumber(price, 18), nf, ethPrice) * 100).toFixed(1)}%{')'}
           </Typography>{' '}
         </small>
       </TableCell>
-      <TableCell align="right">{formatBigNumber(wmul(qty, price), 18)} WETH</TableCell>
+      <TableCell align="right">{formatBigNumber(wmul(qty, price), 18, 5)} WETH</TableCell>
       {isHistoricalView ? (
         <TableCell align="right">
           {auction.winningBids!.includes(`${bid.bidder}-${bid.order.nonce}`) ? 'Yes' : 'No'}

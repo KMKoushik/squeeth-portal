@@ -204,7 +204,7 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
         <Box display="flex" flexDirection="column" justifyContent="center">
           <Typography color="textSecondary">clearing price(per oSQTH)</Typography>
           <Typography textAlign="center" variant="numeric" color="primary">
-            {formatBigNumber(auction.clearingPrice || '0', 18, 6)} WETH
+            {formatBigNumber(auction.clearingPrice || '0', 18, 5)} WETH
             <Typography textAlign="center" variant="numeric" color="textSecondary">
               {' '}
               ${calculateDollarValue(convertBigNumber(auction.clearingPrice, 18), ethPrice).toFixed(2)}{' '}
@@ -219,7 +219,7 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
         <Box display="flex" flexDirection="column" justifyContent="center">
           <Typography color="textSecondary">Estimated clearing price(per oSQTH)</Typography>
           <Typography textAlign="center" variant="numeric" color="primary">
-            {formatBigNumber(estClearingPrice, 18, 6)} WETH
+            {formatBigNumber(estClearingPrice, 18, 5)} WETH
             <Typography textAlign="center" variant="numeric" color="textSecondary">
               {' '}
               ${calculateDollarValue(convertBigNumber(estClearingPrice, 18), ethPrice).toFixed(2)}{' '}
@@ -268,7 +268,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
         </Typography>
         <Typography textAlign="center" variant="numeric">
           {formatBigNumber(isUpcoming && auction.oSqthAmount === '0' ? osqthEstimate! : auction.oSqthAmount, 18, 2)}{' '}
-          oSQTH
+          <small>oSQTH</small>
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
@@ -277,16 +277,17 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
           {auction.isSelling ? 'Min Price' : 'Max Price'}
         </Typography>
         <Typography textAlign="center" variant="numeric">
-          {formatBigNumber(auction.price, 18, 6)} WETH
+          {formatBigNumber(auction.price, 18, 5)}
           <small>
             {' '}
+            WETH{' '}
             <Typography textAlign="center" variant="numeric" color="textSecondary">
               {' '}
-              ${calculateDollarValue(convertBigNumber(auction.price, 18), ethPrice).toFixed(2)}{' '}
+              ${calculateDollarValue(convertBigNumber(auction.price, 18), ethPrice).toFixed(1)}{' '}
             </Typography>
             <Typography variant="numeric" color="textSecondary">
-              {' '}
-              {(calculateIV(convertBigNumber(auction.price, 18), nf, ethPrice) * 100).toFixed(2)}%{' '}
+              {''}
+              {(calculateIV(convertBigNumber(auction.price, 18), nf, ethPrice) * 100).toFixed(1)}%{''}
             </Typography>{' '}
           </small>
         </Typography>
@@ -297,7 +298,8 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
           Min Size
         </Typography>
         <Typography textAlign="center" variant="numeric">
-          {(auction.minSize || 0).toFixed(1)} oSQTH
+          {(auction.minSize || 0).toFixed(1)}
+          <small> oSQTH</small>
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
@@ -315,7 +317,8 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
           oSQTH Price
         </Typography>
         <Typography variant="numeric" textAlign="center">
-          {oSqthPrice.toFixed(6)} ETH
+          {oSqthPrice.toFixed(5)}
+          <small> ETH</small>
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />

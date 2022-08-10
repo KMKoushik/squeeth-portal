@@ -32,6 +32,8 @@ import { CrabStrategyV2 } from '../../../../types/contracts'
 import { KING_CRAB } from '../../../../constants/message'
 import useToaster from '../../../../hooks/useToaster'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
+import { ETHERSCAN } from '../../../../constants/numbers'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 
 const getStatus = (status?: BidStatus) => {
   if (status === BidStatus.INCLUDED) return 'Included'
@@ -278,6 +280,19 @@ const BidRow: React.FC<BidRowProp> = ({ bid, rank, checkEnabled, onCheck }) => {
         <Typography variant="body3">
           {bid.bidder.substring(0, 5)}...{bid.bidder.substring(bid.bidder.length - 5)}
         </Typography>
+        <a href={`${ETHERSCAN.url}/address/${bid.bidder}`} target="_blank" rel="noreferrer">
+          <OpenInNewIcon
+            fontSize="small"
+            color="disabled"
+            sx={{
+              verticalAlign: 'middle',
+              ml: 1,
+              ':hover': {
+                cursor: 'pointer',
+              },
+            }}
+          />
+        </a>
       </TableCell>
       <TableCell align="right">{formatBigNumber(qty, 18)} oSQTH</TableCell>
       <TableCell align="right">{formatBigNumber(price, 18)} WETH</TableCell>

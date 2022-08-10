@@ -3,9 +3,10 @@ import { BIG_ONE, FUNDING_PERIOD, INDEX_SCALE } from '../constants/numbers'
 
 export const { formatUnits, parseUnits, parseEther } = ethers.utils
 
-export const formatBigNumber = (bn: BigNumber | string, decimals = 18, decimalsToShow = 4) => {
+export const formatBigNumber = (bn: BigNumber | string, decimals = 18, decimalsToShow = 5) => {
   return convertBigNumber(bn, decimals).toLocaleString(undefined, {
     maximumFractionDigits: decimalsToShow,
+    minimumFractionDigits: decimalsToShow,
   })
 }
 
@@ -17,7 +18,7 @@ export const toBigNumber = (num: number | string, decimals = 18) => {
   return parseUnits(num.toString(), decimals)
 }
 
-export const divideWithPrecision = (dividend: BigNumber, divisor: BigNumber, decimals = 4) => {
+export const divideWithPrecision = (dividend: BigNumber, divisor: BigNumber, decimals = 5) => {
   return dividend.mul(BigNumber.from(10).pow(4)).div(divisor).toNumber() / Math.pow(10, decimals)
 }
 
@@ -40,9 +41,10 @@ export const getCurrentSeconds = () => Number((Date.now() / 1000).toFixed(0))
  */
 
 export const calculateIV = (oSqthPrice: number, normFactor: number, ethPrice: number) => {
+  if (!oSqthPrice) return 0
   return Math.sqrt(Math.log((oSqthPrice * INDEX_SCALE) / (normFactor * ethPrice)) / (FUNDING_PERIOD / 365))
 }
 
 export const calculateDollarValue = (ethPrice: number, ethToUSD: number) => {
-  return (ethToUSD * ethPrice)
+  return ethToUSD * ethPrice
 }
