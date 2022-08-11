@@ -2,7 +2,16 @@ import { BigNumber, ethers, Signer } from 'ethers'
 import { doc, increment, setDoc } from 'firebase/firestore'
 import { CRAB_STRATEGY_V2 } from '../constants/address'
 import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
-import { Auction, AuctionStatus, Bid, BidStatus, BidWithStatus, BigNumMap, MessageWithTimeSignature, Order } from '../types'
+import {
+  Auction,
+  AuctionStatus,
+  Bid,
+  BidStatus,
+  BidWithStatus,
+  BigNumMap,
+  MessageWithTimeSignature,
+  Order,
+} from '../types'
 import { db } from './firebase'
 import { wdiv, wmul } from './math'
 
