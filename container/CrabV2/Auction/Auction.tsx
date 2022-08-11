@@ -78,7 +78,7 @@ const Auction: React.FC = () => {
       </Box>
       <Box display="flex" mt={4} alignItems="center">
         <Typography variant="h6" mr={2}>
-          Auction
+          Auction {isHistoricalView ? new Date(auction.auctionEnd).toLocaleDateString() : ''}
         </Typography>
         <AuctionBadge />
         {isHistoricalView ? (
@@ -151,10 +151,7 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
 }) => {
   const auction = useCrabV2Store(s => s.auction)
   const { ethPriceBN } = usePriceStore(s => ({ ethPriceBN: s.ethPrice }), shallow)
-  const { indexPrice, markPrice, nfBN } = useControllerStore(
-    s => ({ indexPrice: s.indexPrice, markPrice: s.markPrice, nfBN: s.normFactor }),
-    shallow,
-  )
+  const { nfBN } = useControllerStore(s => ({ nfBN: s.normFactor }), shallow)
 
   const ethPrice = convertBigNumber(ethPriceBN, 18)
 
