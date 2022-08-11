@@ -11,14 +11,18 @@ import { calculateDollarValue, calculateIV, convertBigNumber, formatBigNumber, w
 import { BigNumber } from 'ethers'
 import useAccountStore from '../../../store/accountStore'
 import { Button, Typography } from '@mui/material'
-import { Auction, Bid, BidStatus } from '../../../types'
+import { Auction, Bid, BidStatus, BidWithStatus } from '../../../types'
 import usePriceStore from '../../../store/priceStore'
 import shallow from 'zustand/shallow'
 import useControllerStore from '../../../store/controllerStore'
 
-const getBidStatus = (auction: Auction, isHistoricalView: boolean, bid: Bid, clearingPrice: string) => {
+const getBidStatus = (auction: Auction, isHistoricalView: boolean, bid: Bid, clearingPrice: string, amount: string) => {
   if (isHistoricalView) {
-    return auction.winningBids.includes(`${bid.bidder}-${bid.order.nonce}`) ? BidStatus.INCLUDED : BidStatus.NO_APPROVAL
+    return auction.winningBids.includes(`${bid.bidder}-${bid.order.nonce}`)
+      ? Number(bid.order.quantity) > Number(amount)
+        ? BidStatus.PARTIALLY_FILLED
+        : BidStatus.INCLUDED
+      : BidStatus.NO_APPROVAL
   }
   if (
     (auction.isSelling && Number(bid.order.price) < Number(auction.price)) ||
@@ -36,6 +40,8 @@ const getBidStatus = (auction: Auction, isHistoricalView: boolean, bid: Bid, cle
   return BidStatus.INCLUDED
 }
 
+type BidWithAmount = BidWithStatus & { filledAmount: string }
+
 const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
   const address = useAccountStore(s => s.address)
   const auction = useCrabV2Store(s => s.auction)
@@ -43,9 +49,20 @@ const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
   const bids = useCrabV2Store(s => s.sortedBids)
   const estClearingPrice = useCrabV2Store(s => s.estClearingPrice)
 
+  const bidsWithStatusAndAmt = React.useMemo(() => {
+    let amount = auction.oSqthAmount
+    return bids.map(b => {
+      const status = getBidStatus(auction, isHistoricalView, b, estClearingPrice, amount)
+      const filledAmount =
+        status === BidStatus.INCLUDED ? b.order.quantity : status === BidStatus.PARTIALLY_FILLED ? amount : '0'
+      amount = BigNumber.from(amount).sub(b.order.quantity).toString()
+      return { ...b, status, filledAmount }
+    })
+  }, [auction, bids, estClearingPrice, isHistoricalView])
+
   const filteredBids = React.useMemo(() => {
-    return seeMyBids ? getUserBids(bids, address!) : bids
-  }, [address, bids, seeMyBids])
+    return (seeMyBids ? getUserBids(bidsWithStatusAndAmt, address!) : bidsWithStatusAndAmt) as any as BidWithAmount[]
+  }, [address, bidsWithStatusAndAmt, seeMyBids])
 
   return (
     <>
@@ -68,7 +85,7 @@ const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
                   '&:last-child td, &:last-child th': {
                     border: 0,
                   },
-                  bgcolor: getBgColor(getBidStatus(auction, isHistoricalView, bid, estClearingPrice)),
+                  bgcolor: getBgColor(bid.status),
                 }}
               >
                 <BidRow bid={bid} rank={i + 1} />
@@ -81,24 +98,19 @@ const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
   )
 }
 
-const BidRow: React.FC<{ bid: Bid; rank: number }> = ({ bid, rank }) => {
+const BidRow: React.FC<{ bid: BidWithAmount; rank: number }> = ({ bid, rank }) => {
   const address = useAccountStore(s => s.address)
   const setBidToEdit = useCrabV2Store(s => s.setBidToEdit)
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
-  const auction = useCrabV2Store(s => s.auction)
 
   const qty = BigNumber.from(bid.order.quantity)
   const price = BigNumber.from(bid.order.price)
 
-  const { ethPriceBN, oSqthPriceBN } = usePriceStore(
-    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
-    shallow,
-  )
+  const { ethPriceBN } = usePriceStore(s => ({ ethPriceBN: s.ethPrice }), shallow)
 
   const { nfBN } = useControllerStore(s => ({ nfBN: s.normFactor }), shallow)
 
   const ethPrice = convertBigNumber(ethPriceBN, 18)
-  const oSqthPrice = convertBigNumber(oSqthPriceBN, 18)
   const nf = convertBigNumber(nfBN, 18)
 
   return (
@@ -123,7 +135,11 @@ const BidRow: React.FC<{ bid: Bid; rank: number }> = ({ bid, rank }) => {
       <TableCell align="right">{formatBigNumber(wmul(qty, price), 18, 5)} WETH</TableCell>
       {isHistoricalView ? (
         <TableCell align="right">
-          {auction.winningBids!.includes(`${bid.bidder}-${bid.order.nonce}`) ? 'Yes' : 'No'}
+          {bid.status === BidStatus.INCLUDED
+            ? 'Yes'
+            : bid.status === BidStatus.PARTIALLY_FILLED
+            ? `Partial: ${formatBigNumber(bid.filledAmount, 18, 5)}`
+            : 'No'}
         </TableCell>
       ) : (
         <TableCell align="right">
