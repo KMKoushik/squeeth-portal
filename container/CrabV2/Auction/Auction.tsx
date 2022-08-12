@@ -223,7 +223,7 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
             </Typography>
             <Typography variant="numeric" color="textSecondary">
               {' '}
-              {(calculateIV(convertBigNumber(auction.clearingPrice, 18), nf, ethPrice) * 100).toFixed(2)}%{' '}
+              {(calculateIV(convertBigNumber(estClearingPrice, 18), nf, ethPrice) * 100).toFixed(2)}%{' '}
             </Typography>
           </Typography>
         </Box>
