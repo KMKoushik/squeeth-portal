@@ -11,7 +11,7 @@ import useToaster from '../../../../hooks/useToaster'
 import useCrabV2Store from '../../../../store/crabV2Store'
 import { Auction } from '../../../../types'
 import { getMinSize } from '../../../../utils/auction'
-import { convertBigNumber } from '../../../../utils/math'
+import { convertBigNumber, toBigNumber } from '../../../../utils/math'
 
 const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const { data: feeData } = useFeeData()
@@ -53,8 +53,8 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
       const updatedAuction: Auction = {
         ...auction,
         currentAuctionId: isNew ? auction.nextAuctionId : auction.currentAuctionId,
-        oSqthAmount: (Number(oSqthAmount) * 10 ** 18).toString(),
-        price: (Number(price) * 10 ** 18).toString(),
+        oSqthAmount: toBigNumber((Number(oSqthAmount))).toString(),
+        price: toBigNumber((Number(price))).toString(),
         auctionEnd: endDate.getTime(),
         minSize,
         isSelling,
