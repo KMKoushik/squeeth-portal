@@ -237,7 +237,7 @@ const AdminBidView: React.FC = () => {
         <Typography variant="body1" component="span" color="textSecondary">
           Hedge amount:{' '}
           <Typography fontWeight={600} variant="numeric" component="span" color="textPrimary" ml={2}>
-            {formatBigNumber(manualQty === '0' ? auction.oSqthAmount : manualQty, 18, 6)}
+                1175
           </Typography>{' '}
           oSQTH
         </Typography>

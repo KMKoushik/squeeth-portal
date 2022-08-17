@@ -380,7 +380,7 @@ const BidForm: React.FC = () => {
           <Typography color="textPrimary" component="span" variant="numeric">
             {formatBigNumber(
               totalToSpendAcrossBids.add(
-                auction.isSelling ? wmul(toBigNumber(qty || 0), toBigNumber(price || 0)) : toBigNumber(qty || 0),
+                auction.isSelling ? wmul(toBigNumber(1175), toBigNumber(price || 0)) : toBigNumber(1175),
               ),
               18,
             )}
