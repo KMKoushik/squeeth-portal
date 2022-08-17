@@ -69,7 +69,7 @@ const AuctionDetails: React.FC = () => {
           Est. oSQTH Amount
         </Typography>
         <Typography textAlign="center" variant="numeric">
-          {formatBigNumber(oSqthAmountEst, 18, 2)} oSQTH
+          1175 oSQTH
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
