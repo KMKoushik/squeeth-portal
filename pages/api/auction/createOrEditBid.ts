@@ -1,7 +1,7 @@
 import { ethers } from 'ethers'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Auction, AuctionStatus, Bid, Order } from '../../../types'
-import { getAuctionStatus, verifyOrder } from '../../../utils/auction'
+import { getAuctionStatus, verifyOrder, validateOrder } from '../../../utils/auction'
 import { addOrUpdateAuction, getAuction } from '../../../server/utils/firebase-admin'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -16,6 +16,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!isOwner) return res.status(401).json({ message: 'Not owner' })
   } catch (e) {
     return res.status(401).json({ message: "Signature can't be verified" })
+  }
+
+  try {
+    const [isValidOrder, errorMessage] = await validateOrder(order, auction)
+    if (!isValidOrder) return res.status(401).json({ message: errorMessage })
+  } catch (e) {
+    return res.status(401).json({ message: "Order can't be validated" })
   }
 
   const status = getAuctionStatus(auction)

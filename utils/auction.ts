@@ -1,6 +1,7 @@
 import { BigNumber, ethers, Signer } from 'ethers'
 import { doc, increment, setDoc } from 'firebase/firestore'
-import { CRAB_STRATEGY_V2 } from '../constants/address'
+import { CRAB_STRATEGY_V2, WETH, OSQUEETH } from '../constants/address'
+import { ERC20 } from '../constants/contracts'
 import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
 import {
   Auction,
@@ -14,7 +15,8 @@ import {
 } from '../types'
 import { db } from './firebase'
 import { wdiv, wmul } from './math'
-
+import { erc20Abi } from '../abis/ERC20.json'
+import { provider } from '../server/utils/ether';
 export const emptyAuction: Auction = {
   currentAuctionId: 0,
   nextAuctionId: 1,
@@ -250,4 +252,38 @@ export const signMessageWithTime = async (signer: any, data: MessageWithTimeSign
 export const verifyMessageWithTime = (data: MessageWithTimeSignature, signature: string, address: string) => {
   const addr = ethers.utils.verifyTypedData(domain, messageWithTimeType, data, signature!)
   return address.toLowerCase() === addr.toLowerCase()
+}
+
+export const validateOrder = async (order: Order, auction: Auction) => {
+  let isValidOrder = true;
+  let response = '';
+
+  if (order.isBuying != auction.isSelling) {
+    isValidOrder = false;
+    response = 'Incorrect order direction'
+  }
+  else if (parseInt(order.quantity) < auction.minSize) {
+    isValidOrder = false;
+    response = 'Order qunatity is less than auction min size'
+  }
+  else if(order.isBuying) {
+    const wethContract = new ethers.Contract(WETH, erc20Abi, provider) as ERC20
+    const traderAllowance = await wethContract.allowance(CRAB_STRATEGY_V2, order.quantity)
+
+    if(traderAllowance < parseInt(order.quantity)) {
+      isValidOrder = false;
+      response = 'Amount approved is less than order quantity'  
+    }
+  }
+  else if(!order.isBuying) {
+    const squeethContract = new ethers.Contract(OSQUEETH, erc20Abi, provider) as ERC20
+    const traderAllowance = await squeethContract.allowance(CRAB_STRATEGY_V2, order.quantity)
+
+    if(traderAllowance < parseInt(order.quantity)) {
+      isValidOrder = false;
+      response = 'Amount approved is less than order quantity'  
+    }
+  }
+
+  return [isValidOrder, response]
 }
