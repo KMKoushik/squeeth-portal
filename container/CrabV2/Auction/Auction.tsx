@@ -82,21 +82,47 @@ const Auction: React.FC = () => {
         </Typography>
         <AuctionBadge />
         {isHistoricalView ? (
-          <Link href={`/auction`} passHref>
-            <Typography
-              variant="body3"
-              ml={4}
-              color="primary.main"
-              px={2}
-              borderRadius={1}
-              sx={{ cursor: 'pointer', textDecoration: 'underline' }}
-            >
-              Current Auction
-            </Typography>
-          </Link>
+          <>
+            <Link href={`/auction`} passHref>
+              <Typography
+                variant="body3"
+                ml={4}
+                color="primary.main"
+                px={2}
+                borderRadius={1}
+                sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Current Auction
+              </Typography>
+            </Link>
+            <Link href={`/auctionHistory/${auction.currentAuctionId + 1}`} passHref>
+              <Typography
+                variant="body3"
+                ml={4}
+                color="primary.main"
+                px={2}
+                borderRadius={1}
+                sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Next
+              </Typography>
+            </Link>
+            <Link href={`/auctionHistory/${auction.currentAuctionId - 1}`} passHref>
+              <Typography
+                variant="body3"
+                ml={4}
+                color="primary.main"
+                px={2}
+                borderRadius={1}
+                sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Previous
+              </Typography>
+            </Link>
+          </>
         ) : null}
 
-        <Link href={`/auctionHistory/${auction.currentAuctionId - 1}`} passHref>
+        <Link href={`/auctionHistory/`} passHref>
           <Typography
             variant="body3"
             ml={4}
@@ -105,7 +131,7 @@ const Auction: React.FC = () => {
             borderRadius={1}
             sx={{ cursor: 'pointer', textDecoration: 'underline' }}
           >
-            Previous auction
+            Past auctions
           </Typography>
         </Link>
       </Box>
