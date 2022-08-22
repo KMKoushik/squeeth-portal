@@ -55,7 +55,8 @@ const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
       const status = getBidStatus(auction, isHistoricalView, b, estClearingPrice, amount)
       const filledAmount =
         status === BidStatus.INCLUDED ? b.order.quantity : status === BidStatus.PARTIALLY_FILLED ? amount : '0'
-      amount = BigNumber.from(amount).sub(b.order.quantity).toString()
+      if (status === BidStatus.INCLUDED || status === BidStatus.PARTIALLY_FILLED)
+        amount = BigNumber.from(amount).sub(b.order.quantity).toString()
       return { ...b, status, filledAmount }
     })
   }, [auction, bids, estClearingPrice, isHistoricalView])
