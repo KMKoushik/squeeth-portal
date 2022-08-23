@@ -15,6 +15,7 @@ import {
   getUniqueTraders,
   sortBids,
   sortBidsForBidArray,
+  getBidsWithReasonMap,
 } from '../../../../utils/auction'
 import { formatBigNumber, wmul } from '../../../../utils/math'
 import { BigNumber } from 'ethers'
@@ -110,8 +111,6 @@ const AdminBidView: React.FC = () => {
         .filter(fb => fb.status! <= BidStatus.PARTIALLY_FILLED)
         .map(b => ({ ...b.order, v: b.v, r: b.r, s: b.s }))
 
-      console.log(orders)
-
       const gasLimit = await crabV2.estimateGas.hedgeOTC(auction.oSqthAmount, clearingPrice, !auction.isSelling, orders)
 
       const tx = await hedge({
@@ -128,6 +127,7 @@ const AdminBidView: React.FC = () => {
 
       const updatedAuction: Auction = {
         ...auction,
+        bids: getBidsWithReasonMap(filteredBids!),
         tx: tx.hash,
         clearingPrice,
         winningBids: orders.map(o => `${o.trader}-${o.nonce}`),

@@ -33,6 +33,7 @@ export type Bid = {
   s: string
   v: number
   bidder: string
+  status?: BidStatus
 }
 
 export type BidWithStatus = Bid & { status: BidStatus }

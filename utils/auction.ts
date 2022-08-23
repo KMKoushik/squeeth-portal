@@ -105,6 +105,13 @@ export const categorizeBidsWithReason = (
   return filteredBids
 }
 
+export const getBidsWithReasonMap = (bids: Array<Bid & { status?: BidStatus }>) => {
+  return bids.reduce((acc, bid) => {
+    acc[`${bid.bidder}-${bid.order.nonce}`] = bid
+    return acc
+  }, {} as { [key: string]: Bid & { status?: BidStatus } })
+}
+
 export const getWinningBidsForUser = (auction: Auction, user: string) => {
   let qtyLeft = BigNumber.from(auction.oSqthAmount)
 
