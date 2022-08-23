@@ -41,7 +41,9 @@ const getStatus = (status?: BidStatus) => {
   if (status === BidStatus.NO_APPROVAL) return 'Not enough approval'
   if (status === BidStatus.NO_BALANCE) return 'Not enough balance'
   if (status === BidStatus.ALREADY_FILLED) return 'Not included'
-  if (status === BidStatus.STALE_BID) return 'Stale bid'
+  if (status === BidStatus.PRICE_MISMATCH) return 'min/max price criteria not met'
+  if (status === BidStatus.ORDER_DIRECTION_MISMATCH) return 'Wrong order direction'
+  if (status === BidStatus.MIN_SIZE_NOT_MET) return 'Qty less than min size'
 
   return '--'
 }

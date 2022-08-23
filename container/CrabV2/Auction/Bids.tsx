@@ -28,7 +28,7 @@ const getBidStatus = (auction: Auction, isHistoricalView: boolean, bid: Bid, cle
     (auction.isSelling && Number(bid.order.price) < Number(auction.price)) ||
     (!auction.isSelling && Number(bid.order.price) > Number(auction.price))
   ) {
-    return BidStatus.STALE_BID
+    return BidStatus.PRICE_MISMATCH
   }
   if (
     (auction.isSelling && Number(bid.order.price) < Number(clearingPrice)) ||
