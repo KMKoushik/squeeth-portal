@@ -1,7 +1,6 @@
 import { BigNumber, ethers, Signer } from 'ethers'
 import { doc, increment, setDoc } from 'firebase/firestore'
 import { CRAB_STRATEGY_V2, WETH, OSQUEETH } from '../constants/address'
-import { ERC20 } from '../constants/contracts'
 import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
 import {
   Auction,
@@ -15,7 +14,7 @@ import {
 } from '../types'
 import { db } from './firebase'
 import { wdiv, wmul } from './math'
-import { erc20Abi } from '../abis/ERC20.json'
+import erc20Abi from '../abis/ERC20.json'
 import { provider } from '../server/utils/ether';
 export const emptyAuction: Auction = {
   currentAuctionId: 0,
@@ -267,21 +266,23 @@ export const validateOrder = async (order: Order, auction: Auction) => {
     response = 'Order qunatity is less than auction min size'
   }
   else if(order.isBuying) {
-    const wethContract = new ethers.Contract(WETH, erc20Abi, provider) as ERC20
+    const wethContract = new ethers.Contract(WETH, erc20Abi, provider)
+    const traderBalance = await wethContract.balanceOf(CRAB_STRATEGY_V2, order.quantity)
     const traderAllowance = await wethContract.allowance(CRAB_STRATEGY_V2, order.quantity)
 
-    if(traderAllowance < parseInt(order.quantity)) {
+    if(traderAllowance < parseInt(order.quantity) || traderBalance < parseInt(order.quantity)) {
       isValidOrder = false;
-      response = 'Amount approved is less than order quantity'  
+      response = 'Amount approved or balance is less than order quantity'  
     }
   }
   else if(!order.isBuying) {
-    const squeethContract = new ethers.Contract(OSQUEETH, erc20Abi, provider) as ERC20
+    const squeethContract = new ethers.Contract(OSQUEETH, erc20Abi, provider)
+    const traderBalance = await squeethContract.balanceOf(CRAB_STRATEGY_V2, order.quantity)
     const traderAllowance = await squeethContract.allowance(CRAB_STRATEGY_V2, order.quantity)
 
-    if(traderAllowance < parseInt(order.quantity)) {
+    if(traderAllowance < parseInt(order.quantity) || traderBalance < parseInt(order.quantity)) {
       isValidOrder = false;
-      response = 'Amount approved is less than order quantity'  
+      response = 'Amount approved or balance is less than order quantity'  
     }
   }
 
