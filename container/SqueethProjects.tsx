@@ -42,13 +42,13 @@ const SqueethProjects = React.memo(function SqueethProjects() {
       <Grid container>
 
         <Grid item xs={0} md={0} lg={2} />
-        <Grid item xs={12} md={12} lg={8}>
-          <Typography variant="h5" mb={2} mt={2} color='primary'>
-            Squeeth Projects
+        <Grid item xs={12} md={12} lg={8} >
+          <Typography  my={3} color='primary' borderColor='ActiveBorder' borderLeft={4}>
+            <Typography variant="h5" component="span" ml={2}  color='primary' > Squeeth Projects </Typography>
           </Typography>
           <Grid container spacing={4}>
 
-            <Grid item xs={12} md={4} height="100%">
+            <Grid item xs={12} sm={6} md={4} height="100%">
               <motion.div
                 initial="hidden"
                 animate="visible"
@@ -69,7 +69,7 @@ const SqueethProjects = React.memo(function SqueethProjects() {
                 </SqueethScanCard>
               </motion.div>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} sm={6} md={4}>
               <motion.div
                 initial="hidden"
                 animate="visible"
@@ -90,7 +90,7 @@ const SqueethProjects = React.memo(function SqueethProjects() {
                 </DeltaNeutralityCard>
               </motion.div>
             </Grid>
-            <Grid item xs={12} md={4} sx={{ marginBottom: { xs: 2, sm: 0 } }}>
+            <Grid item xs={12} sm={6} md={4} sx={{ marginBottom: { xs: 2, sm: 0 } }}>
               <motion.div
                 initial="hidden"
                 animate="visible"
@@ -111,7 +111,7 @@ const SqueethProjects = React.memo(function SqueethProjects() {
                 </SqueethLabCard>
               </motion.div>
             </Grid>
-            <Grid item xs={12} md={4} sx={{ marginBottom: { xs: 2, sm: 0 } }}>
+            <Grid item xs={12} sm={6} md={4} sx={{ marginBottom: { xs: 2, sm: 0 } }}>
               <motion.div
                 initial="hidden"
                 animate="visible"

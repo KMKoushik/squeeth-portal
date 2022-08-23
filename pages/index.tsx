@@ -45,7 +45,7 @@ const Home: NextPage = () => {
           <Grid item xs={0} md={0} lg={2} />
           <Grid item xs={12} md={12} lg={8}>
             <Grid container spacing={4}>
-              <Grid item xs={12} md={4} height="100%">
+              <Grid item xs={12} sm={6} md={4}>
                 <motion.div
                   initial="hidden"
                   animate="visible"
@@ -66,7 +66,7 @@ const Home: NextPage = () => {
                   </TradeCard>
                 </motion.div>
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} sm={6} md={4}>
                 <motion.div
                   initial="hidden"
                   animate="visible"
@@ -89,7 +89,7 @@ const Home: NextPage = () => {
                   </Link>
                 </motion.div>
               </Grid>
-              <Grid item xs={12} md={4} sx={{ marginBottom: { xs: 2, sm: 0 } }}>
+              <Grid item xs={12} sm={6} md={4} sx={{ marginBottom: { xs: 2, sm: 0 } }}>
                 <motion.div
                   initial="hidden"
                   animate="visible"
