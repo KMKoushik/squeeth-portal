@@ -13,7 +13,7 @@ import {
   Order,
 } from '../types'
 import { db } from './firebase'
-import { wdiv, wmul } from './math'
+import { toBigNumber, wdiv, wmul } from './math'
 
 export const emptyAuction: Auction = {
   currentAuctionId: 0,
@@ -77,7 +77,11 @@ export const categorizeBidsWithReason = (
       const erc20Needed = auction.isSelling ? wmul(_osqth, _price) : _osqth
 
       if ((auction.isSelling && _price.lt(auctionPrice)) || (!auction.isSelling && _price.gt(auctionPrice)))
-        return { ...b, status: BidStatus.STALE_BID }
+        return { ...b, status: BidStatus.PRICE_MISMATCH }
+
+      if (auction.isSelling != b.order.isBuying) return { ...b, status: BidStatus.ORDER_DIRECTION_MISMATCH }
+
+      if (_osqth.lt(toBigNumber(auction.minSize, 18))) return { ...b, status: BidStatus.MIN_SIZE_NOT_MET }
 
       if (!approvalMap[b.bidder] || !approvalMap[b.bidder].gte(erc20Needed))
         return { ...b, status: BidStatus.NO_APPROVAL }
