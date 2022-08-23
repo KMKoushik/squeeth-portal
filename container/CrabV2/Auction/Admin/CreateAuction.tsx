@@ -4,6 +4,7 @@ import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import * as React from 'react'
 import { useFeeData, useSigner } from 'wagmi'
+import DangerButton from '../../../../components/button/DangerButton'
 import { PrimaryLoadingButton } from '../../../../components/button/PrimaryButton'
 import { KING_CRAB } from '../../../../constants/message'
 import { BIG_ZERO } from '../../../../constants/numbers'
@@ -24,6 +25,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const [isSelling, setIsSelling] = React.useState<boolean>(!!auction.isSelling)
   const [loading, setLoading] = React.useState(false)
   const [minSize, setMinSize] = React.useState(auction.minSize || 0)
+  const [clearing, setClearing] = React.useState(false)
 
   const { data: signer } = useSigner()
   const showMessageFromServer = useToaster()
@@ -45,6 +47,18 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
     [setPrice, setMinSize, feeData],
   )
 
+  const updateAuction = React.useCallback(
+    async (signature: string, auction: Auction) => {
+      const resp = await fetch('/api/auction/createOrEditAuction', {
+        method: 'POST',
+        body: JSON.stringify({ signature, auction: auction }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+      showMessageFromServer(resp)
+    },
+    [showMessageFromServer],
+  )
+
   const createOrUpdate = React.useCallback(async () => {
     setLoading(true)
     try {
@@ -53,24 +67,36 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
       const updatedAuction: Auction = {
         ...auction,
         currentAuctionId: isNew ? auction.nextAuctionId : auction.currentAuctionId,
-        oSqthAmount: toBigNumber((Number(oSqthAmount))).toString(),
-        price: toBigNumber((Number(price))).toString(),
+        oSqthAmount: toBigNumber(Number(oSqthAmount)).toString(),
+        price: toBigNumber(Number(price)).toString(),
         auctionEnd: endDate.getTime(),
         minSize,
         isSelling,
       }
 
-      const resp = await fetch('/api/auction/createOrEditAuction', {
-        method: 'POST',
-        body: JSON.stringify({ signature, auction: updatedAuction }),
-        headers: { 'Content-Type': 'application/json' },
-      })
-      showMessageFromServer(resp)
+      await updateAuction(signature!, updatedAuction)
     } catch (e) {
       console.log(e)
     }
     setLoading(false)
-  }, [signer, auction, isNew, oSqthAmount, price, endDate, minSize, isSelling, showMessageFromServer])
+  }, [signer, auction, isNew, oSqthAmount, price, endDate, minSize, isSelling, updateAuction])
+
+  const clearBids = React.useCallback(async () => {
+    setClearing(true)
+    try {
+      const signature = await signer?.signMessage(KING_CRAB)
+
+      const updatedAuction: Auction = {
+        ...auction,
+        bids: {},
+      }
+
+      await updateAuction(signature!, updatedAuction)
+    } catch (e) {
+      console.log(e)
+    }
+    setClearing(false)
+  }, [auction, signer, updateAuction])
 
   return (
     <Box width={300} display="flex" flexDirection="column" justifyContent="center">
@@ -113,6 +139,9 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
       <PrimaryLoadingButton sx={{ m: 'auto', mt: 2 }} onClick={createOrUpdate} loading={loading}>
         {isNew ? 'Create' : 'update'}
       </PrimaryLoadingButton>
+      <DangerButton sx={{ m: 'auto', mt: 2, width: 200 }} onClick={clearBids} loading={clearing}>
+        Clear bids
+      </DangerButton>
     </Box>
   )
 })
