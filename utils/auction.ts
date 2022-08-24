@@ -262,3 +262,16 @@ export const verifyMessageWithTime = (data: MessageWithTimeSignature, signature:
   const addr = ethers.utils.verifyTypedData(domain, messageWithTimeType, data, signature!)
   return address.toLowerCase() === addr.toLowerCase()
 }
+
+export const getBidStatus = (status?: BidStatus) => {
+  if (status === BidStatus.INCLUDED) return 'Included'
+  if (status === BidStatus.PARTIALLY_FILLED) return 'Partially included'
+  if (status === BidStatus.NO_APPROVAL) return 'Not enough approval'
+  if (status === BidStatus.NO_BALANCE) return 'Not enough balance'
+  if (status === BidStatus.ALREADY_FILLED) return 'Not included'
+  if (status === BidStatus.PRICE_MISMATCH) return 'min/max price criteria not met'
+  if (status === BidStatus.ORDER_DIRECTION_MISMATCH) return 'Wrong order direction'
+  if (status === BidStatus.MIN_SIZE_NOT_MET) return 'Qty less than min size'
+
+  return '--'
+}
