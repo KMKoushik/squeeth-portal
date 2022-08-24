@@ -6,7 +6,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import useCrabV2Store from '../../../store/crabV2Store'
-import { getBgColor, getUserBids, sortBids } from '../../../utils/auction'
+import { getBgColor, getBidStatus, getUserBids, sortBids } from '../../../utils/auction'
 import { calculateDollarValue, calculateIV, convertBigNumber, formatBigNumber, wmul } from '../../../utils/math'
 import { BigNumber } from 'ethers'
 import useAccountStore from '../../../store/accountStore'
@@ -16,13 +16,13 @@ import usePriceStore from '../../../store/priceStore'
 import shallow from 'zustand/shallow'
 import useControllerStore from '../../../store/controllerStore'
 
-const getBidStatus = (auction: Auction, isHistoricalView: boolean, bid: Bid, clearingPrice: string, amount: string) => {
+const getStatus = (auction: Auction, isHistoricalView: boolean, bid: Bid, clearingPrice: string, amount: string) => {
   if (isHistoricalView) {
     return auction.winningBids.includes(`${bid.bidder}-${bid.order.nonce}`)
       ? Number(bid.order.quantity) > Number(amount)
         ? BidStatus.PARTIALLY_FILLED
         : BidStatus.INCLUDED
-      : BidStatus.NO_APPROVAL
+      : BidStatus.ALREADY_FILLED
   }
   if (
     (auction.isSelling && Number(bid.order.price) < Number(auction.price)) ||
@@ -52,12 +52,13 @@ const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
   const bidsWithStatusAndAmt = React.useMemo(() => {
     let amount = auction.oSqthAmount
     return bids.map(b => {
-      const status = getBidStatus(auction, isHistoricalView, b, estClearingPrice, amount)
+      const status = getStatus(auction, isHistoricalView, b, estClearingPrice, amount)
       const filledAmount =
         status === BidStatus.INCLUDED ? b.order.quantity : status === BidStatus.PARTIALLY_FILLED ? amount : '0'
       if (status === BidStatus.INCLUDED || status === BidStatus.PARTIALLY_FILLED)
         amount = BigNumber.from(amount).sub(b.order.quantity).toString()
-      return { ...b, status, filledAmount }
+      const bidStatus = b.status ? b.status : status
+      return { ...b, status: bidStatus, filledAmount }
     })
   }, [auction, bids, estClearingPrice, isHistoricalView])
 
@@ -75,7 +76,7 @@ const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
               <TableCell align="right">Quantity</TableCell>
               <TableCell align="right">Price per oSQTH</TableCell>
               <TableCell align="right">{auction.isSelling ? 'Total Payable' : 'Total to get'}</TableCell>
-              <TableCell align="right">{isHistoricalView ? 'Filled' : 'Action'}</TableCell>
+              <TableCell align="right">{isHistoricalView ? 'Status' : 'Action'}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -136,11 +137,11 @@ const BidRow: React.FC<{ bid: BidWithAmount; rank: number }> = ({ bid, rank }) =
       <TableCell align="right">{formatBigNumber(wmul(qty, price), 18, 5)} WETH</TableCell>
       {isHistoricalView ? (
         <TableCell align="right">
-          {bid.status === BidStatus.INCLUDED
-            ? 'Yes'
-            : bid.status === BidStatus.PARTIALLY_FILLED
-            ? `Partial: ${formatBigNumber(bid.filledAmount, 18, 5)}`
-            : 'No'}
+          <Typography variant="caption">
+            {bid.status === BidStatus.PARTIALLY_FILLED
+              ? `Partial: ${formatBigNumber(bid.filledAmount, 18, 5)}`
+              : getBidStatus(bid.status)}
+          </Typography>
         </TableCell>
       ) : (
         <TableCell align="right">
