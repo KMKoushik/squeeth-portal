@@ -33,6 +33,7 @@ export type Bid = {
   s: string
   v: number
   bidder: string
+  status?: BidStatus
 }
 
 export type BidWithStatus = Bid & { status: BidStatus }
@@ -55,7 +56,9 @@ export enum BidStatus {
   INCLUDED = 1,
   PARTIALLY_FILLED,
   ALREADY_FILLED,
-  STALE_BID,
+  PRICE_MISMATCH,
+  ORDER_DIRECTION_MISMATCH,
+  MIN_SIZE_NOT_MET,
   NO_BALANCE,
   NO_APPROVAL,
 }

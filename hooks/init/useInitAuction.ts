@@ -14,7 +14,6 @@ const useInitAuction = (isAdmin: boolean) => {
 
   React.useEffect(() => {
     const unSubscribe = onSnapshot(doc(db, 'auction', 'current'), d => {
-      setAuctionLoading(false)
       if (d.exists()) {
         const auction = d.data() as Auction
         if (auction.auctionEnd === 0 && !isAdmin) {
@@ -25,6 +24,7 @@ const useInitAuction = (isAdmin: boolean) => {
               setAuction(_oldAuction)
               setIsHistoricalView(true)
               setSortedBids(sortBids(_oldAuction))
+              setAuctionLoading(false)
             }
           })
         } else {
@@ -33,6 +33,7 @@ const useInitAuction = (isAdmin: boolean) => {
           const _sortedBids = sortBids(auction)
           setSortedBids(_sortedBids)
           setEstClearingPrice(getEstimatedClearingPrice(_sortedBids, auction.oSqthAmount))
+          setAuctionLoading(false)
         }
       }
     })

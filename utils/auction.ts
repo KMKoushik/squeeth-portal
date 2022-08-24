@@ -13,7 +13,7 @@ import {
   Order,
 } from '../types'
 import { db } from './firebase'
-import { wdiv, wmul } from './math'
+import { toBigNumber, wdiv, wmul } from './math'
 import erc20Abi from '../abis/ERC20.json'
 import { provider } from '../server/utils/ether';
 export const emptyAuction: Auction = {
@@ -78,7 +78,11 @@ export const categorizeBidsWithReason = (
       const erc20Needed = auction.isSelling ? wmul(_osqth, _price) : _osqth
 
       if ((auction.isSelling && _price.lt(auctionPrice)) || (!auction.isSelling && _price.gt(auctionPrice)))
-        return { ...b, status: BidStatus.STALE_BID }
+        return { ...b, status: BidStatus.PRICE_MISMATCH }
+
+      if (auction.isSelling != b.order.isBuying) return { ...b, status: BidStatus.ORDER_DIRECTION_MISMATCH }
+
+      if (_osqth.lt(toBigNumber(auction.minSize, 18))) return { ...b, status: BidStatus.MIN_SIZE_NOT_MET }
 
       if (!approvalMap[b.bidder] || !approvalMap[b.bidder].gte(erc20Needed))
         return { ...b, status: BidStatus.NO_APPROVAL }
@@ -100,6 +104,13 @@ export const categorizeBidsWithReason = (
     .sort((a, b) => a.status - b.status)
 
   return filteredBids
+}
+
+export const getBidsWithReasonMap = (bids: Array<Bid & { status?: BidStatus }>) => {
+  return bids.reduce((acc, bid) => {
+    acc[`${bid.bidder}-${bid.order.nonce}`] = bid
+    return acc
+  }, {} as { [key: string]: Bid & { status?: BidStatus } })
 }
 
 export const getWinningBidsForUser = (auction: Auction, user: string) => {
@@ -291,4 +302,17 @@ export const validateOrder = async (order: Order, auction: Auction) => {
   }
 
   return [isValidOrder, response]
+}
+
+export const getBidStatus = (status?: BidStatus) => {
+  if (status === BidStatus.INCLUDED) return 'Included'
+  if (status === BidStatus.PARTIALLY_FILLED) return 'Partially included'
+  if (status === BidStatus.NO_APPROVAL) return 'Not enough approval'
+  if (status === BidStatus.NO_BALANCE) return 'Not enough balance'
+  if (status === BidStatus.ALREADY_FILLED) return 'Not included'
+  if (status === BidStatus.PRICE_MISMATCH) return 'min/max price criteria not met'
+  if (status === BidStatus.ORDER_DIRECTION_MISMATCH) return 'Wrong order direction'
+  if (status === BidStatus.MIN_SIZE_NOT_MET) return 'Qty less than min size'
+
+  return '--'
 }

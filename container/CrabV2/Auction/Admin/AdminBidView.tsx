@@ -15,6 +15,8 @@ import {
   getUniqueTraders,
   sortBids,
   sortBidsForBidArray,
+  getBidsWithReasonMap,
+  getBidStatus,
 } from '../../../../utils/auction'
 import { formatBigNumber, wmul } from '../../../../utils/math'
 import { BigNumber } from 'ethers'
@@ -34,17 +36,6 @@ import useToaster from '../../../../hooks/useToaster'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
 import { ETHERSCAN } from '../../../../constants/numbers'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
-
-const getStatus = (status?: BidStatus) => {
-  if (status === BidStatus.INCLUDED) return 'Included'
-  if (status === BidStatus.PARTIALLY_FILLED) return 'Partially included'
-  if (status === BidStatus.NO_APPROVAL) return 'Not enough approval'
-  if (status === BidStatus.NO_BALANCE) return 'Not enough balance'
-  if (status === BidStatus.ALREADY_FILLED) return 'Not included'
-  if (status === BidStatus.STALE_BID) return 'Stale bid'
-
-  return '--'
-}
 
 const AdminBidView: React.FC = () => {
   const [filteredBids, setFilteredBids] = React.useState<Array<Bid & { status?: BidStatus }>>()
@@ -108,8 +99,6 @@ const AdminBidView: React.FC = () => {
         .filter(fb => fb.status! <= BidStatus.PARTIALLY_FILLED)
         .map(b => ({ ...b.order, v: b.v, r: b.r, s: b.s }))
 
-      console.log(orders)
-
       const gasLimit = await crabV2.estimateGas.hedgeOTC(auction.oSqthAmount, clearingPrice, !auction.isSelling, orders)
 
       const tx = await hedge({
@@ -126,6 +115,14 @@ const AdminBidView: React.FC = () => {
 
       const updatedAuction: Auction = {
         ...auction,
+        bids: getBidsWithReasonMap(
+          manualBids.length
+            ? bids.map(b => ({
+                ...b,
+                status: !!manualBidMap[`${b.bidder}-${b.order.nonce}`] ? BidStatus.INCLUDED : BidStatus.ALREADY_FILLED,
+              }))
+            : filteredBids!,
+        ),
         tx: tx.hash,
         clearingPrice,
         winningBids: orders.map(o => `${o.trader}-${o.nonce}`),
@@ -299,7 +296,7 @@ const BidRow: React.FC<BidRowProp> = ({ bid, rank, checkEnabled, onCheck }) => {
       <TableCell align="right">{formatBigNumber(wmul(qty, price), 18)} WETH</TableCell>
       <TableCell>
         <Typography variant="body3" color="textSecondary">
-          {getStatus(bid.status)}
+          {getBidStatus(bid.status)}
         </Typography>
       </TableCell>
     </>
