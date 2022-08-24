@@ -257,7 +257,11 @@ export const validateOrder = async (order: Order, auction: Auction) => {
   let isValidOrder = true;
   let response = '';
 
-  if (order.isBuying != auction.isSelling) {
+  if (auction.minSize == 0 || auction.auctionEnd == 0) {
+    isValidOrder = false;
+    response = 'Auction not started yet'
+  }
+  else if (order.isBuying != auction.isSelling) {
     isValidOrder = false;
     response = 'Incorrect order direction'
   }
