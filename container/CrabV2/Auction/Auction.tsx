@@ -46,7 +46,8 @@ const Auction: React.FC = () => {
   const isUpcoming = auctionStatus === AuctionStatus.UPCOMING
 
   const { isSellingAuction, oSqthAmount: oSqthAmountEst } = useMemo(() => {
-    if (!isUpcoming || !vault) return { isSellingAuction: true, oSqthAmount: BIG_ZERO, ethAmount: BIG_ZERO }
+    if (!isUpcoming || !vault || oSqthPrice.isZero())
+      return { isSellingAuction: true, oSqthAmount: BIG_ZERO, ethAmount: BIG_ZERO }
 
     return estimateAuction(vault.shortAmount, vault.collateral, oSqthPrice)
   }, [isUpcoming, oSqthPrice, vault])

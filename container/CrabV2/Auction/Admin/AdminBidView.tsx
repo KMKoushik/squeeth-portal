@@ -18,8 +18,8 @@ import {
   getBidsWithReasonMap,
   getBidStatus,
 } from '../../../../utils/auction'
-import { formatBigNumber, wmul } from '../../../../utils/math'
-import { BigNumber } from 'ethers'
+import { calculateIV, convertBigNumber, formatBigNumber, wmul } from '../../../../utils/math'
+import { BigNumber, ethers } from 'ethers'
 import { Auction, Bid, BidStatus } from '../../../../types'
 import useApprovals from '../../../../hooks/useApprovals'
 import { CRAB_STRATEGY_V2, OSQUEETH, WETH } from '../../../../constants/address'
@@ -36,6 +36,9 @@ import useToaster from '../../../../hooks/useToaster'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
 import { ETHERSCAN } from '../../../../constants/numbers'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
+import useControllerStore from '../../../../store/controllerStore'
+import usePriceStore from '../../../../store/priceStore'
+import shallow from 'zustand/shallow'
 
 const AdminBidView: React.FC = () => {
   const [filteredBids, setFilteredBids] = React.useState<Array<Bid & { status?: BidStatus }>>()
@@ -43,6 +46,7 @@ const AdminBidView: React.FC = () => {
   const [clearingPrice, setClearingPrice] = React.useState('')
   const auction = useCrabV2Store(s => s.auction)
   const bids = useCrabV2Store(s => s.sortedBids)
+  const ethDvolIndex = useCrabV2Store(s => s.ethDvolIndex)
   const uniqueTraders = getUniqueTraders(bids)
   const { getApprovals } = useApprovals(uniqueTraders, auction.isSelling ? WETH : OSQUEETH, CRAB_STRATEGY_V2)
   const { getBalances } = useBalances(uniqueTraders, auction.isSelling ? WETH : OSQUEETH)
@@ -52,6 +56,15 @@ const AdminBidView: React.FC = () => {
   // Needed for manual hedge
   const [manualBidMap, setManualBidMap] = React.useState<{ [key: string]: Bid & { status?: BidStatus } }>({})
   const [manualQty, setManualQty] = React.useState('0')
+
+  const { ethPriceBN, oSqthPriceBN } = usePriceStore(
+    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
+    shallow,
+  )
+  const nfBN = useControllerStore(s => s.normFactor)
+
+  const ethPrice = convertBigNumber(ethPriceBN, 18)
+  const nf = convertBigNumber(nfBN, 18)
 
   const { data: hedgeTx, writeAsync: hedge } = useContractWrite({
     ...CRAB_V2_CONTRACT,
@@ -78,16 +91,20 @@ const AdminBidView: React.FC = () => {
 
   const filterBids = React.useCallback(async () => {
     setFilterLoading(true)
-    const { data: approvals } = await getApprovals()
-    const { data: balances } = await getBalances()
+    try {
+      const { data: approvals } = await getApprovals()
+      const { data: balances } = await getBalances()
 
-    const approvalMap = convertArrayToMap<BigNumber>(uniqueTraders, approvals as any as Array<BigNumber>)
-    const balanceMap = convertArrayToMap<BigNumber>(uniqueTraders, balances as any as Array<BigNumber>)
+      const approvalMap = convertArrayToMap<BigNumber>(uniqueTraders, approvals as any as Array<BigNumber>)
+      const balanceMap = convertArrayToMap<BigNumber>(uniqueTraders, balances as any as Array<BigNumber>)
 
-    const _filteredBids = categorizeBidsWithReason(bids, auction, approvalMap, balanceMap)
-    setFilteredBids(_filteredBids)
-    const { clearingPrice: _clPrice } = getTxBidsAndClearingPrice(_filteredBids)
-    setClearingPrice(_clPrice)
+      const _filteredBids = categorizeBidsWithReason(bids, auction, approvalMap, balanceMap)
+      setFilteredBids(_filteredBids)
+      const { clearingPrice: _clPrice } = getTxBidsAndClearingPrice(_filteredBids)
+      setClearingPrice(_clPrice)
+    } catch (e) {
+      console.log(e)
+    }
     setFilterLoading(false)
   }, [auction, bids, getApprovals, getBalances, uniqueTraders])
 
@@ -97,7 +114,11 @@ const AdminBidView: React.FC = () => {
       const manualBids = Object.values(manualBidMap)
       const orders = (manualBids.length ? manualBids : filteredBids!)
         .filter(fb => fb.status! <= BidStatus.PARTIALLY_FILLED)
-        .map(b => ({ ...b.order, v: b.v, r: b.r, s: b.s }))
+        .map(b => {
+          const { r, s, v } = ethers.utils.splitSignature(b.signature)
+
+          return { ...b.order, v, r, s }
+        })
 
       const gasLimit = await crabV2.estimateGas.hedgeOTC(auction.oSqthAmount, clearingPrice, !auction.isSelling, orders)
 
@@ -126,6 +147,9 @@ const AdminBidView: React.FC = () => {
         tx: tx.hash,
         clearingPrice,
         winningBids: orders.map(o => `${o.trader}-${o.nonce}`),
+        ethPrice: ethPriceBN.toString(),
+        oSqthPrice: oSqthPriceBN.toString(),
+        dvol: ethDvolIndex,
       }
 
       const resp = await fetch('/api/auction/submitAuction', {
@@ -229,6 +253,10 @@ const AdminBidView: React.FC = () => {
               {formatBigNumber(clearingPrice || '0', 18, 6)}
             </Typography>{' '}
             WETH
+            <Typography variant="numeric" color="textSecondary">
+              {' ('}
+              {(calculateIV(convertBigNumber(clearingPrice || '0', 18), nf, ethPrice) * 100).toFixed(1)}%{')'}
+            </Typography>
           </Typography>
         </Box>
         <Typography variant="body1" component="span" color="textSecondary">
@@ -264,6 +292,11 @@ type BidRowProp = {
 const BidRow: React.FC<BidRowProp> = ({ bid, rank, checkEnabled, onCheck }) => {
   const qty = BigNumber.from(bid.order.quantity)
   const price = BigNumber.from(bid.order.price)
+  const ethPriceBN = usePriceStore(s => s.ethPrice)
+  const nfBN = useControllerStore(s => s.normFactor)
+
+  const ethPrice = convertBigNumber(ethPriceBN, 18)
+  const nf = convertBigNumber(nfBN, 18)
 
   return (
     <>
@@ -292,7 +325,13 @@ const BidRow: React.FC<BidRowProp> = ({ bid, rank, checkEnabled, onCheck }) => {
         </a>
       </TableCell>
       <TableCell align="right">{formatBigNumber(qty, 18)} oSQTH</TableCell>
-      <TableCell align="right">{formatBigNumber(price, 18)} WETH</TableCell>
+      <TableCell align="right">
+        {formatBigNumber(price, 18)} WETH{' '}
+        <Typography variant="numeric" color="textSecondary">
+          {'('}
+          {(calculateIV(convertBigNumber(price, 18), nf, ethPrice) * 100).toFixed(1)}%{')'}
+        </Typography>{' '}
+      </TableCell>
       <TableCell align="right">{formatBigNumber(wmul(qty, price), 18)} WETH</TableCell>
       <TableCell>
         <Typography variant="body3" color="textSecondary">

@@ -22,15 +22,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const isRunning = !(status === AuctionStatus.SETTLED || status === AuctionStatus.SETTLEMENT)
   if (!isRunning) return res.status(400).json({ message: 'Auction is not live anymore' })
 
-  const { r, s, v } = ethers.utils.splitSignature(signature)
-
   const bid: Bid = {
     order,
     bidder: order.trader,
     signature,
-    r,
-    s,
-    v,
   }
   auction.bids[`${bid.bidder}-${order.nonce}`] = bid
 

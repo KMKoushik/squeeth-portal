@@ -9,10 +9,10 @@
   "extends": [
     "plugin:react/recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended",
-    "prettier",
     "next",
-    "next/core-web-vitals"
+    "next/core-web-vitals",
+    "plugin:prettier/recommended",
+    "prettier"
   ],
   "env": {
     "browser": true,
@@ -54,9 +54,13 @@
     "react/prop-types": "off",
     "@typescript-eslint/ban-types": "off",
     "@typescript-eslint/no-empty-function": "off",
-    "prettier/prettier": ["error", {}, {
-      "usePrettierrc": true
-    }],
+    "prettier/prettier": [
+      "error",
+      {},
+      {
+        "usePrettierrc": true
+      }
+    ],
     // This rule will help with preventing to commit code that is not yet finished
     // I removed TODO as a term so that we can still use that for future work
     // and use FIXME during the development process
