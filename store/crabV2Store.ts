@@ -18,7 +18,7 @@ interface CrabV2Store {
   vault: Vault | null
   sortedBids: Bid[]
   categorizedBids: BidWithStatus[]
-  ethDvolIndex: Number
+  ethDvolIndex: number
   estClearingPrice: string
   setOwner: (owner: string) => void
   setIsContractLoading: (isLoading: boolean) => void
@@ -32,7 +32,7 @@ interface CrabV2Store {
   setVault: (v: Vault) => void
   setSortedBids: (bids: Bid[]) => void
   setCategorizedBids: (bids: BidWithStatus[]) => void
-  setEthDvolIndex: (p: Number) => void
+  setEthDvolIndex: (p: number) => void
   setEstClearingPrice: (price: string) => void
 }
 

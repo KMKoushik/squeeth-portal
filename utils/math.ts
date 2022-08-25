@@ -4,6 +4,10 @@ import { BIG_ONE, FUNDING_PERIOD, INDEX_SCALE } from '../constants/numbers'
 export const { formatUnits, parseUnits, parseEther } = ethers.utils
 
 export const formatBigNumber = (bn: BigNumber | string, decimals = 18, decimalsToShow = 5) => {
+  if (BigNumber.from(bn).gte('100000000000000000000000000000')) {
+    return convertBigNumber(bn, decimals).toExponential(6)
+  }
+
   return convertBigNumber(bn, decimals).toLocaleString(undefined, {
     maximumFractionDigits: decimalsToShow,
     minimumFractionDigits: decimalsToShow,

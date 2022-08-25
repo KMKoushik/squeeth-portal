@@ -19,6 +19,7 @@ import useInitAccount from '../hooks/init/useInitAccount'
 import ToastMessage from '../container/Toast'
 import { getDvolIndexDeribit } from '../utils/external'
 import useCrabV2Store from '../store/crabV2Store'
+import useInterval from '../hooks/useInterval'
 
 // API key for Ethereum node
 // Two popular services are Infura (infura.io) and Alchemy (alchemy.com)
@@ -56,7 +57,7 @@ const InitializePrice = React.memo(function InitializePrice() {
   )
   const { setEthDvolIndex } = useCrabV2Store(s => ({ setEthDvolIndex: s.setEthDvolIndex }), shallow)
 
-  React.useEffect(() => {
+  const updatePrices = React.useCallback(() => {
     const p1 = oracle.getTwap(SQUEETH_UNI_POOL, OSQUEETH, WETH, 1, true)
     const p2 = oracle.getTwap(WETH_USDC_POOL, WETH, USDC, 1, true)
     const p3 = getDvolIndex()
@@ -68,6 +69,12 @@ const InitializePrice = React.memo(function InitializePrice() {
       setEthDvolIndex(_dvolIndex)
     })
   }, [oracle, setEthPrice, setOsqthPrice, setEthDvolIndex])
+
+  React.useEffect(() => {
+    updatePrices()
+  }, [])
+
+  useInterval(updatePrices, 10000)
 
   return <></>
 })

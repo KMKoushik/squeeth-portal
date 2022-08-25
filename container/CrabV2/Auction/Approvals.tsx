@@ -11,6 +11,7 @@ import { OSQUEETH_CONTRACT, WETH_CONTRACT } from '../../../constants/contracts'
 import { BIG_ZERO } from '../../../constants/numbers'
 import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
+import { formatBigNumber } from '../../../utils/math'
 
 const Approvals: React.FC = () => {
   const address = useAccountStore(s => s.address)
@@ -75,8 +76,6 @@ const Approvals: React.FC = () => {
     },
   })
 
-  console.log(data)
-
   const [osqthApproval, wethApproval] = useMemo(() => {
     if (!data) return [BIG_ZERO, BIG_ZERO]
 
@@ -91,45 +90,61 @@ const Approvals: React.FC = () => {
     setWethApproval(wethApproval)
   }, [wethApproval, setWethApproval])
 
-  const isOsqthApproved = !osqthApproval.isZero()
-  const isWethApproved = !wethApproval.isZero()
+  const isOsqthApproved = osqthApproval.eq(ethers.constants.MaxUint256)
+  const isWethApproved = wethApproval.eq(ethers.constants.MaxUint256)
 
   return (
     <Box display="flex">
-      <Box display="flex" alignItems="center" mt={1} bgcolor="background.overlayDark" p={2} borderRadius={2}>
-        <Typography mr={4}>oSQTH</Typography>
-        {isOsqthApproved ? (
-          <SecondaryButton disabled size="small" sx={{ width: 120 }}>
-            Approved
-          </SecondaryButton>
-        ) : (
-          <BoxLoadingButton
-            onClick={() => approveOsqth()}
-            loading={isOsqthApproveLoading}
-            size="small"
-            sx={{ width: 120 }}
-          >
-            Approve
-          </BoxLoadingButton>
-        )}
+      <Box mt={1} bgcolor="background.overlayDark" p={2} borderRadius={2}>
+        <Box display="flex" alignItems="center">
+          <Typography mr={4}>oSQTH</Typography>
+          {isOsqthApproved ? (
+            <SecondaryButton disabled size="small" sx={{ width: 120 }}>
+              Approved
+            </SecondaryButton>
+          ) : (
+            <BoxLoadingButton
+              onClick={() => approveOsqth()}
+              loading={isOsqthApproveLoading}
+              size="small"
+              sx={{ width: 120 }}
+            >
+              Approve
+            </BoxLoadingButton>
+          )}
+        </Box>
+        <Box display="flex" alignItems="center" mt={1}>
+          <Typography mr={2} color="textSecondary">
+            Approved Amt :
+          </Typography>
+          <Typography variant="numeric">{formatBigNumber(osqthApproval, 18, 6)}</Typography>
+        </Box>
       </Box>
 
-      <Box display="flex" alignItems="center" mt={1} bgcolor="background.overlayDark" p={2} borderRadius={2} ml={4}>
-        <Typography mr={4}>WETH</Typography>
-        {isWethApproved ? (
-          <SecondaryButton disabled size="small" sx={{ width: 120 }}>
-            Approved
-          </SecondaryButton>
-        ) : (
-          <BoxLoadingButton
-            onClick={() => approveWeth()}
-            loading={isWethApproveLoading}
-            size="small"
-            sx={{ width: 120 }}
-          >
-            Approve
-          </BoxLoadingButton>
-        )}
+      <Box mt={1} bgcolor="background.overlayDark" p={2} borderRadius={2} ml={4}>
+        <Box display="flex" alignItems="center">
+          <Typography mr={4}>WETH</Typography>
+          {isWethApproved ? (
+            <SecondaryButton disabled size="small" sx={{ width: 120 }}>
+              Approved
+            </SecondaryButton>
+          ) : (
+            <BoxLoadingButton
+              onClick={() => approveWeth()}
+              loading={isWethApproveLoading}
+              size="small"
+              sx={{ width: 120 }}
+            >
+              Approve
+            </BoxLoadingButton>
+          )}
+        </Box>
+        <Box display="flex" alignItems="center" mt={1}>
+          <Typography mr={2} color="textSecondary">
+            Approved Amt :
+          </Typography>
+          <Typography variant="numeric">{formatBigNumber(osqthApproval, 18, 6)}</Typography>
+        </Box>
       </Box>
     </Box>
   )
