@@ -26,7 +26,6 @@ const useInitAccount = () => {
   })
 
   React.useEffect(() => {
-    console.log(data, isLoading)
     if (isLoading || !data) return
 
     setOsqthBalance((data[0] as unknown as BigNumber) || BIG_ZERO)

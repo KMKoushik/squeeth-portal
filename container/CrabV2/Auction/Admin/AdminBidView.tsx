@@ -78,16 +78,20 @@ const AdminBidView: React.FC = () => {
 
   const filterBids = React.useCallback(async () => {
     setFilterLoading(true)
-    const { data: approvals } = await getApprovals()
-    const { data: balances } = await getBalances()
+    try {
+      const { data: approvals } = await getApprovals()
+      const { data: balances } = await getBalances()
 
-    const approvalMap = convertArrayToMap<BigNumber>(uniqueTraders, approvals as any as Array<BigNumber>)
-    const balanceMap = convertArrayToMap<BigNumber>(uniqueTraders, balances as any as Array<BigNumber>)
+      const approvalMap = convertArrayToMap<BigNumber>(uniqueTraders, approvals as any as Array<BigNumber>)
+      const balanceMap = convertArrayToMap<BigNumber>(uniqueTraders, balances as any as Array<BigNumber>)
 
-    const _filteredBids = categorizeBidsWithReason(bids, auction, approvalMap, balanceMap)
-    setFilteredBids(_filteredBids)
-    const { clearingPrice: _clPrice } = getTxBidsAndClearingPrice(_filteredBids)
-    setClearingPrice(_clPrice)
+      const _filteredBids = categorizeBidsWithReason(bids, auction, approvalMap, balanceMap)
+      setFilteredBids(_filteredBids)
+      const { clearingPrice: _clPrice } = getTxBidsAndClearingPrice(_filteredBids)
+      setClearingPrice(_clPrice)
+    } catch (e) {
+      console.log(e)
+    }
     setFilterLoading(false)
   }, [auction, bids, getApprovals, getBalances, uniqueTraders])
 

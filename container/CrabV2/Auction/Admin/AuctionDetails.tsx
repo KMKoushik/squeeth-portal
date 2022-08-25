@@ -12,15 +12,13 @@ import { calculateIV, convertBigNumber, formatBigNumber } from '../../../../util
 import AuctionBadge from '../AuctionBadge'
 
 const AuctionDetails: React.FC = () => {
-  const { auctionStatus, vault } = useCrabV2Store(s => ({ auctionStatus: s.auctionStatus, vault: s.vault }), shallow)
+  const { vault, ethDvolIndex } = useCrabV2Store(s => ({ vault: s.vault, ethDvolIndex: s.ethDvolIndex }), shallow)
   const { oSqthPrice, ethPrice } = usePriceStore(s => ({ oSqthPrice: s.oSqthPrice, ethPrice: s.ethPrice }), shallow)
 
   const { nfBN } = useControllerStore(
     s => ({ indexPrice: s.indexPrice, markPrice: s.markPrice, nfBN: s.normFactor }),
     shallow,
   )
-
-  const isUpcoming = auctionStatus === AuctionStatus.UPCOMING
 
   const ethPriceSN = convertBigNumber(ethPrice, 18)
   const oSqthPriceSN = convertBigNumber(oSqthPrice, 18)
@@ -31,11 +29,10 @@ const AuctionDetails: React.FC = () => {
     oSqthAmount: oSqthAmountEst,
     delta,
   } = useMemo(() => {
-    if (!isUpcoming || !vault)
-      return { isSellingAuction: true, oSqthAmount: BIG_ZERO, ethAmount: BIG_ZERO, delta: BIG_ZERO }
+    if (!vault) return { isSellingAuction: true, oSqthAmount: BIG_ZERO, ethAmount: BIG_ZERO, delta: BIG_ZERO }
 
     return estimateAuction(vault.shortAmount, vault.collateral, oSqthPrice)
-  }, [isUpcoming, oSqthPrice, vault])
+  }, [oSqthPrice, vault])
 
   return (
     <Box display="flex" border="1px solid gray" borderRadius={2} p={2}>
@@ -97,6 +94,15 @@ const AuctionDetails: React.FC = () => {
         </Typography>
         <Typography variant="numeric" textAlign="center">
           {(calculateIV(oSqthPriceSN, nf, ethPriceSN) * 100).toFixed(2)}%
+        </Typography>
+      </Box>
+      <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
+      <Box display="flex" flexDirection="column" justifyContent="center">
+        <Typography color="textSecondary" variant="caption" textAlign="center">
+          DVOL
+        </Typography>
+        <Typography variant="numeric" textAlign="center">
+          {ethDvolIndex}%
         </Typography>
       </Box>
     </Box>
