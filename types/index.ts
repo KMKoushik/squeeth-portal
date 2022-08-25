@@ -29,9 +29,6 @@ export type Order = {
 export type Bid = {
   order: Order
   signature: string
-  r: string
-  s: string
-  v: number
   bidder: string
   status?: BidStatus
 }
@@ -50,6 +47,9 @@ export type Auction = {
   winningBids: Array<string>
   clearingPrice: string
   minSize: number
+  ethPrice?: string
+  oSqthPrice?: string
+  dvol?: number
 }
 
 export enum BidStatus {
