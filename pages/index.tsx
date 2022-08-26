@@ -19,6 +19,7 @@ import HourglassBottomOutlinedIcon from '@mui/icons-material/HourglassBottomOutl
 import AutorenewOutlinedIcon from '@mui/icons-material/AutorenewOutlined'
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
 import useCrabV2Store from '../store/crabV2Store'
+import AuctionAdminCard from '../components/squeethInfoActionCards/AuctionAdminCard'
 
 const initialAnimation = {
   visible: (i: number) => ({
@@ -98,11 +99,11 @@ const Home: NextPage = () => {
                   <Link href="/auction" passHref>
                     <AuctionCard>
                       <Typography textAlign="center" variant="h5" mb={4}>
-                        Auction
+                        Auctions
                         <OutlineChip label={asChips.label} icon={asChips.icon} color={asChips.color} />
                       </Typography>
                       <Box mx="auto">
-                        <Image src="/images/auction.png" alt="Picture of vault" layout="fixed" height={64} width={64} />
+                        <Image src="/images/bidding.png" alt="Picture of vault" layout="fixed" height={70} width={70} />
                       </Box>
                       <Typography align="center" mt={4} color="textSecondary">
                         Participate on auctions by automated strategies!
@@ -111,12 +112,36 @@ const Home: NextPage = () => {
                   </Link>
                 </motion.div>
               </Grid>
-              <Grid item xs={12} sm={6} md={4} sx={{ marginBottom: { xs: 2, sm: 0 } }}>
+              <Grid item xs={12} sm={6} md={4}>
                 <motion.div
                   initial="hidden"
                   animate="visible"
                   whileHover="hover"
                   style={{ height: '100%' }}
+                  variants={initialAnimation}
+                  custom={2}
+                >
+                  <Link href="/auction-admin" passHref>
+                    <AuctionAdminCard>
+                      <Typography textAlign="center" variant="h5" mb={4}>
+                        Auctioneer
+                      </Typography>
+                      <Box mx="auto">
+                        <Box mt={6} />
+                        <Image src="/images/auction.png" alt="Picture" layout="fixed" height={64} width={64} />
+                      </Box>
+                      <Typography align="center" mt={4} color="textSecondary">
+                        Manage auctions!
+                      </Typography>
+                    </AuctionAdminCard>
+                  </Link>
+                </motion.div>
+              </Grid>
+              {/* <Grid item xs={12} md={4} sx={{ marginBottom: { xs: 2, sm: 0 } }}>
+                <motion.div
+                  initial="hidden"
+                  animate="visible"
+                  whileHover="hover"
                   variants={initialAnimation}
                   custom={2}
                 >
@@ -133,7 +158,7 @@ const Home: NextPage = () => {
                     </Typography>
                   </VaultsCard>
                 </motion.div>
-              </Grid>
+              </Grid> */}
             </Grid>
           </Grid>
           <Grid item xs={0} md={0} lg={2} />
