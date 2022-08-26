@@ -1,6 +1,6 @@
 import '../styles/globals.css'
 import * as React from 'react'
-import { AppProps } from 'next/app'
+import App, { AppProps } from 'next/app'
 import Head from 'next/head'
 import theme from '../theme'
 import { CssBaseline, ThemeProvider } from '@mui/material'
@@ -11,6 +11,7 @@ import usePriceStore from '../store/priceStore'
 import shallow from 'zustand/shallow'
 import '@rainbow-me/rainbowkit/styles.css'
 import { getDefaultWallets, RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit'
+import { SafeConnector } from '@gnosis.pm/safe-apps-wagmi'
 import { chain, configureChains, createClient, WagmiConfig } from 'wagmi'
 import { infuraProvider } from 'wagmi/providers/infura'
 import { publicProvider } from 'wagmi/providers/public'
@@ -20,6 +21,7 @@ import ToastMessage from '../container/Toast'
 import { getDvolIndexDeribit } from '../utils/external'
 import useCrabV2Store from '../store/crabV2Store'
 import useInterval from '../hooks/useInterval'
+import { useAutoConnect } from '../hooks/useAutoConnect'
 
 // API key for Ethereum node
 // Two popular services are Infura (infura.io) and Alchemy (alchemy.com)
@@ -32,15 +34,15 @@ const deribitBaseUrl = process.env.NEXT_PUBLIC_DERIBIT_BASE_URL
 // Chains for connectors to support
 const { chains, provider } = configureChains([appChain], [infuraProvider({ infuraId }), publicProvider()])
 
-// Set up connectors
+//Set up connectors
 const { connectors } = getDefaultWallets({
   appName: 'Squeeth Portal',
   chains,
 })
 
 const wagmiClient = createClient({
-  autoConnect: true,
-  connectors,
+  autoConnect: false,
+  connectors: [...connectors(), new SafeConnector({ chains })],
   provider,
 })
 
@@ -49,6 +51,7 @@ const getDvolIndex = async () => {
 }
 
 const InitializePrice = React.memo(function InitializePrice() {
+  useAutoConnect()
   useInitAccount()
   const oracle = useOracle()
   const { setOsqthPrice, setEthPrice } = usePriceStore(
@@ -79,7 +82,13 @@ const InitializePrice = React.memo(function InitializePrice() {
   return <></>
 })
 
-function MyApp({ Component, pageProps }: AppProps) {
+function MyApp({ Component, pageProps, router }: AppProps) {
+  console.log('here', { ...pageProps })
+
+  if (!pageProps.crossSite) {
+    wagmiClient.autoConnect()
+  }
+
   return (
     <>
       <Head>
@@ -124,6 +133,17 @@ function MyApp({ Component, pageProps }: AppProps) {
       </WagmiConfig>
     </>
   )
+}
+
+MyApp.getInitialProps = async (appContext: any) => {
+  // calls page's `getInitialProps` and fills `appProps.pageProps`
+  const appProps = await App.getInitialProps(appContext)
+  if (appContext.ctx?.req) {
+    console.log(appContext.ctx.req.headers['sec-fetch-site'])
+    return { ...appProps, pageProps: { crossSite: appContext.ctx.req.headers['sec-fetch-site'] === 'cross-site' } }
+  }
+
+  return { ...appProps }
 }
 
 export default MyApp

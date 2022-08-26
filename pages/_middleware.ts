@@ -6,11 +6,15 @@ const ALLOWED_URLS = RegExp('(/images|/favicon.ico|/font|/api/auction/getLatestA
 export function middleware(req: NextRequest) {
   const country = req?.geo?.country
   const response = NextResponse.next()
-  console.log(req.url)
   const path = req.url
 
   if (country && BLOCKED_COUNTRIES.includes(country) && !ALLOWED_URLS.test(path)) {
     return NextResponse.rewrite('/blocked')
+  }
+
+  console.log(req.headers.get('sec-fetch-site') === 'cross-site')
+  if (req.headers.get('sec-fetch-site') === 'cross-site') {
+    req.nextUrl.searchParams.set('g-safe', 'true')
   }
 
   return response
