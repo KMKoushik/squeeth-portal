@@ -278,8 +278,8 @@ export const validateOrder = async (order: Order, auction: Auction) => {
   }
   else if(order.isBuying) {
     const wethContract = new ethers.Contract(WETH, erc20Abi, provider)
-    const traderBalance = await wethContract.balanceOf(CRAB_STRATEGY_V2, order.quantity)
-    const traderAllowance = await wethContract.allowance(CRAB_STRATEGY_V2, order.quantity)
+    const traderBalance = await wethContract.balanceOf(order.trader)
+    const traderAllowance = await wethContract.allowance(order.trader, CRAB_STRATEGY_V2)
 
     if(traderAllowance < parseInt(order.quantity) || traderBalance < parseInt(order.quantity)) {
       isValidOrder = false;
@@ -288,8 +288,8 @@ export const validateOrder = async (order: Order, auction: Auction) => {
   }
   else if(!order.isBuying) {
     const squeethContract = new ethers.Contract(OSQUEETH, erc20Abi, provider)
-    const traderBalance = await squeethContract.balanceOf(CRAB_STRATEGY_V2, order.quantity)
-    const traderAllowance = await squeethContract.allowance(CRAB_STRATEGY_V2, order.quantity)
+    const traderBalance = await squeethContract.balanceOf(order.trader)
+    const traderAllowance = await squeethContract.allowance(order.trader, CRAB_STRATEGY_V2)
 
     if(traderAllowance < parseInt(order.quantity) || traderBalance < parseInt(order.quantity)) {
       isValidOrder = false;
