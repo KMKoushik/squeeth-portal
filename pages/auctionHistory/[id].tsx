@@ -54,7 +54,7 @@ const AuctionHistory: NextPage = () => {
         {isLoading ? (
           <CrabLoader />
         ) : (
-          <Box mt={4} px={20}>
+          <Box mt={4} px={{ xs: 2, sm: 6, md: 10, lg: 20 }}>
             <AuctionPage />
           </Box>
         )}

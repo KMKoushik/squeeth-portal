@@ -18,7 +18,10 @@ import Link from 'next/link'
 import useInterval from '../../../hooks/useInterval'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AuctionBadge from './AuctionBadge'
-
+import styles from '../../../styles/Auction.module.css'
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
+import HistoryIcon from '@mui/icons-material/History'
 const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
   // Render a countdown
   return (
@@ -73,66 +76,58 @@ const Auction: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h6">Token Approvals</Typography>
-      <Box mt={1}>
-        <Approvals />
-      </Box>
-      <Box display="flex" mt={4} alignItems="center">
-        <Typography variant="h6" mr={2}>
+      <Typography variant="h6" sx={{ textAlign: { xs: 'center', sm: 'left' } }} mb={1}>
+        Token Approvals
+      </Typography>
+      <Approvals />
+      <Box
+        display="flex"
+        gap={1}
+        mt={4}
+        mb={isHistoricalView ? 1 : 0}
+        alignItems="center"
+        flexWrap="wrap"
+        justifyContent={{ xs: 'center', sm: 'start' }}
+      >
+        <Typography variant="h6">
           Auction {isHistoricalView ? new Date(auction.auctionEnd).toLocaleDateString() : ''}
         </Typography>
         <AuctionBadge />
+      </Box>
+
+      <Box
+        display="flex"
+        flexWrap="wrap"
+        gap={2}
+        justifyContent={{ xs: 'center', sm: isHistoricalView ? 'space-between' : 'flex-end' }}
+        mb={isHistoricalView ? 2 : 0}
+      >
         {isHistoricalView ? (
-          <>
+          <Box display="flex" flexWrap="wrap" gap={2} justifyContent={{ xs: 'center', sm: 'start' }}>
+            <Link href={`/auctionHistory/${auction.currentAuctionId - 1}`} passHref>
+              <Typography variant="button" color="GrayText" className={styles.linkText}>
+                <ArrowBackIosNewIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
+                Prev
+              </Typography>
+            </Link>
+
             <Link href={`/auction`} passHref>
-              <Typography
-                variant="body3"
-                ml={4}
-                color="primary.main"
-                px={2}
-                borderRadius={1}
-                sx={{ cursor: 'pointer', textDecoration: 'underline' }}
-              >
-                Current Auction
+              <Typography variant="button" color="primary.main" className={styles.linkText}>
+                Current
               </Typography>
             </Link>
             <Link href={`/auctionHistory/${auction.currentAuctionId + 1}`} passHref>
-              <Typography
-                variant="body3"
-                ml={4}
-                color="primary.main"
-                px={2}
-                borderRadius={1}
-                sx={{ cursor: 'pointer', textDecoration: 'underline' }}
-              >
+              <Typography variant="button" color="GrayText" className={styles.linkText}>
                 Next
+                <ArrowForwardIosIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
               </Typography>
             </Link>
-            <Link href={`/auctionHistory/${auction.currentAuctionId - 1}`} passHref>
-              <Typography
-                variant="body3"
-                ml={4}
-                color="primary.main"
-                px={2}
-                borderRadius={1}
-                sx={{ cursor: 'pointer', textDecoration: 'underline' }}
-              >
-                Previous
-              </Typography>
-            </Link>
-          </>
+          </Box>
         ) : null}
-
         <Link href={`/auctionHistory/`} passHref>
-          <Typography
-            variant="body3"
-            ml={4}
-            color="primary.main"
-            px={2}
-            borderRadius={1}
-            sx={{ cursor: 'pointer', textDecoration: 'underline' }}
-          >
-            Past auctions
+          <Typography variant="button" color="whitesmoke" className={styles.linkText}>
+            <HistoryIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
+            History
           </Typography>
         </Link>
       </Box>
@@ -195,7 +190,15 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
   }, [isHistoricalView, isSelling])
 
   return (
-    <Box p={3} px={5} display="flex" alignItems="center" justifyContent="space-between">
+    <Box
+      p={3}
+      display="flex"
+      alignItems="center"
+      justifyContent="space-between"
+      gap={3}
+      flexDirection={{ xs: 'column', sm: 'row' }}
+      overflow="auto"
+    >
       <Box>
         <Box display="flex" alignItems="center">
           <Typography fontWeight={600} variant="body1">
@@ -285,7 +288,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
   const nf = convertBigNumber(nfBN, 18)
 
   return (
-    <Box borderTop="1px solid grey" p={2} px={5} display="flex" alignItems="center">
+    <Box borderTop="1px solid grey" p={2} px={5} display="flex" overflow="auto" alignItems="center">
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
           {isUpcoming && auction.oSqthAmount === '0' ? 'Estimated' : ''} Size
