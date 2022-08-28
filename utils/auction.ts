@@ -15,7 +15,8 @@ import {
 import { db } from './firebase'
 import { toBigNumber, wdiv, wmul } from './math'
 import erc20Abi from '../abis/ERC20.json'
-import { provider } from '../server/utils/ether';
+import { provider } from '../server/utils/ether'
+import { ERC20 } from '../types/contracts'
 export const emptyAuction: Auction = {
   currentAuctionId: 0,
   nextAuctionId: 1,
@@ -265,35 +266,42 @@ export const verifyMessageWithTime = (data: MessageWithTimeSignature, signature:
 }
 
 export const validateOrder = async (order: Order, auction: Auction) => {
-  let isValidOrder = true;
-  let response = '';
+  let isValidOrder = true
+  let response = ''
 
-  if ((order.isBuying != auction.isSelling) && (auction.auctionEnd != 0)) {
-    isValidOrder = false;
+  if (order.isBuying != auction.isSelling && auction.auctionEnd != 0) {
+    isValidOrder = false
     response = 'Incorrect order direction'
-  }
-  else if (parseInt(order.quantity) < auction.minSize) {
-    isValidOrder = false;
+  } else if (parseInt(order.quantity) < auction.minSize) {
+    isValidOrder = false
     response = 'Order qunatity is less than auction min size'
-  }
-  else if(order.isBuying) {
-    const wethContract = new ethers.Contract(WETH, erc20Abi, provider)
+  } else if (order.isBuying) {
+    const wethContract = new ethers.Contract(WETH, erc20Abi, provider) as ERC20
     const traderBalance = await wethContract.balanceOf(order.trader)
     const traderAllowance = await wethContract.allowance(order.trader, CRAB_STRATEGY_V2)
 
-    if(traderAllowance < parseInt(order.quantity) || traderBalance < parseInt(order.quantity)) {
-      isValidOrder = false;
-      response = 'Amount approved or balance is less than order quantity'  
+    if (BigNumber.from(order.price).lt(auction.price)) {
+      isValidOrder = false
+      response = 'Price should be greater than min price'
     }
-  }
-  else if(!order.isBuying) {
+
+    if (traderAllowance.lt(order.quantity) || traderBalance.lt(order.quantity)) {
+      isValidOrder = false
+      response = 'Amount approved or balance is less than order quantity'
+    }
+  } else if (!order.isBuying) {
     const squeethContract = new ethers.Contract(OSQUEETH, erc20Abi, provider)
     const traderBalance = await squeethContract.balanceOf(order.trader)
     const traderAllowance = await squeethContract.allowance(order.trader, CRAB_STRATEGY_V2)
 
-    if(traderAllowance < parseInt(order.quantity) || traderBalance < parseInt(order.quantity)) {
-      isValidOrder = false;
-      response = 'Amount approved or balance is less than order quantity'  
+    if (BigNumber.from(order.price).gt(auction.price)) {
+      isValidOrder = false
+      response = 'Price should be less than max price'
+    }
+
+    if (traderAllowance < parseInt(order.quantity) || traderBalance < parseInt(order.quantity)) {
+      isValidOrder = false
+      response = 'Amount approved or balance is less than order quantity'
     }
   }
 
