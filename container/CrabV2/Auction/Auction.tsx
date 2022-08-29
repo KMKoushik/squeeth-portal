@@ -99,7 +99,7 @@ const Auction: React.FC = () => {
         display="flex"
         flexWrap="wrap"
         gap={2}
-        justifyContent={{ xs: 'center', sm: isHistoricalView ? 'space-between' : 'flex-end' }}
+        justifyContent={{ xs: 'center', sm: 'start' }}
         mb={isHistoricalView ? 2 : 0}
       >
         {isHistoricalView ? (
