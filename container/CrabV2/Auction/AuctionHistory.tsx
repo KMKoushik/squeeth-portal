@@ -30,22 +30,23 @@ const AuctionHistory: React.FC = () => {
   }, [])
 
   return (
-    <>
+    <Box px={{ xs: 2, sm: 6, md: 10, lg: 20 }}>
       <Typography variant="h6">Previous Auctions</Typography>
       {prevAuctions.map(a => (
         <Box
           display="flex"
+          flexWrap="wrap"
           bgcolor="background.overlayDark"
           my={2}
-          py={1}
-          px={2}
-          borderRadius={1}
-          justifyContent="space-between"
+          p={2}
+          borderRadius={2}
+          justifyContent={{ xs: 'start', sm: 'space-between' }}
           style={{ cursor: 'pointer' }}
           key={a.currentAuctionId}
+          gap={2}
           alignItems="center"
         >
-          <Box width="40%">
+          <Box>
             <Typography variant="body1" fontWeight={600}>
               {a.isSelling ? 'Sold oSQTH' : 'Bought oSQTH'}
             </Typography>
@@ -72,16 +73,14 @@ const AuctionHistory: React.FC = () => {
             </Typography>
           </Box>
           <Box>
-            <Button sx={{ ml: 2 }} href={`/auctionHistory/${a.currentAuctionId}`}>
-              View
-            </Button>
-            <Button sx={{ ml: 2 }} href={`${ETHERSCAN.url}/tx/${a.tx}`} target="_blank" rel="noreferrer">
+            <Button href={`/auctionHistory/${a.currentAuctionId}`}>View</Button>
+            <Button href={`${ETHERSCAN.url}/tx/${a.tx}`} target="_blank" rel="noreferrer">
               tx
             </Button>
           </Box>
         </Box>
       ))}
-    </>
+    </Box>
   )
 }
 

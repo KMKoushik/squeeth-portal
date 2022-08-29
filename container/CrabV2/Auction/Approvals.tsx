@@ -94,8 +94,8 @@ const Approvals: React.FC = () => {
   const isWethApproved = wethApproval.eq(ethers.constants.MaxUint256)
 
   return (
-    <Box display="flex">
-      <Box mt={1} bgcolor="background.overlayDark" p={2} borderRadius={2}>
+    <Box display="flex" flexWrap="wrap" gap={2} justifyContent={{ xs: 'center', sm: 'start' }}>
+      <Box bgcolor="background.overlayDark" p={2} borderRadius={2}>
         <Box display="flex" alignItems="center">
           <Typography mr={4}>oSQTH</Typography>
           {isOsqthApproved ? (
@@ -121,7 +121,7 @@ const Approvals: React.FC = () => {
         </Box>
       </Box>
 
-      <Box mt={1} bgcolor="background.overlayDark" p={2} borderRadius={2} ml={4}>
+      <Box bgcolor="background.overlayDark" p={2} borderRadius={2}>
         <Box display="flex" alignItems="center">
           <Typography mr={4}>WETH</Typography>
           {isWethApproved ? (

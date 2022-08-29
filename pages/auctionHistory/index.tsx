@@ -20,7 +20,7 @@ const AuctionHistoryPage: NextPage = () => {
         <title>Past Crab v2 auctions</title>
       </Head>
       <Nav />
-      <Box mt={4} px={40}>
+      <Box mt={4} px={{ xs: 2, sm: 6, md: 10, lg: 20 }}>
         {isAuctionLoading || !auction.currentAuctionId ? <CrabLoader /> : <AuctionHistory />}
       </Box>
     </div>
