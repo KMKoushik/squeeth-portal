@@ -143,7 +143,7 @@ const Approvals: React.FC = () => {
           <Typography mr={2} color="textSecondary">
             Approved Amt :
           </Typography>
-          <Typography variant="numeric">{formatBigNumber(osqthApproval, 18, 6)}</Typography>
+          <Typography variant="numeric">{formatBigNumber(wethApproval, 18, 6)}</Typography>
         </Box>
       </Box>
     </Box>

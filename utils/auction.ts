@@ -1,7 +1,7 @@
-import { BigNumber, ethers, Signer } from 'ethers'
-import { doc, increment, setDoc } from 'firebase/firestore'
+import { BigNumber, ethers } from 'ethers'
+import { doc, setDoc } from 'firebase/firestore'
 import { CRAB_STRATEGY_V2, WETH, OSQUEETH } from '../constants/address'
-import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
+import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
 import {
   Auction,
   AuctionStatus,
@@ -13,10 +13,11 @@ import {
   Order,
 } from '../types'
 import { db } from './firebase'
-import { toBigNumber, wdiv, wmul } from './math'
+import { convertBigNumber, toBigNumber, wdiv, wmul } from './math'
 import erc20Abi from '../abis/ERC20.json'
 import { provider } from '../server/utils/ether'
 import { ERC20 } from '../types/contracts'
+
 export const emptyAuction: Auction = {
   currentAuctionId: 0,
   nextAuctionId: 1,
@@ -265,47 +266,65 @@ export const verifyMessageWithTime = (data: MessageWithTimeSignature, signature:
   return address.toLowerCase() === addr.toLowerCase()
 }
 
-export const validateOrder = async (order: Order, auction: Auction) => {
+export const validateOrderWithBalance = (
+  order: Order,
+  auction: Auction,
+  traderAllowance: BigNumber,
+  traderBalance: BigNumber,
+) => {
   let isValidOrder = true
   let response = ''
 
   if (order.isBuying != auction.isSelling && auction.auctionEnd != 0) {
     isValidOrder = false
     response = 'Incorrect order direction'
-  } else if (parseInt(order.quantity) < auction.minSize) {
+  } else if (auction.auctionEnd < Date.now() && auction.auctionEnd != 0) {
+    isValidOrder = false
+    response = 'Auction already over'
+  } else if (BigNumber.from(order.quantity).lt(toBigNumber(auction.minSize.toString(), 18))) {
     isValidOrder = false
     response = 'Order qunatity is less than auction min size'
+  } else if (order.bidId != auction.currentAuctionId) {
+    isValidOrder = false
+    response = "Bid ID should be same of auction's currentAuctionId"
   } else if (order.isBuying) {
-    const wethContract = new ethers.Contract(WETH, erc20Abi, provider) as ERC20
-    const traderBalance = await wethContract.balanceOf(order.trader)
-    const traderAllowance = await wethContract.allowance(order.trader, CRAB_STRATEGY_V2)
-
     if (BigNumber.from(order.price).lt(auction.price)) {
       isValidOrder = false
       response = 'Price should be greater than min price'
+    }
+
+    const tradeAmount = wmul(BigNumber.from(order.quantity), order.price)
+    if (traderAllowance.lt(tradeAmount) || traderBalance.lt(tradeAmount)) {
+      isValidOrder = false
+      response = 'Amount approved or balance is less than order quantity'
+    }
+  } else if (!order.isBuying) {
+    if (BigNumber.from(order.price).gt(auction.price) && auction.price !== '0') {
+      isValidOrder = false
+      response = 'Price should be less than max price'
     }
 
     if (traderAllowance.lt(order.quantity) || traderBalance.lt(order.quantity)) {
       isValidOrder = false
       response = 'Amount approved or balance is less than order quantity'
     }
-  } else if (!order.isBuying) {
+  }
+
+  return { isValidOrder, response }
+}
+
+export const validateOrder = async (order: Order, auction: Auction) => {
+  if (order.isBuying) {
+    const wethContract = new ethers.Contract(WETH, erc20Abi, provider) as ERC20
+    const traderBalance = await wethContract.balanceOf(order.trader)
+    const traderAllowance = await wethContract.allowance(order.trader, CRAB_STRATEGY_V2)
+    return validateOrderWithBalance(order, auction, traderAllowance, traderBalance)
+  } else {
     const squeethContract = new ethers.Contract(OSQUEETH, erc20Abi, provider)
     const traderBalance = await squeethContract.balanceOf(order.trader)
     const traderAllowance = await squeethContract.allowance(order.trader, CRAB_STRATEGY_V2)
-
-    if (BigNumber.from(order.price).gt(auction.price)) {
-      isValidOrder = false
-      response = 'Price should be less than max price'
-    }
-
-    if (traderAllowance < parseInt(order.quantity) || traderBalance < parseInt(order.quantity)) {
-      isValidOrder = false
-      response = 'Amount approved or balance is less than order quantity'
-    }
+    return validateOrderWithBalance(order, auction, traderAllowance, traderBalance)
   }
-
-  return [isValidOrder, response]
 }
 
 export const getBidStatus = (status?: BidStatus) => {
