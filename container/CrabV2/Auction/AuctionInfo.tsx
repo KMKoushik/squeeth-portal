@@ -32,7 +32,7 @@ const AuctionDetails: React.FC = () => {
       <ul>
         <li>
           <Typography variant="body3">
-            The auction will run approximately MWF at 4:30 PM UTC, but could be more or less frequent
+            The auction will run approximately MWF at 16:30 UTC, but could be more or less frequent
           </Typography>
         </li>
         <li>
