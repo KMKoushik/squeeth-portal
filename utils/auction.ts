@@ -275,7 +275,7 @@ export const validateOrderWithBalance = (
   let isValidOrder = true
   let response = ''
 
-  if (order.isBuying != auction.isSelling && auction.auctionEnd != 0) {
+  if (order.isBuying != auction.isSelling && auction.oSqthAmount !== '0') {
     isValidOrder = false
     response = 'Incorrect order direction'
   } else if (auction.auctionEnd < Date.now() && auction.auctionEnd != 0) {

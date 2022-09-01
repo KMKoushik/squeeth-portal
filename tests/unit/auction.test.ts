@@ -15,10 +15,11 @@ describe('Util: Auction: Validate order', () => {
     auctionEnd: Date.now() + 500000000,
     minSize: 1,
     price: BIG_ONE.toString(),
+    oSqthAmount: BIG_ONE.toString(),
   }
   const ten = toBigNumber(10, 18)
 
-  test('Should not throw error for incorrect direction if auction end is 0', () => {
+  test('Should not throw error for incorrect direction if quantity is 0', () => {
     const order: Order = {
       bidId: 1,
       trader: '0x1',

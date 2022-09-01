@@ -65,7 +65,7 @@ const Auction: React.FC = () => {
       isSelling: isSellingAuction,
     })
     setAuctionInitialized(true)
-  }, [auction, auctionInitialized, isSellingAuction, oSqthAmountEst, setAuction])
+  }, [auction, auctionInitialized, isSellingAuction, setAuction])
 
   useEffect(() => {
     updateStatus()

@@ -296,26 +296,6 @@ const BidForm: React.FC = () => {
         {isEditBid ? `Edit ${action}` : `Place ${action}`}
       </Typography>
       <TextField
-        value={price}
-        onChange={e => setPrice(e.target.value)}
-        type="number"
-        id="price"
-        label="Price"
-        variant="outlined"
-        size="small"
-        sx={{ mt: 3 }}
-        onWheel={e => (e.target as any).blur()}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <Typography variant="caption" color="textSecondary">
-                WETH
-              </Typography>
-            </InputAdornment>
-          ),
-        }}
-      />
-      <TextField
         value={qty}
         onChange={e => setQty(e.target.value)}
         type="number"
@@ -330,6 +310,26 @@ const BidForm: React.FC = () => {
             <InputAdornment position="end">
               <Typography variant="caption" color="textSecondary">
                 oSQTH
+              </Typography>
+            </InputAdornment>
+          ),
+        }}
+      />
+      <TextField
+        value={price}
+        onChange={e => setPrice(e.target.value)}
+        type="number"
+        id="price"
+        label="Price"
+        variant="outlined"
+        size="small"
+        sx={{ mt: 3 }}
+        onWheel={e => (e.target as any).blur()}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <Typography variant="caption" color="textSecondary">
+                WETH
               </Typography>
             </InputAdornment>
           ),
