@@ -144,6 +144,7 @@ export const getUserBids = (bids: Bid[], user: string) => {
 
 export const getAuctionStatus = (auction: Auction) => {
   const currentMillis = Date.now()
+  if (auction.tx) return AuctionStatus.SETTLED
   if (currentMillis < auction.auctionEnd && currentMillis > auction.auctionEnd - V2_AUCTION_TIME_MILLIS)
     return AuctionStatus.LIVE
   if (currentMillis < auction.auctionEnd + V2_AUCTION_TIME_MILLIS && currentMillis > auction.auctionEnd)
@@ -275,7 +276,7 @@ export const validateOrderWithBalance = (
   let isValidOrder = true
   let response = ''
 
-  if (order.isBuying != auction.isSelling && auction.auctionEnd != 0) {
+  if (order.isBuying != auction.isSelling && auction.oSqthAmount !== '0') {
     isValidOrder = false
     response = 'Incorrect order direction'
   } else if (auction.auctionEnd < Date.now() && auction.auctionEnd != 0) {
