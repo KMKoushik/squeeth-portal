@@ -11,7 +11,7 @@ import { calculateDollarValue, calculateIV, convertBigNumber, formatBigNumber, w
 import { BigNumber } from 'ethers'
 import useAccountStore from '../../../store/accountStore'
 import { Button, Typography } from '@mui/material'
-import { Auction, Bid, BidStatus, BidWithStatus } from '../../../types'
+import { Auction, AuctionStatus, Bid, BidStatus, BidWithStatus } from '../../../types'
 import usePriceStore from '../../../store/priceStore'
 import shallow from 'zustand/shallow'
 import useControllerStore from '../../../store/controllerStore'
@@ -48,6 +48,7 @@ const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
   const bids = useCrabV2Store(s => s.sortedBids)
   const estClearingPrice = useCrabV2Store(s => s.estClearingPrice)
+  const auctionStatus = useCrabV2Store(s => s.auctionStatus)
 
   const bidsWithStatusAndAmt = React.useMemo(() => {
     let amount = auction.oSqthAmount
@@ -87,7 +88,7 @@ const Bids: React.FC<{ seeMyBids: boolean }> = ({ seeMyBids }) => {
                   '&:last-child td, &:last-child th': {
                     border: 0,
                   },
-                  bgcolor: getBgColor(bid.status),
+                  bgcolor: auctionStatus !== AuctionStatus.UPCOMING ? getBgColor(bid.status) : '',
                 }}
               >
                 <BidRow bid={bid} rank={i + 1} />
