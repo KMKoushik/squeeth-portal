@@ -144,6 +144,7 @@ export const getUserBids = (bids: Bid[], user: string) => {
 
 export const getAuctionStatus = (auction: Auction) => {
   const currentMillis = Date.now()
+  if (auction.tx) return AuctionStatus.SETTLED
   if (currentMillis < auction.auctionEnd && currentMillis > auction.auctionEnd - V2_AUCTION_TIME_MILLIS)
     return AuctionStatus.LIVE
   if (currentMillis < auction.auctionEnd + V2_AUCTION_TIME_MILLIS && currentMillis > auction.auctionEnd)

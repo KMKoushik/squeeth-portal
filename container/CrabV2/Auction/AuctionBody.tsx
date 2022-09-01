@@ -58,8 +58,8 @@ const AuctionBody: React.FC = () => {
 }
 
 const BidForm: React.FC = () => {
-  const [price, setPrice] = React.useState('0')
-  const [qty, setQty] = React.useState('0')
+  const [price, setPrice] = React.useState('')
+  const [qty, setQty] = React.useState('')
   const [isLoading, setLoading] = React.useState(false)
   const [deleteLoading, setDeleteLoading] = React.useState(false)
 
@@ -159,6 +159,8 @@ const BidForm: React.FC = () => {
       })
 
       setBidToEdit(null)
+      setPrice('')
+      setQty('')
 
       showMessageFromServer(resp)
     } catch (e) {
@@ -178,6 +180,8 @@ const BidForm: React.FC = () => {
     qty,
     setBidToEdit,
     showMessageFromServer,
+    setPrice,
+    setQty,
     signer,
   ])
 
@@ -308,7 +312,7 @@ const BidForm: React.FC = () => {
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
-              <Typography variant="caption" color="textSecondary">
+              <Typography variant="caption" color="textSecondary" fontSize={12}>
                 oSQTH
               </Typography>
             </InputAdornment>
@@ -328,7 +332,7 @@ const BidForm: React.FC = () => {
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
-              <Typography variant="caption" color="textSecondary">
+              <Typography variant="caption" color="textSecondary" fontSize={12}>
                 WETH
               </Typography>
             </InputAdornment>
@@ -389,10 +393,10 @@ const BidForm: React.FC = () => {
         </Typography>
       </Box>
       <Typography align="center" mt={3} color="error.main" variant="body3">
-        {error}
+        {price && qty ? error: ''}
       </Typography>
       <Typography align="center" mt={3} color="warning.main" variant="body3">
-        {warning}
+        {price && qty ? warning: ''}
       </Typography>
       <BoxLoadingButton disabled={!!error || !canPlaceBid} onClick={placeBid} sx={{ mt: 1 }} loading={isLoading}>
         {isEditBid ? `Edit ${action}` : `Place ${action}`}
