@@ -150,6 +150,7 @@ const AdminBidView: React.FC = () => {
         ethPrice: ethPriceBN.toString(),
         oSqthPrice: oSqthPriceBN.toString(),
         dvol: ethDvolIndex,
+        normFactor: nfBN.toString(),
       }
 
       const resp = await fetch('/api/auction/submitAuction', {

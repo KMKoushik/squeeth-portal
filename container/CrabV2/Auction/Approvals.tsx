@@ -11,7 +11,7 @@ import { OSQUEETH_CONTRACT, WETH_CONTRACT } from '../../../constants/contracts'
 import { BIG_ZERO } from '../../../constants/numbers'
 import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
-import { formatBigNumber } from '../../../utils/math'
+import { formatBigNumber, toBigNumber } from '../../../utils/math'
 
 const Approvals: React.FC = () => {
   const address = useAccountStore(s => s.address)
@@ -90,8 +90,8 @@ const Approvals: React.FC = () => {
     setWethApproval(wethApproval)
   }, [wethApproval, setWethApproval])
 
-  const isOsqthApproved = osqthApproval.eq(ethers.constants.MaxUint256)
-  const isWethApproved = wethApproval.eq(ethers.constants.MaxUint256)
+  const isOsqthApproved = osqthApproval.gt(toBigNumber(1_000_000))
+  const isWethApproved = wethApproval.gt(toBigNumber(1_000_000))
 
   return (
     <Box display="flex" flexWrap="wrap" gap={2} justifyContent={{ xs: 'center', sm: 'start' }}>
@@ -117,7 +117,9 @@ const Approvals: React.FC = () => {
           <Typography mr={2} color="textSecondary">
             Approved Amt :
           </Typography>
-          <Typography variant="numeric">{formatBigNumber(osqthApproval, 18, 6)}</Typography>
+          <Typography variant="numeric">
+            {osqthApproval.eq(ethers.constants.MaxUint256) ? 'Max' : formatBigNumber(osqthApproval, 18, 6)}
+          </Typography>
         </Box>
       </Box>
 
@@ -143,7 +145,9 @@ const Approvals: React.FC = () => {
           <Typography mr={2} color="textSecondary">
             Approved Amt :
           </Typography>
-          <Typography variant="numeric">{formatBigNumber(wethApproval, 18, 6)}</Typography>
+          <Typography variant="numeric">
+            {wethApproval.eq(ethers.constants.MaxUint256) ? 'Max' : formatBigNumber(wethApproval, 18, 6)}
+          </Typography>
         </Box>
       </Box>
     </Box>

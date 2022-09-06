@@ -36,6 +36,9 @@ const getStatus = (auction: Auction, isHistoricalView: boolean, bid: Bid, cleari
   ) {
     return BidStatus.ALREADY_FILLED
   }
+  if (Number(bid.order.quantity) > Number(amount)) {
+    return BidStatus.PARTIALLY_FILLED
+  }
 
   return BidStatus.INCLUDED
 }
