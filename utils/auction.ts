@@ -165,7 +165,7 @@ export const getEstimatedClearingPrice = (bids: Bid[], qty: string) => {
   let clearingPrice = '0'
   let usedQty = BIG_ZERO
   for (const bid of bids) {
-    if (usedQty.lte(quantity)) {
+    if (usedQty.lt(quantity)) {
       usedQty = usedQty.add(bid.order.quantity)
       clearingPrice = bid.order.price
     } else {

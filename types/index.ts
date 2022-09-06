@@ -50,6 +50,7 @@ export type Auction = {
   ethPrice?: string
   oSqthPrice?: string
   dvol?: number
+  normFactor?: string
 }
 
 export enum BidStatus {
