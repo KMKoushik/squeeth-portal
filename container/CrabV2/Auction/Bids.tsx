@@ -108,6 +108,7 @@ const BidRow: React.FC<{ bid: BidWithAmount; rank: number }> = ({ bid, rank }) =
   const address = useAccountStore(s => s.address)
   const setBidToEdit = useCrabV2Store(s => s.setBidToEdit)
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
+  const auction = useCrabV2Store(s => s.auction)
 
   const qty = BigNumber.from(bid.order.quantity)
   const price = BigNumber.from(bid.order.price)
@@ -116,8 +117,8 @@ const BidRow: React.FC<{ bid: BidWithAmount; rank: number }> = ({ bid, rank }) =
 
   const { nfBN } = useControllerStore(s => ({ nfBN: s.normFactor }), shallow)
 
-  const ethPrice = convertBigNumber(ethPriceBN, 18)
-  const nf = convertBigNumber(nfBN, 18)
+  const ethPrice = convertBigNumber(auction.ethPrice || ethPriceBN, 18)
+  const nf = convertBigNumber(auction.normFactor || nfBN, 18)
 
   return (
     <>
