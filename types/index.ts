@@ -51,6 +51,7 @@ export type Auction = {
   oSqthPrice?: string
   dvol?: number
   normFactor?: string
+  executedTime?: number
 }
 
 export enum BidStatus {

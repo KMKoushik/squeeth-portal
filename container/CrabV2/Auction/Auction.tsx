@@ -175,10 +175,10 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
   const { ethPriceBN } = usePriceStore(s => ({ ethPriceBN: s.ethPrice }), shallow)
   const { nfBN } = useControllerStore(s => ({ nfBN: s.normFactor }), shallow)
 
-  const ethPrice = convertBigNumber(ethPriceBN, 18)
+  const ethPrice = convertBigNumber(auction.ethPrice || ethPriceBN, 18)
 
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
-  const nf = convertBigNumber(nfBN, 18)
+  const nf = convertBigNumber(auction.normFactor || nfBN, 18)
   const estClearingPrice = useCrabV2Store(s => s.estClearingPrice)
 
   const action = useMemo(() => {
@@ -237,8 +237,8 @@ const AuctionDetailsHeader: React.FC<{ isAuctionLive: boolean; isSelling: boolea
               ${calculateDollarValue(convertBigNumber(auction.clearingPrice, 18), ethPrice).toFixed(2)}{' '}
             </Typography>
             <Typography variant="numeric" color="textSecondary">
-              {' '}
-              {(calculateIV(convertBigNumber(auction.clearingPrice, 18), nf, ethPrice) * 100).toFixed(2)}%{' '}
+              {' ('}
+              {(calculateIV(convertBigNumber(auction.clearingPrice, 18), nf, ethPrice) * 100).toFixed(2)}%{') '}
             </Typography>
           </Typography>
         </Box>
@@ -283,9 +283,9 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
     shallow,
   )
 
-  const ethPrice = convertBigNumber(ethPriceBN, 18)
-  const oSqthPrice = convertBigNumber(oSqthPriceBN, 18)
-  const nf = convertBigNumber(nfBN, 18)
+  const ethPrice = convertBigNumber(auction.ethPrice || ethPriceBN, 18)
+  const oSqthPrice = convertBigNumber(auction.oSqthPrice || oSqthPriceBN, 18)
+  const nf = convertBigNumber(auction.normFactor || nfBN, 18)
 
   return (
     <Box borderTop="1px solid grey" p={2} px={5} display="flex" overflow="auto" alignItems="center">
@@ -293,96 +293,86 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
         <Typography color="textSecondary" variant="caption">
           {isUpcoming && auction.oSqthAmount === '0' ? 'Estimated' : ''} Size
         </Typography>
-        <Typography textAlign="center" variant="numeric">
+        <Typography variant="numeric">
           {formatBigNumber(isUpcoming && auction.oSqthAmount === '0' ? osqthEstimate! : auction.oSqthAmount, 18, 2)}{' '}
           <small>oSQTH</small>
         </Typography>
       </Box>
-      <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
+      <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
           {auction.isSelling ? 'Min Price' : 'Max Price'}
         </Typography>
-        <Typography textAlign="center" variant="numeric">
+        <Typography variant="numeric">
           {formatBigNumber(auction.price, 18, 5)}
           <small>
             {' '}
             WETH{' '}
-            <Typography textAlign="center" variant="numeric" color="textSecondary">
+            <Typography variant="numeric" color="textSecondary">
               {' '}
               ${calculateDollarValue(convertBigNumber(auction.price, 18), ethPrice).toFixed(1)}{' '}
             </Typography>
             <Typography variant="numeric" color="textSecondary">
-              {''}
-              {(calculateIV(convertBigNumber(auction.price, 18), nf, ethPrice) * 100).toFixed(1)}%{''}
+              {'('}
+              {(calculateIV(convertBigNumber(auction.price, 18), nf, ethPrice) * 100).toFixed(1)}%{')'}
             </Typography>{' '}
           </small>
         </Typography>
       </Box>
-      <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
+      <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
           Min Size
         </Typography>
-        <Typography textAlign="center" variant="numeric">
+        <Typography variant="numeric">
           {(auction.minSize || 0).toFixed(1)}
           <small> oSQTH</small>
         </Typography>
       </Box>
-      <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
+      <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
       <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary" variant="caption" textAlign="center">
+        <Typography color="textSecondary" variant="caption">
           ETH Price
         </Typography>
-        <Typography variant="numeric" textAlign="center">
-          ${ethPrice.toFixed(2)}
-        </Typography>
+        <Typography variant="numeric">${ethPrice.toFixed(2)}</Typography>
       </Box>
-      <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
+      <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
       <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary" variant="caption" textAlign="center">
+        <Typography color="textSecondary" variant="caption">
           oSQTH Price
         </Typography>
-        <Typography variant="numeric" textAlign="center">
+        <Typography variant="numeric">
           {oSqthPrice.toFixed(5)}
           <small> ETH</small>
         </Typography>
       </Box>
-      <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
+      <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
       <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary" variant="caption" textAlign="center">
+        <Typography color="textSecondary" variant="caption">
           Index Price
         </Typography>
-        <Typography variant="numeric" textAlign="center">
-          ${formatBigNumber(indexPrice, 18, 0)}
-        </Typography>
+        <Typography variant="numeric">${formatBigNumber(indexPrice, 18, 0)}</Typography>
       </Box>
-      <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
+      <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
       <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary" variant="caption" textAlign="center">
+        <Typography color="textSecondary" variant="caption">
           Mark Price
         </Typography>
-        <Typography variant="numeric" textAlign="center">
-          ${formatBigNumber(markPrice, 18, 0)}
-        </Typography>
+        <Typography variant="numeric">${formatBigNumber(markPrice, 18, 0)}</Typography>
       </Box>
-      <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
+      <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
       <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary" variant="caption" textAlign="center">
+        <Typography color="textSecondary" variant="caption">
           Squeeth IV
         </Typography>
-        <Typography variant="numeric" textAlign="center">
-          {(calculateIV(oSqthPrice, nf, ethPrice) * 100).toFixed(2)}%
-        </Typography>
+        <Typography variant="numeric">{(calculateIV(oSqthPrice, nf, ethPrice) * 100).toFixed(2)}%</Typography>
       </Box>
-      <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
+      <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
       <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary" variant="caption" textAlign="center">
+        <Typography color="textSecondary" variant="caption">
           DVOL
         </Typography>
-        <Typography variant="numeric" textAlign="center">
-          {ethDvol}%
-        </Typography>
+        <Typography variant="numeric">{auction.dvol || ethDvol}%</Typography>
       </Box>
     </Box>
   )
