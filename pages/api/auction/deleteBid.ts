@@ -1,8 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { MM_CANCEL } from '../../../constants/message'
 import { V2_BID_REQUEST_USAGE_EXPIRY_TIME_MILLIS } from '../../../constants/numbers'
+import { trackEvent } from '../../../server/utils/analytics'
 import { addOrUpdateAuction, getAuction } from '../../../server/utils/firebase-admin'
 import { Auction, AuctionStatus, MessageWithTimeSignature } from '../../../types'
+import { isApiRequest } from '../../../utils'
 import { getAuctionStatus, verifyMessageWithTime } from '../../../utils/auction'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -35,6 +37,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   delete auction.bids[bidId]
   await addOrUpdateAuction(auction)
+  if (isApiRequest(req)) {
+    await trackEvent('API_REQUEST', bid.bidder, { eventType: 'DELETE_BID' })
+  }
 
   res.status(200).json({ message: 'Successfully deleted bid' })
 }

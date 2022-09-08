@@ -152,7 +152,7 @@ const BidForm: React.FC = () => {
       }
       const { signature } = await signOrder(signer, order)
 
-      const resp = await fetch('/api/auction/createOrEditBid', {
+      const resp = await fetch('/api/auction/createOrEditBid?web=true', {
         method: 'POST',
         body: JSON.stringify({ signature, order }),
         headers: { 'Content-Type': 'application/json' },
@@ -196,7 +196,7 @@ const BidForm: React.FC = () => {
       const signature = await signMessageWithTime(signer, mandate)
 
       if (bidToEdit) {
-        const resp = await fetch('/api/auction/deleteBid', {
+        const resp = await fetch('/api/auction/deleteBid?web=true', {
           method: 'Delete',
           body: JSON.stringify({ signature, bidId: bidToEdit, mandate }),
           headers: { 'Content-Type': 'application/json' },
@@ -393,10 +393,10 @@ const BidForm: React.FC = () => {
         </Typography>
       </Box>
       <Typography align="center" mt={3} color="error.main" variant="body3">
-        {price && qty ? error: ''}
+        {price && qty ? error : ''}
       </Typography>
       <Typography align="center" mt={3} color="warning.main" variant="body3">
-        {price && qty ? warning: ''}
+        {price && qty ? warning : ''}
       </Typography>
       <BoxLoadingButton disabled={!!error || !canPlaceBid} onClick={placeBid} sx={{ mt: 1 }} loading={isLoading}>
         {isEditBid ? `Edit ${action}` : `Place ${action}`}

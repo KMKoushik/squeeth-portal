@@ -3,6 +3,8 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { Auction, AuctionStatus, Bid, Order } from '../../../types'
 import { getAuctionStatus, verifyOrder, validateOrder } from '../../../utils/auction'
 import { addOrUpdateAuction, getAuction } from '../../../server/utils/firebase-admin'
+import { trackEvent } from '../../../server/utils/analytics'
+import { isApiRequest } from '../../../utils'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(400).json({ message: 'Only post is allowed' })
@@ -37,5 +39,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   auction.bids[`${bid.bidder}-${order.nonce}`] = bid
 
   await addOrUpdateAuction(auction)
+  if (isApiRequest(req)) {
+    console.log('Updating Amplitude')
+    await trackEvent('API_REQUEST', order.trader, { eventType: 'CREATE_BID' })
+  }
   res.status(200).json({ message: 'Successfully placed/updated bid' })
 }
