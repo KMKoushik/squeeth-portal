@@ -5,7 +5,6 @@ import { useBalance, useBlockNumber, useSigner } from 'wagmi'
 import shallow from 'zustand/shallow'
 import { PrimaryLoadingButton } from '../../components/button/PrimaryButton'
 import { CRAB_STRATEGY, OSQUEETH } from '../../constants/address'
-import { Activity } from '../../constants/analytics'
 import { BIG_ZERO, MAX_UINT } from '../../constants/numbers'
 import useCrab from '../../hooks/useCrab'
 import useERC20 from '../../hooks/useERC20'
@@ -167,13 +166,7 @@ const TimeHedgeForm = React.memo(function TimeHedgeForm() {
         gasLimit: estimatedGasCeil,
       })
       await tx.wait()
-      fetch(`/api/actions/${Activity.succussfullAuction}`, {
-        method: 'POST',
-      })
     } catch (e) {
-      fetch(`/api/actions/${Activity.failedAction}`, {
-        method: 'POST',
-      })
       console.log(e)
     }
     setTxLoading(false)
