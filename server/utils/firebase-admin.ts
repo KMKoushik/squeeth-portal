@@ -21,13 +21,9 @@ try {
   console.log('error in init', e)
 }
 
-console.log("initialized")
 
 export const authAdmin = auth()
-
 export const dbAdmin = firestore()
-
-console.log("db initialized")
 
 export const addOrUpdateAuction = (auction: Auction, merge?: boolean) => {
   return dbAdmin.collection('auction').doc('current').set(auction, { merge })
@@ -54,10 +50,10 @@ export const getUserBids = async (userAddress: string) => {
   const auctionDoc = await getAuction()
   const auction = auctionDoc.data() as Auction
 
-  let bidObjArray = Object.values(auction.bids)
-  let bids =  bidObjArray.filter(o => o.bidder === userAddress)
+  const bidObjArray = Object.values(auction.bids)
+  const bids =  bidObjArray.filter(o => o.bidder === userAddress)
 
-  let orders = bids.map((item) => {
+  const orders = bids.map((item) => {
     return item.order
   });
   return  orders

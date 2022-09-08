@@ -1,16 +1,10 @@
 import { NextFetchEvent, NextRequest, NextResponse } from 'next/server'
+import { IS_ANALYTICS_ENABLED } from '../../constants/analytics'
+import { trackEvent } from '../../server/utils/analytics'
 
-enum bool {
-  true = 'true',
-  false = 'false',
-}
-
-export function middleware(req: NextRequest, __: NextFetchEvent) {
+export async function middleware(req: NextRequest, event: NextFetchEvent) {
   console.log('Base ', req.nextUrl.pathname)
-  const isApiRequest = req.nextUrl.pathname.startsWith('/api/action') || req.nextUrl.pathname.startsWith('/api/views')
-  if (process.env.NEXT_PUBLIC_ENABLE_ANALYTICS == bool.true || !isApiRequest) {
-    NextResponse.next()
-  } else {
-    return new Response('Analytics is Disabled!')
-  }
+  event.waitUntil(trackEvent('API_REQUEST', 'example', {}))
+
+  NextResponse.next()
 }

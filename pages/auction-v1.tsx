@@ -16,17 +16,10 @@ import { bnComparator } from '../utils'
 import LiveAuction from '../container/Auction/LiveAuction'
 import NoAuction from '../container/Auction/NoAuction'
 import useAppStore from '../store/appStore'
-import { Pages } from '../constants/analytics'
 
 const Auction: NextPage = () => {
   const { crabLoaded } = useCrab()
   const setLoading = useAppStore(s => s.setOpenCat)
-
-  React.useEffect(() => {
-    fetch(`/api/views/${Pages.auction}`, {
-      method: 'POST',
-    })
-  }, [])
 
   !crabLoaded ? setLoading(true) : setLoading(false)
 
