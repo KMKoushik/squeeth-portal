@@ -41,7 +41,6 @@ const AuctionHistory: React.FC = () => {
           p={2}
           borderRadius={2}
           justifyContent={{ xs: 'start', sm: 'space-between' }}
-          style={{ cursor: 'pointer' }}
           key={a.currentAuctionId}
           gap={2}
           alignItems="center"
