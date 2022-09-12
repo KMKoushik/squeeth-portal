@@ -83,15 +83,17 @@ const Approvals: React.FC = () => {
   }, [data])
 
   useEffect(() => {
-    setOsqthApproval(osqthApproval)
+    setOsqthApproval(osqthApproval || BIG_ZERO)
   }, [osqthApproval, setOsqthApproval])
 
   useEffect(() => {
-    setWethApproval(wethApproval)
+    setWethApproval(wethApproval || BIG_ZERO)
   }, [wethApproval, setWethApproval])
 
-  const isOsqthApproved = osqthApproval.gt(toBigNumber(1_000_000))
-  const isWethApproved = wethApproval.gt(toBigNumber(1_000_000))
+  const isOsqthApproved = osqthApproval?.gt(toBigNumber(1_000_000))
+  const isWethApproved = wethApproval?.gt(toBigNumber(1_000_000))
+
+  if (!osqthApproval || !wethApproval) return null
 
   return (
     <Box display="flex" flexWrap="wrap" gap={2} justifyContent={{ xs: 'center', sm: 'start' }}>
