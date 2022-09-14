@@ -64,7 +64,7 @@ const AuctionUtils: React.FC = () => {
       </Typography>
       <ul>
         <li>
-          <a href="https://squeeth.opyn.co/" target="_blank" rel="noreferrer">
+          <a href="https://squeeth.opyn.co/mint" target="_blank" rel="noreferrer">
             <Typography color="primary">Mint / burn oSQTH</Typography>
           </a>
         </li>
