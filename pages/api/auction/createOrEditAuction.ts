@@ -8,11 +8,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { signature, auction } = req.body
   const owner = await crabV2Contract.owner()
 
-  try {
-    const isOwner = verifyMessage(KING_CRAB, signature, owner)
-    if (!isOwner) return res.status(401).json({ message: 'Not owner' })
-  } catch (e) {
-    return res.status(401).json({ message: "Signature can't be verified" })
+  if (process.env.environment != 'dev') {
+    try {
+      const isOwner = verifyMessage(KING_CRAB, signature, owner)
+      if (!isOwner) return res.status(401).json({ message: 'Not owner' })
+    } catch (e) {
+      return res.status(401).json({ message: "Signature can't be verified" })
+    }
   }
 
   await addOrUpdateAuction(auction)
