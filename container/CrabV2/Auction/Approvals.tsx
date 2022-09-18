@@ -119,9 +119,7 @@ const Approvals: React.FC = () => {
           <Typography mr={2} color="textSecondary">
             Approved Amt :
           </Typography>
-          <Typography variant="numeric">
-            {osqthApproval.eq(ethers.constants.MaxUint256) ? 'Max' : formatBigNumber(osqthApproval, 18, 6)}
-          </Typography>
+          <Typography variant="numeric">{isOsqthApproved ? 'Max' : formatBigNumber(osqthApproval, 18, 6)}</Typography>
         </Box>
       </Box>
 
@@ -147,9 +145,7 @@ const Approvals: React.FC = () => {
           <Typography mr={2} color="textSecondary">
             Approved Amt :
           </Typography>
-          <Typography variant="numeric">
-            {wethApproval.eq(ethers.constants.MaxUint256) ? 'Max' : formatBigNumber(wethApproval, 18, 6)}
-          </Typography>
+          <Typography variant="numeric">{isWethApproved ? 'Max' : formatBigNumber(wethApproval, 18, 6)}</Typography>
         </Box>
       </Box>
     </Box>
