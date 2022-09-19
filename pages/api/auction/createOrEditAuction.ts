@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { signature, auction } = req.body
   const owner = await crabV2Contract.owner()
 
-  if (process.env.environment != 'dev') {
+  if (process.env.NODE_ENV === 'production') {
     try {
       const isOwner = verifyMessage(KING_CRAB, signature, owner)
       if (!isOwner) return res.status(401).json({ message: 'Not owner' })
