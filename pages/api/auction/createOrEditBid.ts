@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'POST') return res.status(400).json({ message: 'Only post is allowed' })
   const { signature, order }: { signature: string; order: Order } = req.body
 
-  const auction = (await getAuction()).data() as Auction  
+  const auction = (await getAuction()).data() as Auction
 
   if (auction.bids !== undefined) {
     const oldBid = auction.bids[`${order.trader}-${order.nonce}`] as Bid
@@ -20,9 +20,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!isOwner) return res.status(401).json({ message: 'Not owner' })
     } catch (e) {
       return res.status(401).json({ message: "Signature can't be verified" })
-    }  
-  }
-  else {
+    }
+  } else {
     auction.bids = {}
   }
 
