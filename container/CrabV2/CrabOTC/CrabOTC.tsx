@@ -4,8 +4,8 @@ import { ethers } from 'ethersv5'
 import { useMemo, useState } from 'react'
 import { useContract, useContractWrite, useSigner } from 'wagmi'
 import PrimaryButton from '../../../components/button/PrimaryButton'
-import { CRAB_OTC } from '../../../constants/address'
-import { CRAB_OTC_CONTRACT } from '../../../constants/contracts'
+import { CRAB_OTC, CRAB_STRATEGY_V2 } from '../../../constants/address'
+import { CRAB_OTC_CONTRACT} from '../../../constants/contracts'
 import { GENERAL } from '../../../constants/message'
 import { BIG_ONE, BIG_ZERO } from '../../../constants/numbers'
 import useAccountStore from '../../../store/accountStore'
@@ -13,10 +13,11 @@ import { useCrabOTCStore } from '../../../store/crabOTCStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import usePriceStore from '../../../store/priceStore'
 import { CrabOTC, CrabOTCBid, CrabOTCOrder, CrabOtcType, MessageWithTimeSignature } from '../../../types'
-import { CrabOtc } from '../../../types/contracts'
+import { CrabOtc, CrabStrategyV2 } from '../../../types/contracts'
 import { signMessageWithTime } from '../../../utils/auction'
 import { convertBigNumber, formatBigNumber, toBigNumber, wdiv, wmul } from '../../../utils/math'
 import crabOtc from '../../../abis/crabOtc.json'
+import crabV2 from '../../../abis/crabStrategyV2.json'
 
 export const CrabOTCBox: React.FC = () => {
   const userOTCs = useCrabOTCStore(s => s.userOTCs)
@@ -25,6 +26,12 @@ export const CrabOTCBox: React.FC = () => {
   const crabOtcContract = useContract<CrabOtc>({
     addressOrName: CRAB_OTC,
     contractInterface: crabOtc,
+    signerOrProvider: signer,
+  })
+
+  const crabV2Contract = useContract<CrabStrategyV2>({
+    addressOrName: CRAB_STRATEGY_V2,
+    contractInterface: crabV2,
     signerOrProvider: signer,
   })
 
@@ -50,9 +57,12 @@ export const CrabOTCBox: React.FC = () => {
       v,
     }
 
-    const estimatedGas = await crabOtcContract.estimateGas.deposit(toBigNumber(crabOtc.depositAmount), _price, order, { value: toBigNumber(crabOtc.depositAmount) })
+    const [,,collateral, debt] = await crabV2Contract.getVaultDetails();
+    const total_deposit = wdiv(wmul(_qty, collateral), debt); 
+
+    const estimatedGas = await crabOtcContract.estimateGas.deposit(total_deposit, _price, order, { value: toBigNumber(crabOtc.depositAmount) })
     const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
-    await crabOtcContract.deposit(toBigNumber(crabOtc.depositAmount), _price, order, { value: toBigNumber(crabOtc.depositAmount), gasLimit: estimatedGasCeil })
+    await crabOtcContract.deposit(total_deposit, _price, order, { value: toBigNumber(crabOtc.depositAmount), gasLimit: estimatedGasCeil })
 
     // const tx = await deposit({
     //   args: [_qty, _price, order],
@@ -84,7 +94,30 @@ export const CrabOTCBox: React.FC = () => {
         </Box>
       ))}
       <CreateDeposit />
+      <Withdraw />
     </Box>
+  )
+}
+
+const Withdraw: React.FC = () => {
+  const { data: signer } = useSigner()
+  const address = useAccountStore(s => s.address)
+
+  const crabV2Contract = useContract<CrabStrategyV2>({
+    addressOrName: CRAB_STRATEGY_V2,
+    contractInterface: crabV2,
+    signerOrProvider: signer,
+  })
+
+  const getBalance = async () => {
+    if(address){
+      const balance = await crabV2Contract.balanceOf(address);
+      console.log(balance);
+    }
+  }
+
+  return (
+    <PrimaryButton>Withdraw</PrimaryButton>
   )
 }
 
