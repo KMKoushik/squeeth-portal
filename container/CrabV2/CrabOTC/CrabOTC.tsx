@@ -50,7 +50,9 @@ export const CrabOTCBox: React.FC = () => {
       v,
     }
 
-    await crabOtcContract.deposit(wmul(_qty, _price), _price, order, { value: toBigNumber(crabOtc.depositAmount) })
+    const estimatedGas = await crabOtcContract.estimateGas.deposit(toBigNumber(crabOtc.depositAmount), _price, order, { value: toBigNumber(crabOtc.depositAmount) })
+    const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
+    await crabOtcContract.deposit(toBigNumber(crabOtc.depositAmount), _price, order, { value: toBigNumber(crabOtc.depositAmount), gasLimit: estimatedGasCeil })
 
     // const tx = await deposit({
     //   args: [_qty, _price, order],
