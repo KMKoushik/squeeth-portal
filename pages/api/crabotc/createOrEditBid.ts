@@ -13,6 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { signature, order, otcId }: { signature: string; order: CrabOTCOrder; otcId: string } = req.body
 
   const crabOtc = (await getOtc(otcId)).data() as CrabOTC
+  crabOtc.id = otcId;
   const oldBid = crabOtc.bids[`${order.trader}-${order.nonce}`] as Bid
 
   try {
