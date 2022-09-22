@@ -1,20 +1,22 @@
-import { Typography } from '@mui/material'
+import { TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { doc, onSnapshot } from 'firebase/firestore'
 import { NextPage } from 'next'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
-import { useContractWrite, useSigner } from 'wagmi'
+import {  useSigner } from 'wagmi'
+import shallow from 'zustand/shallow'
 import PrimaryButton from '../../components/button/PrimaryButton'
-import { CRAB_OTC_CONTRACT } from '../../constants/contracts'
+import ApprovalsOtc from '../../container/CrabV2/Auction/ApprovalsOtc'
 import { Nav } from '../../container/Nav'
 import useToaster from '../../hooks/useToaster'
 import useAccountStore from '../../store/accountStore'
-import { CrabOTC, CrabOTCOrder } from '../../types'
+import useCrabV2Store from '../../store/crabV2Store'
+import { CrabOTC, CrabOTCOrder, CrabOtcType } from '../../types'
 import { signOTCOrder } from '../../utils/crabotc'
 import { db } from '../../utils/firebase'
-import { toBigNumber } from '../../utils/math'
+import { convertBigNumber, toBigNumber } from '../../utils/math'
 
 const OTCBidPage: NextPage = () => {
   const router = useRouter()
@@ -25,6 +27,45 @@ const OTCBidPage: NextPage = () => {
   const showMessageFromServer = useToaster()
   const address = useAccountStore(s => s.address)
   const { data: signer } = useSigner()
+  const [bidPrice, setBidPrice] = useState('0.0')
+  const isSellingOSqth = (otc?.type == CrabOtcType.DEPOSIT ) ? true: false
+
+  const { wethApproval } = useCrabV2Store(
+    s => ({
+      wethApproval: s.wethApprovalOtc
+    }),
+    shallow,
+  )
+
+  const {  wethBalance } = useAccountStore(
+    s => ({  wethBalance: s.wethBalance }),
+    shallow,
+  )
+
+  const totalWeth = Number(bidPrice) * Number(otc?.quantity)
+  
+  const priceError = React.useMemo(() => {
+    if (bidPrice === '0.0') return
+    if (isSellingOSqth && Number(bidPrice) < Number(otc?.limitPrice)) {
+      return 'Bid Price should be greater than limit price'
+    } 
+  }, [isSellingOSqth, otc?.limitPrice, bidPrice])
+
+  const approvalError = React.useMemo(() => {
+      if (  totalWeth > convertBigNumber(wethApproval)) {
+        return 'Approve WETH in token approval section in the top'
+      } 
+    }, [totalWeth, wethApproval])
+
+  const balanceError = React.useMemo(() => {
+      if (isSellingOSqth && totalWeth > convertBigNumber(wethBalance)) {
+        return 'Need more WETH'
+      } 
+    }, [isSellingOSqth, totalWeth, wethBalance])
+  
+  
+
+  const error =  priceError || approvalError || balanceError
 
   React.useEffect(() => {
     if (!id) return
@@ -40,7 +81,7 @@ const OTCBidPage: NextPage = () => {
 
   const createBid = async () => {
     const _qty = toBigNumber(otc?.quantity || 0)
-    const _price = toBigNumber(otc?.limitPrice || 0)
+    const _price = toBigNumber(bidPrice || 0)
 
     const order: CrabOTCOrder = {
       trader: address!,
@@ -51,14 +92,14 @@ const OTCBidPage: NextPage = () => {
       nonce: Date.now(),
     }
     const { signature } = await signOTCOrder(signer, order)
-
+    console.log('order:',order);
     const resp = await fetch('/api/crabotc/createOrEditBid?web=true', {
       method: 'POST',
       body: JSON.stringify({ signature, order, otcId: id }),
       headers: { 'Content-Type': 'application/json' },
     })
 
-    showMessageFromServer(resp)
+   showMessageFromServer(resp)
   }
 
   if (loading) return <Typography>Loading...</Typography>
@@ -76,6 +117,8 @@ const OTCBidPage: NextPage = () => {
       </div>
     )
 
+
+
   return (
     <div>
       <Head>
@@ -83,9 +126,33 @@ const OTCBidPage: NextPage = () => {
       </Head>
       <Nav />
       <Box margin="auto" px={10}>
-        Submit bid: {id}
+
+      <Typography variant="h6" sx={{ textAlign: { xs: 'center', sm: 'left' } }} mb={1}>
+        Token Approvals
+      </Typography>
+      <ApprovalsOtc />
+
+
+      <Typography mt={4}> Submit bid: {id} </Typography>
         <Typography mt={4}>Qty: {otc?.quantity}</Typography>
         <Typography>limitPrice: {otc?.limitPrice}</Typography>
+        <TextField
+        value={bidPrice}
+        onChange={e => setBidPrice(e.target.value)}
+        type="number"
+        id="bidPrice"
+        label="Enter Bid Price"
+        variant="outlined"
+        size="small"
+        sx={{ mt: 2  }}
+        onWheel={e => (e.target as any).blur()}
+      />
+
+      <br/>
+      <Typography style={{whiteSpace: 'pre-line'}} align="center" mt={3} color="error.main" variant="body3">
+        {bidPrice ? error : ''}
+      </Typography> 
+      <br/>
         <PrimaryButton onClick={createBid}>Submit order</PrimaryButton>
       </Box>
     </div>
