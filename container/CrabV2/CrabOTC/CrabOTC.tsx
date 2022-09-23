@@ -138,8 +138,8 @@ const Withdraw: React.FC = () => {
   })
 
   const getUserCrabBalance = async (userAddress: string) => {
-    if(!userAddress) return BIG_ZERO
-      const amount = await crabV2Contract.balanceOf(userAddress);
+    if(!userAddress || !signer  ) return BIG_ZERO
+    const amount = await crabV2Contract.balanceOf(userAddress);
   return amount
   }
 
@@ -149,7 +149,7 @@ const Withdraw: React.FC = () => {
   }
 
 
-  useEffect(() => {
+  useMemo(() => {
       let active = true
       load()
       return () => { active = false }
@@ -162,13 +162,12 @@ const Withdraw: React.FC = () => {
         }
 
         if(address){
-          console.log('address:',address)
           const amount = await getUserCrabBalance(address)
           if (!active) { return }
           setcrabBalance(amount)
         }
       }
-  }, [withdrawAmount, address])
+  }, [withdrawAmount, getUserCrabBalance, address])
 
  
   const createOtcOrder = async () => {
