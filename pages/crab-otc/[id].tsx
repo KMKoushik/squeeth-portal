@@ -5,7 +5,7 @@ import { NextPage } from 'next'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
-import {  useSigner } from 'wagmi'
+import { useSigner } from 'wagmi'
 import shallow from 'zustand/shallow'
 import PrimaryButton from '../../components/button/PrimaryButton'
 import ApprovalsOtc from '../../container/CrabV2/Auction/ApprovalsOtc'
@@ -28,44 +28,42 @@ const OTCBidPage: NextPage = () => {
   const address = useAccountStore(s => s.address)
   const { data: signer } = useSigner()
   const [bidPrice, setBidPrice] = useState('0.0')
-  const isSellingOSqth = (otc?.type == CrabOtcType.DEPOSIT ) ? true: false
+  const auctionIsSellingOSqth = otc?.type == CrabOtcType.DEPOSIT ? true : false
+  const bidderAction = otc?.type == CrabOtcType.DEPOSIT ? 'Buying' : 'Selling'
 
-  const { wethApproval } = useCrabV2Store(
-    s => ({
-      wethApproval: s.wethApprovalOtc
-    }),
-    shallow,
-  )
+  const { wethApproval, oSqthApproval } = useCrabV2Store(s => ({ wethApproval: s.wethApprovalOtc, oSqthApproval: s.oSqthApprovalOtc, }), shallow)
 
-  const {  wethBalance } = useAccountStore(
-    s => ({  wethBalance: s.wethBalance }),
-    shallow,
-  )
+  const { wethBalance, oSqthBalance } = useAccountStore(s => ({ wethBalance: s.wethBalance, oSqthBalance: s.oSqthBalance }), shallow)
 
   const totalWeth = Number(bidPrice) * Number(otc?.quantity)
-  
   const priceError = React.useMemo(() => {
     if (bidPrice === '0.0') return
-    if (isSellingOSqth && Number(bidPrice) < Number(otc?.limitPrice)) {
+    if (auctionIsSellingOSqth && Number(bidPrice) < Number(otc?.limitPrice)) {
       return 'Bid Price should be greater than limit price'
-    } 
-  }, [isSellingOSqth, otc?.limitPrice, bidPrice])
+    } else if (!auctionIsSellingOSqth && Number(bidPrice) > Number(otc?.limitPrice)) {
+      return 'Bid Price should be less than limit price'
+    }
+  }, [auctionIsSellingOSqth, otc?.limitPrice, bidPrice])
 
   const approvalError = React.useMemo(() => {
-      if (  totalWeth > convertBigNumber(wethApproval)) {
-        return 'Approve WETH in token approval section in the top'
-      } 
-    }, [totalWeth, wethApproval])
+    if (totalWeth > convertBigNumber(wethApproval)) {
+      return 'Approve WETH in token approval section in the top'
+    }  else if (!auctionIsSellingOSqth && Number(otc?.quantity) > convertBigNumber(oSqthApproval)) {
+      return 'Approve oSQTH in token approval section in the top'
+    }
+  }, [totalWeth, wethApproval, otc?.quantity, oSqthApproval])
 
   const balanceError = React.useMemo(() => {
-      if (isSellingOSqth && totalWeth > convertBigNumber(wethBalance)) {
-        return 'Need more WETH'
-      } 
-    }, [isSellingOSqth, totalWeth, wethBalance])
-  
-  
-
-  const error =  priceError || approvalError || balanceError
+    if (auctionIsSellingOSqth && totalWeth > convertBigNumber(wethBalance)) {
+      return 'Need more WETH'
+    } else if (
+      !auctionIsSellingOSqth &&
+      Number(otc?.quantity) > convertBigNumber(oSqthBalance)
+    ) {
+      return 'Need more oSQTH'
+    }
+  }, [auctionIsSellingOSqth, totalWeth, wethBalance, oSqthBalance, otc?.quantity])
+  const error = priceError || approvalError || balanceError
 
   React.useEffect(() => {
     if (!id) return
@@ -87,19 +85,19 @@ const OTCBidPage: NextPage = () => {
       trader: address!,
       quantity: _qty.toString(),
       price: _price.toString(),
-      isBuying: true,
+      isBuying: auctionIsSellingOSqth,
       expiry: Date.now() + 30 * 60 * 1000,
       nonce: Date.now(),
     }
     const { signature } = await signOTCOrder(signer, order)
-    console.log('order:',order);
+    console.log('order:', order)
     const resp = await fetch('/api/crabotc/createOrEditBid?web=true', {
       method: 'POST',
       body: JSON.stringify({ signature, order, otcId: id }),
       headers: { 'Content-Type': 'application/json' },
     })
 
-   showMessageFromServer(resp)
+    showMessageFromServer(resp)
   }
 
   if (loading) return <Typography>Loading...</Typography>
@@ -117,8 +115,6 @@ const OTCBidPage: NextPage = () => {
       </div>
     )
 
-
-
   return (
     <div>
       <Head>
@@ -126,33 +122,31 @@ const OTCBidPage: NextPage = () => {
       </Head>
       <Nav />
       <Box margin="auto" px={10}>
+        <Typography variant="h6" sx={{ textAlign: { xs: 'center', sm: 'left' } }} mb={1}>
+          Token Approvals
+        </Typography>
+        <ApprovalsOtc />
 
-      <Typography variant="h6" sx={{ textAlign: { xs: 'center', sm: 'left' } }} mb={1}>
-        Token Approvals
-      </Typography>
-      <ApprovalsOtc />
-
-
-      <Typography mt={4}> Submit bid: {id} </Typography>
+        <Typography mt={4}> Submit bid: {id} </Typography>
+        <Typography mt={4}>You are {bidderAction} oSqth</Typography>
         <Typography mt={4}>Qty: {otc?.quantity}</Typography>
         <Typography>limitPrice: {otc?.limitPrice}</Typography>
         <TextField
-        value={bidPrice}
-        onChange={e => setBidPrice(e.target.value)}
-        type="number"
-        id="bidPrice"
-        label="Enter Bid Price"
-        variant="outlined"
-        size="small"
-        sx={{ mt: 2  }}
-        onWheel={e => (e.target as any).blur()}
-      />
-
-      <br/>
-      <Typography style={{whiteSpace: 'pre-line'}} align="center" mt={3} color="error.main" variant="body3">
-        {bidPrice ? error : ''}
-      </Typography> 
-      <br/>
+          value={bidPrice}
+          onChange={e => setBidPrice(e.target.value)}
+          type="number"
+          id="bidPrice"
+          label="Enter Bid Price"
+          variant="outlined"
+          size="small"
+          sx={{ mt: 2 }}
+          onWheel={e => (e.target as any).blur()}
+        />
+        <br />
+        <Typography style={{ whiteSpace: 'pre-line' }} align="center" mt={4} color="error.main" variant="body3">
+          {bidPrice ? error : ''}
+        </Typography>
+        <br />
         <PrimaryButton onClick={createBid}>Submit order</PrimaryButton>
       </Box>
     </div>

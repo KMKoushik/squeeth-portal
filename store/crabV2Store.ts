@@ -13,6 +13,7 @@ interface CrabV2Store {
   bidToEdit: string | null
   isHistoricalView: boolean
   oSqthApproval: BigNumber
+  oSqthApprovalOtc: BigNumber
   wethApproval: BigNumber
   wethApprovalOtc: BigNumber
   auctionStatus: AuctionStatus
@@ -28,6 +29,7 @@ interface CrabV2Store {
   setBidToEdit: (bidId: string | null) => void
   setIsHistoricalView: (isHistory: boolean) => void
   setOsqthApproval: (approval: BigNumber) => void
+  setOsqthApprovalOtc: (approval: BigNumber) => void
   setWethApproval: (approval: BigNumber) => void
   setWethApprovalOtc: (approval: BigNumber) => void
   setAuctionStatus: (status: AuctionStatus) => void
@@ -47,6 +49,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   bidToEdit: null,
   isHistoricalView: false,
   oSqthApproval: BIG_ZERO,
+  oSqthApprovalOtc: BIG_ZERO,
   wethApproval: BIG_ZERO,
   wethApprovalOtc: BIG_ZERO,
   auctionStatus: AuctionStatus.UPCOMING,
@@ -63,6 +66,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   setBidToEdit: bidId => set({ bidToEdit: bidId }),
   setIsHistoricalView: isHistoricalView => set({ isHistoricalView }),
   setOsqthApproval: approval => set({ oSqthApproval: approval }),
+  setOsqthApprovalOtc: approval => set({ oSqthApprovalOtc: approval }),
   setWethApproval: approval => set({ wethApproval: approval }),
   setWethApprovalOtc: approval => set({ wethApprovalOtc: approval }),
   setAuctionStatus: status => set({ auctionStatus: status }),
