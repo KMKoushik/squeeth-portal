@@ -107,6 +107,7 @@ export type CrabOTCBid = {
 export type CrabOTC = {
   id?: string
   depositAmount: number
+  withdrawAmount: number
   createdBy: string
   expiry: number
   limitPrice: number

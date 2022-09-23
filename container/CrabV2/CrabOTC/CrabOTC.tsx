@@ -1,13 +1,13 @@
 import { TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { ethers } from 'ethersv5'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useContract, useContractWrite, useSigner } from 'wagmi'
 import PrimaryButton from '../../../components/button/PrimaryButton'
 import { CRAB_OTC, CRAB_STRATEGY_V2 } from '../../../constants/address'
 import { CRAB_OTC_CONTRACT} from '../../../constants/contracts'
 import { GENERAL } from '../../../constants/message'
-import { BIG_ONE, BIG_ZERO } from '../../../constants/numbers'
+import { BIG_ONE, BIG_ZERO, ZERO } from '../../../constants/numbers'
 import useAccountStore from '../../../store/accountStore'
 import { useCrabOTCStore } from '../../../store/crabOTCStore'
 import useCrabV2Store from '../../../store/crabV2Store'
@@ -18,6 +18,7 @@ import { signMessageWithTime } from '../../../utils/auction'
 import { convertBigNumber, formatBigNumber, toBigNumber, wdiv, wmul } from '../../../utils/math'
 import crabOtc from '../../../abis/crabOtc.json'
 import crabV2 from '../../../abis/crabStrategyV2.json'
+import shallow from 'zustand/shallow'
 
 export const CrabOTCBox: React.FC = () => {
   const userOTCs = useCrabOTCStore(s => s.userOTCs)
@@ -43,6 +44,8 @@ export const CrabOTCBox: React.FC = () => {
       value: BIG_ONE,
     },
   })
+
+
 
   const depositCrab = async (bid: CrabOTCBid, crabOtc: CrabOTC) => {
     const _qty = toBigNumber(crabOtc.quantity || 0)
@@ -72,6 +75,26 @@ export const CrabOTCBox: React.FC = () => {
     // })
   }
 
+  const withdrawCrab = async (bid: CrabOTCBid, crabOtc: CrabOTC) => {
+    const _price = toBigNumber(crabOtc.limitPrice || 0)
+
+    const { r, s, v } = ethers.utils.splitSignature(bid.signature)
+
+    const order = {
+      ...bid.order,
+      r,
+      s,
+      v,
+    }
+
+    const estimatedGas = await crabOtcContract.estimateGas.withdraw(toBigNumber(crabOtc.withdrawAmount), _price, order)
+    console.log('estimatedGas:',estimatedGas.toString())
+    const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
+    console.log('estimatedGasCeil:',estimatedGasCeil)
+    await crabOtcContract.withdraw(toBigNumber(crabOtc.withdrawAmount), _price, order, { gasLimit: estimatedGasCeil})
+
+  }
+
   return (
     <Box>
       {userOTCs.map(otc => (
@@ -87,7 +110,11 @@ export const CrabOTCBox: React.FC = () => {
                   Trader: {otc.bids[bidId].order.trader} - Qty: {otc.bids[bidId].order.quantity} - Price:{' '}
                   {otc.bids[bidId].order.price}
                 </Typography>
+                { (otc.type == CrabOtcType.DEPOSIT ) ? (
                 <PrimaryButton onClick={() => depositCrab(otc.bids[bidId], otc)}>Deposit</PrimaryButton>
+                ):
+                <PrimaryButton onClick={() => withdrawCrab(otc.bids[bidId], otc)}>Withdraw</PrimaryButton>
+                }
               </Box>
             ))}
           </Box>
@@ -102,6 +129,13 @@ export const CrabOTCBox: React.FC = () => {
 const Withdraw: React.FC = () => {
   const { data: signer } = useSigner()
   const address = useAccountStore(s => s.address)
+  const { ethPrice } = usePriceStore(s => ({  ethPrice: s.ethPrice }), shallow)
+  const [withdrawAmount, setWithdrawAmount] = useState('0.0')
+  const [limitPrice, setLimitPrice] = useState('0.0')
+  const [osqthToBuy, setosqthToBuy] = useState(BIG_ZERO)
+  const [crabBalance, setcrabBalance] = useState(BIG_ZERO)
+ 
+
 
   const crabV2Contract = useContract<CrabStrategyV2>({
     addressOrName: CRAB_STRATEGY_V2,
@@ -109,15 +143,108 @@ const Withdraw: React.FC = () => {
     signerOrProvider: signer,
   })
 
-  const getBalance = async () => {
-    if(address){
-      const balance = await crabV2Contract.balanceOf(address);
-      console.log(balance);
-    }
+  const getUserCrabBalance = async (userAddress: string) => {
+    if(!address) return BIG_ZERO
+    const amount = await crabV2Contract.balanceOf(userAddress);
+  return amount
   }
 
+  const getOsqthToBuy = async (shares: string) => {
+    const amount = await crabV2Contract.getWsqueethFromCrabAmount(toBigNumber(shares));
+  return amount
+  }
+
+
+  useEffect(() => {
+      let active = true
+      load()
+      return () => { active = false }
+
+      async function load() {
+        if(withdrawAmount != '0.0'){
+          const amount = await getOsqthToBuy(withdrawAmount)
+          if (!active) { return }
+          setosqthToBuy(amount)
+        }
+
+        if(address){
+          const amount = await getUserCrabBalance(address)
+          if (!active) { return }
+          setcrabBalance(amount)
+        }
+      }
+  }, [withdrawAmount, getUserCrabBalance])
+
+ 
+  const createOtcOrder = async () => {
+    const mandate: MessageWithTimeSignature = {
+      message: GENERAL,
+      time: Date.now(),
+    }
+
+    const signature = await signMessageWithTime(signer, mandate)
+
+    const crabOTC: CrabOTC = {
+      depositAmount: 0,
+      withdrawAmount: parseFloat(withdrawAmount),
+      createdBy: address!,
+      expiry: Date.now() + 600000,
+      limitPrice: parseFloat(limitPrice),
+      quantity: convertBigNumber(osqthToBuy),
+      type: CrabOtcType.WITHDRAW,
+      bids: {},
+    }
+
+    const resp = await fetch('/api/crabotc/createOrUpdateOTC?web=true', {
+      method: 'POST',
+      body: JSON.stringify({ signature, crabOTC, mandate }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+ 
+  
+
   return (
-    <PrimaryButton>Withdraw</PrimaryButton>
+    <Box display="flex" flexDirection="column" width={300} mt={4}>
+      <Typography>Withdraw</Typography>
+      <Typography variant="body2" color="textSecondary" mt={2}>Crab Balance: {convertBigNumber(crabBalance)}</Typography>
+      <Typography variant="body2" color="textSecondary" >Eth/Usd Price: {convertBigNumber(ethPrice)}</Typography>
+      <Typography variant="body2" color="textSecondary" >USD Value: { convertBigNumber(ethPrice) * convertBigNumber(crabBalance) }</Typography>
+     
+      <TextField
+        value={withdrawAmount}
+        onChange={e => setWithdrawAmount(e.target.value)}
+        type="number"
+        id="crab"
+        label="Crab Amount to Withdraw"
+        variant="outlined"
+        size="small"
+        sx={{ mt: 4 }}
+        onWheel={e => (e.target as any).blur()}
+      />
+
+      <Box display="flex" mt={1} justifyContent="space-between">
+        <Typography variant="body2" color="textSecondary" >Osqth to Buy: {convertBigNumber(osqthToBuy)}</Typography>
+      </Box>
+
+      <TextField
+        value={limitPrice}
+        onChange={e => setLimitPrice(e.target.value)}
+        type="number"
+        id="limit price"
+        label="Max Limit Price (Eth)"
+        variant="outlined"
+        size="small"
+        sx={{ mt: 4, mb: 4}}
+        onWheel={e => (e.target as any).blur()}
+      />
+
+
+     
+
+      <PrimaryButton onClick={createOtcOrder}>Create Withdraw OTC</PrimaryButton>
+    </Box>
+   
   )
 }
 
@@ -155,6 +282,7 @@ const CreateDeposit: React.FC = () => {
 
     const crabOTC: CrabOTC = {
       depositAmount: parseFloat(ethAmount),
+      withdrawAmount: 0,
       createdBy: address!,
       expiry: Date.now() + 600000,
       limitPrice: parseFloat(limitPrice),
@@ -172,6 +300,7 @@ const CreateDeposit: React.FC = () => {
 
   return (
     <Box display="flex" flexDirection="column" width={300} mt={4}>
+
       <Typography>Create deposit</Typography>
       <TextField
         value={ethAmount}
