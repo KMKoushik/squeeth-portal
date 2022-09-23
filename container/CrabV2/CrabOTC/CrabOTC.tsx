@@ -86,13 +86,7 @@ export const CrabOTCBox: React.FC = () => {
       s,
       v,
     }
-
-    const estimatedGas = await crabOtcContract.estimateGas.withdraw(toBigNumber(crabOtc.withdrawAmount), _price, order)
-    console.log('estimatedGas:',estimatedGas.toString())
-    const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
-    console.log('estimatedGasCeil:',estimatedGasCeil)
-    await crabOtcContract.withdraw(toBigNumber(crabOtc.withdrawAmount), _price, order, { gasLimit: estimatedGasCeil})
-
+    await crabOtcContract.withdraw(toBigNumber(crabOtc.withdrawAmount), _price, order, { gasLimit: 514958})
   }
 
   return (
@@ -144,7 +138,7 @@ const Withdraw: React.FC = () => {
   })
 
   const getUserCrabBalance = async (userAddress: string) => {
-    if(!address) return BIG_ZERO
+    if(!userAddress) return BIG_ZERO
     const amount = await crabV2Contract.balanceOf(userAddress);
   return amount
   }
@@ -167,13 +161,14 @@ const Withdraw: React.FC = () => {
           setosqthToBuy(amount)
         }
 
-        if(address){
+        if(address != null){
+          console.log('address:',address)
           const amount = await getUserCrabBalance(address)
           if (!active) { return }
           setcrabBalance(amount)
         }
       }
-  }, [withdrawAmount, getUserCrabBalance])
+  }, [withdrawAmount, address])
 
  
   const createOtcOrder = async () => {
