@@ -139,7 +139,7 @@ const Withdraw: React.FC = () => {
 
   const getUserCrabBalance = async (userAddress: string) => {
     if(!userAddress) return BIG_ZERO
-    const amount = await crabV2Contract.balanceOf(userAddress);
+      const amount = await crabV2Contract.balanceOf(userAddress);
   return amount
   }
 
@@ -161,7 +161,7 @@ const Withdraw: React.FC = () => {
           setosqthToBuy(amount)
         }
 
-        if(address != null){
+        if(address){
           console.log('address:',address)
           const amount = await getUserCrabBalance(address)
           if (!active) { return }
