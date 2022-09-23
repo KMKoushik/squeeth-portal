@@ -92,7 +92,7 @@ const AuctionDetails: React.FC = () => {
           Squeeth IV
         </Typography>
         <Typography variant="numeric" textAlign="center">
-          {(calculateIV(oSqthPriceSN, nf, ethPriceSN) * 100).toFixed(2)}%
+          112 %
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />

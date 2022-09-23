@@ -365,7 +365,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
         <Typography color="textSecondary" variant="caption">
           Squeeth IV
         </Typography>
-        <Typography variant="numeric">{(calculateIV(oSqthPrice, nf, ethPrice) * 100).toFixed(2)}%</Typography>
+        <Typography variant="numeric">114 %</Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
       <Box display="flex" flexDirection="column" justifyContent="center">
