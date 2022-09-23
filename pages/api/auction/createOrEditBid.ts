@@ -11,13 +11,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { signature, order }: { signature: string; order: Order } = req.body
 
   const auction = (await getAuction()).data() as Auction
-  const oldBid = auction.bids[`${order.trader}-${order.nonce}`] as Bid
 
-  try {
-    const isOwner = verifyOrder(order, signature, oldBid?.bidder || order.trader)
-    if (!isOwner) return res.status(401).json({ message: 'Not owner' })
-  } catch (e) {
-    return res.status(401).json({ message: "Signature can't be verified" })
+  if (auction.bids !== undefined) {
+    const oldBid = auction.bids[`${order.trader}-${order.nonce}`] as Bid
+
+    try {
+      const isOwner = verifyOrder(order, signature, oldBid?.bidder || order.trader)
+      if (!isOwner) return res.status(401).json({ message: 'Not owner' })
+    } catch (e) {
+      return res.status(401).json({ message: "Signature can't be verified" })
+    }
+  } else {
+    auction.bids = {}
   }
 
   try {
