@@ -31,9 +31,15 @@ const OTCBidPage: NextPage = () => {
   const auctionIsSellingOSqth = otc?.type == CrabOtcType.DEPOSIT ? true : false
   const bidderAction = otc?.type == CrabOtcType.DEPOSIT ? 'Buying' : 'Selling'
 
-  const { wethApproval, oSqthApproval } = useCrabV2Store(s => ({ wethApproval: s.wethApprovalOtc, oSqthApproval: s.oSqthApprovalOtc, }), shallow)
+  const { wethApproval, oSqthApproval } = useCrabV2Store(
+    s => ({ wethApproval: s.wethApprovalOtc, oSqthApproval: s.oSqthApprovalOtc }),
+    shallow,
+  )
 
-  const { wethBalance, oSqthBalance } = useAccountStore(s => ({ wethBalance: s.wethBalance, oSqthBalance: s.oSqthBalance }), shallow)
+  const { wethBalance, oSqthBalance } = useAccountStore(
+    s => ({ wethBalance: s.wethBalance, oSqthBalance: s.oSqthBalance }),
+    shallow,
+  )
 
   const totalWeth = Number(bidPrice) * Number(otc?.quantity)
   const priceError = React.useMemo(() => {
@@ -48,7 +54,7 @@ const OTCBidPage: NextPage = () => {
   const approvalError = React.useMemo(() => {
     if (totalWeth > convertBigNumber(wethApproval)) {
       return 'Approve WETH in token approval section in the top'
-    }  else if (!auctionIsSellingOSqth && Number(otc?.quantity) > convertBigNumber(oSqthApproval)) {
+    } else if (!auctionIsSellingOSqth && Number(otc?.quantity) > convertBigNumber(oSqthApproval)) {
       return 'Approve oSQTH in token approval section in the top'
     }
   }, [totalWeth, wethApproval, otc?.quantity, oSqthApproval])
@@ -56,10 +62,7 @@ const OTCBidPage: NextPage = () => {
   const balanceError = React.useMemo(() => {
     if (auctionIsSellingOSqth && totalWeth > convertBigNumber(wethBalance)) {
       return 'Need more WETH'
-    } else if (
-      !auctionIsSellingOSqth &&
-      Number(otc?.quantity) > convertBigNumber(oSqthBalance)
-    ) {
+    } else if (!auctionIsSellingOSqth && Number(otc?.quantity) > convertBigNumber(oSqthBalance)) {
       return 'Need more oSQTH'
     }
   }, [auctionIsSellingOSqth, totalWeth, wethBalance, oSqthBalance, otc?.quantity])
