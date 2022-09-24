@@ -2,8 +2,8 @@ import { AppBar, Box, IconButton, Modal, Toolbar, Typography, useMediaQuery, use
 import * as React from 'react'
 import { useAccount } from 'wagmi'
 import GitHubIcon from '@mui/icons-material/GitHub'
-import ConnectWallet from './ConnectWallet'
-import useAccountStore from '../store/accountStore'
+import ConnectWallet from '../../container/ConnectWallet'
+import useAccountStore from '../../store/accountStore'
 import Link from 'next/link'
 
 export const Nav: React.FC = React.memo(function Nav() {
@@ -30,7 +30,7 @@ export const Nav: React.FC = React.memo(function Nav() {
               color="primary"
               fontFamily="Cattyla"
             >
-              {matches ? 'Squeeth' : 'Squeeth Portal'}
+              {matches ? 'S' : 'Squeeth Portal'}
             </Typography>
           </Link>
           <Box display="flex" alignItems="center">

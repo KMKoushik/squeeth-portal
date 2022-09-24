@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import { Box, Grid, Typography } from '@mui/material'
 import Image from 'next/image'
-import { Nav } from '../container/Nav'
+import { Nav } from '../components/navbars/Nav'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Head from 'next/head'

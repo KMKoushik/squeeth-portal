@@ -5,7 +5,7 @@ import Head from 'next/head'
 import React from 'react'
 import CrabLoader from '../../components/loaders/CrabLoader'
 import AuctionHistory from '../../container/CrabV2/Auction/AuctionHistory'
-import { Nav } from '../../container/Nav'
+import { Nav } from '../../components/navbars/Nav'
 import useInitAuction from '../../hooks/init/useInitAuction'
 import useCrabV2Store from '../../store/crabV2Store'
 
