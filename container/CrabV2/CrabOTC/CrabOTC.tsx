@@ -49,7 +49,7 @@ export const CrabOTCBox: React.FC = () => {
 
 
   const depositCrab = async (bid: CrabOTCBid, crabOtc: CrabOTC) => {
-    const _qty = toBigNumber(crabOtc.quantity || 0)
+    const _qty = ethers.BigNumber.from(crabOtc.quantity || 0);
     const _price = toBigNumber(crabOtc.limitPrice || 0)
 
     const { r, s, v } = ethers.utils.splitSignature(bid.signature)
@@ -64,8 +64,9 @@ export const CrabOTCBox: React.FC = () => {
     const [,,collateral, debt] = await crabV2Contract.getVaultDetails();
     const total_deposit = wdiv(wmul(_qty, collateral), debt); 
 
-    const estimatedGas = await crabOtcContract.estimateGas.deposit(total_deposit, _price, order, { value: toBigNumber(crabOtc.depositAmount) })
-    const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
+    //const estimatedGas = await crabOtcContract.estimateGas.deposit(total_deposit, _price, order, { value: toBigNumber(crabOtc.depositAmount) })
+    const estimatedGasCeil = Math.ceil(9999999 * 1.1)
+    console.log(total_deposit.toString());
     await crabOtcContract.deposit(total_deposit, _price, order, { value: toBigNumber(crabOtc.depositAmount), gasLimit: estimatedGasCeil })
 
     // const tx = await deposit({
