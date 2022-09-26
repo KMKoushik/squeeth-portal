@@ -111,7 +111,7 @@ export type CrabOTC = {
   createdBy: string
   expiry: number
   limitPrice: number
-  quantity: number
+  quantity: string
   type: CrabOtcType
   bids: { [k: string]: CrabOTCBid }
   tx?: string

@@ -16,6 +16,7 @@ interface CrabV2Store {
   oSqthApprovalOtc: BigNumber
   wethApproval: BigNumber
   wethApprovalOtc: BigNumber
+  crabApprovalOtc: BigNumber
   auctionStatus: AuctionStatus
   vault: Vault | null
   sortedBids: Bid[]
@@ -32,6 +33,7 @@ interface CrabV2Store {
   setOsqthApprovalOtc: (approval: BigNumber) => void
   setWethApproval: (approval: BigNumber) => void
   setWethApprovalOtc: (approval: BigNumber) => void
+  setCrabApprovalOtc: (approval: BigNumber) => void
   setAuctionStatus: (status: AuctionStatus) => void
   setVault: (v: Vault) => void
   setSortedBids: (bids: Bid[]) => void
@@ -52,6 +54,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   oSqthApprovalOtc: BIG_ZERO,
   wethApproval: BIG_ZERO,
   wethApprovalOtc: BIG_ZERO,
+  crabApprovalOtc: BIG_ZERO,
   auctionStatus: AuctionStatus.UPCOMING,
   vault: null,
   sortedBids: [],
@@ -69,6 +72,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   setOsqthApprovalOtc: approval => set({ oSqthApprovalOtc: approval }),
   setWethApproval: approval => set({ wethApproval: approval }),
   setWethApprovalOtc: approval => set({ wethApprovalOtc: approval }),
+  setCrabApprovalOtc: approval => set({ crabApprovalOtc: approval }),
   setAuctionStatus: status => set({ auctionStatus: status }),
   setVault: vault => set({ vault }),
   setSortedBids: bids => set({ sortedBids: bids }),

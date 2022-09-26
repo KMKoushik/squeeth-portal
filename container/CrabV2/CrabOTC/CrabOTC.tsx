@@ -19,6 +19,7 @@ import { convertBigNumber, formatBigNumber, toBigNumber, wdiv, wmul } from '../.
 import crabOtc from '../../../abis/crabOtc.json'
 import crabV2 from '../../../abis/crabStrategyV2.json'
 import shallow from 'zustand/shallow'
+import ApprovalsOtc from '../Auction/ApprovalsOtc'
 
 export const CrabOTCBox: React.FC = () => {
   const userOTCs = useCrabOTCStore(s => s.userOTCs)
@@ -91,8 +92,14 @@ export const CrabOTCBox: React.FC = () => {
 
   return (
     <Box>
+      <Typography variant="h6" sx={{ textAlign: { xs: 'center', sm: 'left' } }} mb={1}>
+          Token Approvals
+        </Typography>
+        <ApprovalsOtc/>
+
+
       {userOTCs.map(otc => (
-        <Box key={otc.id} mt={1}>
+        <Box key={otc.id} mt={5}>
           <Typography>
             ID: {otc.id} --- QTY:{otc.quantity} --- limit price:{otc.limitPrice}
           </Typography>
@@ -128,6 +135,7 @@ const Withdraw: React.FC = () => {
   const [limitPrice, setLimitPrice] = useState('0.0')
   const [osqthToBuy, setosqthToBuy] = useState(BIG_ZERO)
   const [crabBalance, setcrabBalance] = useState(BIG_ZERO)
+
  
 
 
@@ -167,7 +175,17 @@ const Withdraw: React.FC = () => {
           setcrabBalance(amount)
         }
       }
-  }, [withdrawAmount, getUserCrabBalance, address])
+  }, [withdrawAmount, address])
+
+  const sharesError = useMemo(() => {
+    if ( convertBigNumber(crabBalance) == 0) {
+      return 'You do not have any crab shares'
+    } else if (convertBigNumber(crabBalance) <  Number(withdrawAmount)) {
+      return 'You do not have enough crab shares'
+    }
+  }, [crabBalance, withdrawAmount])
+
+  const withdrawError = sharesError 
 
  
   const createOtcOrder = async () => {
@@ -178,13 +196,15 @@ const Withdraw: React.FC = () => {
 
     const signature = await signMessageWithTime(signer, mandate)
 
+   
+
     const crabOTC: CrabOTC = {
       depositAmount: 0,
       withdrawAmount: parseFloat(withdrawAmount),
       createdBy: address!,
       expiry: Date.now() + 600000,
       limitPrice: parseFloat(limitPrice),
-      quantity: convertBigNumber(osqthToBuy),
+      quantity: osqthToBuy.toString(),
       type: CrabOtcType.WITHDRAW,
       bids: {},
     }
@@ -195,6 +215,8 @@ const Withdraw: React.FC = () => {
       headers: { 'Content-Type': 'application/json' },
     })
   }
+
+
  
   
 
@@ -229,14 +251,17 @@ const Withdraw: React.FC = () => {
         label="Max Limit Price (Eth)"
         variant="outlined"
         size="small"
-        sx={{ mt: 4, mb: 4}}
+        sx={{ mt: 4, mb: 2}}
         onWheel={e => (e.target as any).blur()}
       />
 
-
-     
+        <Typography style={{ whiteSpace: 'pre-line' }}  mt={2} mb={2} color="error.main" variant="body3">
+          { withdrawAmount ? withdrawError : ''}
+        </Typography>
+        <br />
 
       <PrimaryButton onClick={createOtcOrder}>Create Withdraw OTC</PrimaryButton>
+      
     </Box>
    
   )
@@ -280,7 +305,7 @@ const CreateDeposit: React.FC = () => {
       createdBy: address!,
       expiry: Date.now() + 600000,
       limitPrice: parseFloat(limitPrice),
-      quantity: convertBigNumber(sqthToMint),
+      quantity: sqthToMint.toString(),
       type: CrabOtcType.DEPOSIT,
       bids: {},
     }

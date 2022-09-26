@@ -8,6 +8,7 @@ import React, { useState } from 'react'
 import { useSigner } from 'wagmi'
 import shallow from 'zustand/shallow'
 import PrimaryButton from '../../components/button/PrimaryButton'
+import { BIG_ZERO } from '../../constants/numbers'
 import ApprovalsOtc from '../../container/CrabV2/Auction/ApprovalsOtc'
 import { Nav } from '../../container/Nav'
 import useToaster from '../../hooks/useToaster'
@@ -62,7 +63,7 @@ const OTCBidPage: NextPage = () => {
   const balanceError = React.useMemo(() => {
     if (auctionIsSellingOSqth && totalWeth > convertBigNumber(wethBalance)) {
       return 'Need more WETH'
-    } else if (!auctionIsSellingOSqth && Number(otc?.quantity) > convertBigNumber(oSqthBalance)) {
+    } else if (!auctionIsSellingOSqth && convertBigNumber(otc?.quantity || BIG_ZERO) > convertBigNumber(oSqthBalance)) {
       return 'Need more oSQTH'
     }
   }, [auctionIsSellingOSqth, totalWeth, wethBalance, oSqthBalance, otc?.quantity])
@@ -81,12 +82,12 @@ const OTCBidPage: NextPage = () => {
   }, [id])
 
   const createBid = async () => {
-    const _qty = toBigNumber(otc?.quantity || 0)
+    const _qty = otc?.quantity ? otc?.quantity : '0'
     const _price = toBigNumber(bidPrice || 0)
 
     const order: CrabOTCOrder = {
       trader: address!,
-      quantity: _qty.toString(),
+      quantity: _qty,
       price: _price.toString(),
       isBuying: auctionIsSellingOSqth,
       expiry: Date.now() + 30 * 60 * 1000,
@@ -132,7 +133,9 @@ const OTCBidPage: NextPage = () => {
 
         <Typography mt={4}> Submit bid: {id} </Typography>
         <Typography mt={4}>You are {bidderAction} oSqth</Typography>
-        <Typography mt={4}>Qty: {otc?.quantity}</Typography>
+        <Typography mt={4}>
+          Qty: ~{convertBigNumber(otc?.quantity)} ({otc?.quantity})
+        </Typography>
         <Typography>limitPrice: {otc?.limitPrice}</Typography>
         <TextField
           value={bidPrice}
@@ -142,11 +145,11 @@ const OTCBidPage: NextPage = () => {
           label="Enter Bid Price"
           variant="outlined"
           size="small"
-          sx={{ mt: 2 }}
+          sx={{ mt: 2, mb: 2 }}
           onWheel={e => (e.target as any).blur()}
         />
         <br />
-        <Typography style={{ whiteSpace: 'pre-line' }} align="center" mt={4} color="error.main" variant="body3">
+        <Typography style={{ whiteSpace: 'pre-line' }} align="center" mt={4} mb={2} color="error.main" variant="body3">
           {bidPrice ? error : ''}
         </Typography>
         <br />
