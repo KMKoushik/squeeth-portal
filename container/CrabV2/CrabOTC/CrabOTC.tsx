@@ -49,7 +49,7 @@ export const CrabOTCBox: React.FC = () => {
 
 
   const depositCrab = async (bid: CrabOTCBid, crabOtc: CrabOTC) => {
-    const _qty = toBigNumber(crabOtc.quantity || 0)
+    const _qty = crabOtc?.quantity ? crabOtc?.quantity : '0' 
     const _price = toBigNumber(crabOtc.limitPrice || 0)
 
     const { r, s, v } = ethers.utils.splitSignature(bid.signature)

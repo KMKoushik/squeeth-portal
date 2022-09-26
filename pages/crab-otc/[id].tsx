@@ -42,7 +42,10 @@ const OTCBidPage: NextPage = () => {
     shallow,
   )
 
-  const totalWeth = Number(bidPrice) * Number(otc?.quantity)
+  const totalWeth = Number(bidPrice) * convertBigNumber(otc?.quantity || BIG_ZERO)
+  console.log('totalWeth:',totalWeth)
+  console.log('bidPrice:',Number(bidPrice))
+  console.log('quantity:',convertBigNumber(otc?.quantity || BIG_ZERO))
   const priceError = React.useMemo(() => {
     if (bidPrice === '0.0') return
     if (auctionIsSellingOSqth && Number(bidPrice) < Number(otc?.limitPrice)) {
