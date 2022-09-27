@@ -14,7 +14,7 @@ import { Nav } from '../../container/Nav'
 import useToaster from '../../hooks/useToaster'
 import useAccountStore from '../../store/accountStore'
 import useCrabV2Store from '../../store/crabV2Store'
-import { CrabOTC, CrabOTCOrder, CrabOtcType } from '../../types'
+import { CrabOTC, CrabOTCOrder, CrabOtcType, CrabOTCWithData } from '../../types'
 import { signOTCOrder } from '../../utils/crabotc'
 import { db } from '../../utils/firebase'
 import { convertBigNumber, toBigNumber } from '../../utils/math'
@@ -23,14 +23,14 @@ const OTCBidPage: NextPage = () => {
   const router = useRouter()
   const { id } = router.query
 
-  const [otc, setOtc] = useState<CrabOTC | null>(null)
+  const [otc, setOtc] = useState<CrabOTCWithData | null>(null)
   const [loading, setLoading] = useState(true)
   const showMessageFromServer = useToaster()
   const address = useAccountStore(s => s.address)
   const { data: signer } = useSigner()
   const [bidPrice, setBidPrice] = useState('0.0')
-  const auctionIsSellingOSqth = otc?.type == CrabOtcType.DEPOSIT ? true : false
-  const bidderAction = otc?.type == CrabOtcType.DEPOSIT ? 'Buying' : 'Selling'
+  const auctionIsSellingOSqth = otc?.data.type == CrabOtcType.DEPOSIT ? true : false
+  const bidderAction = otc?.data.type == CrabOtcType.DEPOSIT ? 'Buying' : 'Selling'
 
   const { wethApproval, oSqthApproval } = useCrabV2Store(
     s => ({ wethApproval: s.wethApprovalOtc, oSqthApproval: s.oSqthApprovalOtc }),
@@ -42,39 +42,44 @@ const OTCBidPage: NextPage = () => {
     shallow,
   )
 
-  const totalWeth = Number(bidPrice) * Number(otc?.quantity)
+  const totalWeth = Number(bidPrice) * Number(otc?.data.quantity)
   const priceError = React.useMemo(() => {
     if (bidPrice === '0.0') return
-    if (auctionIsSellingOSqth && Number(bidPrice) < Number(otc?.limitPrice)) {
+    if (auctionIsSellingOSqth && Number(bidPrice) < Number(otc?.data.limitPrice)) {
       return 'Bid Price should be greater than limit price'
-    } else if (!auctionIsSellingOSqth && Number(bidPrice) > Number(otc?.limitPrice)) {
+    } else if (!auctionIsSellingOSqth && Number(bidPrice) > Number(otc?.data.limitPrice)) {
       return 'Bid Price should be less than limit price'
     }
-  }, [auctionIsSellingOSqth, otc?.limitPrice, bidPrice])
+  }, [auctionIsSellingOSqth, otc?.data.limitPrice, bidPrice])
 
   const approvalError = React.useMemo(() => {
     if (totalWeth > convertBigNumber(wethApproval)) {
       return 'Approve WETH in token approval section in the top'
-    } else if (!auctionIsSellingOSqth && Number(otc?.quantity) > convertBigNumber(oSqthApproval)) {
+    } else if (!auctionIsSellingOSqth && Number(otc?.data.quantity) > convertBigNumber(oSqthApproval)) {
       return 'Approve oSQTH in token approval section in the top'
     }
-  }, [totalWeth, wethApproval, otc?.quantity, oSqthApproval])
+  }, [totalWeth, wethApproval, auctionIsSellingOSqth, otc?.data.quantity, oSqthApproval])
 
   const balanceError = React.useMemo(() => {
     if (auctionIsSellingOSqth && totalWeth > convertBigNumber(wethBalance)) {
       return 'Need more WETH'
-    } else if (!auctionIsSellingOSqth && convertBigNumber(otc?.quantity || BIG_ZERO) > convertBigNumber(oSqthBalance)) {
+    } else if (
+      !auctionIsSellingOSqth &&
+      convertBigNumber(otc?.data.quantity || BIG_ZERO) > convertBigNumber(oSqthBalance)
+    ) {
       return 'Need more oSQTH'
     }
-  }, [auctionIsSellingOSqth, totalWeth, wethBalance, oSqthBalance, otc?.quantity])
+  }, [auctionIsSellingOSqth, totalWeth, wethBalance, otc?.data.quantity, oSqthBalance])
   const error = priceError || approvalError || balanceError
 
   React.useEffect(() => {
     if (!id) return
-    const unSubscribe = onSnapshot(doc(db, 'crabotc', id?.toString()), d => {
+    const unSubscribe = onSnapshot(doc(db, 'crabotc', id?.toString()), async d => {
       setLoading(false)
       if (d.exists()) {
-        setOtc({ ...d.data(), id } as CrabOTC)
+        const resp = await fetch(`/api/crabotc/getCrabOTCById?id=${id}`)
+        const _otc = (await resp.json()) as CrabOTCWithData
+        setOtc(_otc)
       }
     })
 
@@ -82,7 +87,7 @@ const OTCBidPage: NextPage = () => {
   }, [id])
 
   const createBid = async () => {
-    const _qty = otc?.quantity ? otc?.quantity : '0'
+    const _qty = otc?.data.quantity ? otc?.data.quantity : '0'
     const _price = toBigNumber(bidPrice || 0)
 
     const order: CrabOTCOrder = {
@@ -134,9 +139,9 @@ const OTCBidPage: NextPage = () => {
         <Typography mt={4}> Submit bid: {id} </Typography>
         <Typography mt={4}>You are {bidderAction} oSqth</Typography>
         <Typography mt={4}>
-          Qty: ~{convertBigNumber(otc?.quantity)} ({otc?.quantity})
+          Qty: ~{convertBigNumber(otc?.data.quantity)} ({otc?.data.quantity})
         </Typography>
-        <Typography>limitPrice: {otc?.limitPrice}</Typography>
+        <Typography>limitPrice: {otc?.data.limitPrice}</Typography>
         <TextField
           value={bidPrice}
           onChange={e => setBidPrice(e.target.value)}

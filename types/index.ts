@@ -105,7 +105,14 @@ export type CrabOTCBid = {
 }
 
 export type CrabOTC = {
+  cid: string
+  createdBy: string
   id?: string
+  tx?: string
+  usedBid?: string
+}
+
+export type CrabOTCData = {
   depositAmount: number
   withdrawAmount: number
   createdBy: string
@@ -114,6 +121,8 @@ export type CrabOTC = {
   quantity: string
   type: CrabOtcType
   bids: { [k: string]: CrabOTCBid }
-  tx?: string
-  usedBid?: string
+}
+
+export type CrabOTCWithData = CrabOTC & {
+  data: CrabOTCData
 }
