@@ -183,7 +183,7 @@ const ApprovalsOtc: React.FC = () => {
 
       <Box bgcolor="background.overlayDark" p={2} borderRadius={2}>
         <Box display="flex" alignItems="center">
-          <Typography mr={4}>Crab Shares</Typography>
+          <Typography mr={4}>Crab Token</Typography>
           {isCrabApproved ? (
             <SecondaryButton disabled size="small" sx={{ width: 120 }}>
               Approved
