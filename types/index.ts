@@ -91,6 +91,7 @@ export enum CrabOtcType {
 }
 
 export type CrabOTCOrder = {
+  initiator: string
   trader: string
   quantity: string
   price: string

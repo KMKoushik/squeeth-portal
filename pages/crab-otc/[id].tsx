@@ -7,19 +7,19 @@ import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import { useSigner } from 'wagmi'
 import shallow from 'zustand/shallow'
-import PrimaryButton from '../../components/button/PrimaryButton'
-import {BoxLoadingButton}  from '../../components/button/PrimaryButton'
+import { BoxLoadingButton } from '../../components/button/PrimaryButton'
+import CrabLoader from '../../components/loaders/CrabLoader'
 import { BIG_ZERO } from '../../constants/numbers'
+import { Expiry } from '../../container/CrabOTC/Expiry'
 import ApprovalsOtc from '../../container/CrabV2/Auction/ApprovalsOtc'
 import { Nav } from '../../container/Nav'
 import useToaster from '../../hooks/useToaster'
 import useAccountStore from '../../store/accountStore'
 import useCrabV2Store from '../../store/crabV2Store'
-import { CrabOTC, CrabOTCOrder, CrabOtcType, CrabOTCWithData } from '../../types'
+import { CrabOTCOrder, CrabOtcType, CrabOTCWithData } from '../../types'
 import { signOTCOrder } from '../../utils/crabotc'
 import { db } from '../../utils/firebase'
-import { convertBigNumber, toBigNumber } from '../../utils/math'
-import { BigNumber } from 'ethers'
+import { convertBigNumber, formatBigNumber, toBigNumber } from '../../utils/math'
 
 const OTCBidPage: NextPage = () => {
   const router = useRouter()
@@ -33,7 +33,7 @@ const OTCBidPage: NextPage = () => {
   const [bidPrice, setBidPrice] = useState('0')
   const auctionIsSellingOSqth = otc?.data.type == CrabOtcType.DEPOSIT ? true : false
   const bidderAction = otc?.data.type == CrabOtcType.DEPOSIT ? 'Buying' : 'Selling'
-  const [isLoading, setFormLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const { wethApproval, oSqthApproval } = useCrabV2Store(
     s => ({ wethApproval: s.wethApprovalOtc, oSqthApproval: s.oSqthApprovalOtc }),
@@ -56,7 +56,7 @@ const OTCBidPage: NextPage = () => {
   }, [auctionIsSellingOSqth, otc?.data.limitPrice, bidPrice])
 
   const approvalError = React.useMemo(() => {
-    if (totalWeth > convertBigNumber(wethApproval)) {
+    if (auctionIsSellingOSqth && totalWeth > convertBigNumber(wethApproval)) {
       return 'Approve WETH in token approval section in the top'
     } else if (!auctionIsSellingOSqth && Number(otc?.data.quantity) > convertBigNumber(oSqthApproval)) {
       return 'Approve oSQTH in token approval section in the top'
@@ -73,16 +73,23 @@ const OTCBidPage: NextPage = () => {
       return 'Need more oSQTH'
     }
   }, [auctionIsSellingOSqth, totalWeth, wethBalance, otc?.data.quantity, oSqthBalance])
-  const error = priceError || approvalError || balanceError
+
+  const expiryError = React.useMemo(() => {
+    if (Date.now() > (otc?.data?.expiry || 0)) return 'Order expired'
+  }, [otc?.data.expiry])
+
+  const error = priceError || approvalError || balanceError || expiryError
 
   React.useEffect(() => {
     if (!id) return
     const unSubscribe = onSnapshot(doc(db, 'crabotc', id?.toString()), async d => {
-      setLoading(false)
       if (d.exists()) {
         const resp = await fetch(`/api/crabotc/getCrabOTCById?id=${id}`)
         const _otc = (await resp.json()) as CrabOTCWithData
+        setLoading(false)
         setOtc(_otc)
+      } else {
+        setLoading(false)
       }
     })
 
@@ -95,6 +102,7 @@ const OTCBidPage: NextPage = () => {
     const approxQty = toBigNumber(otc?.data.quantity || 0, 0).add(100)
 
     const order: CrabOTCOrder = {
+      initiator: otc?.createdBy || '',
       trader: address!,
       quantity: approxQty.toString(),
       price: _price.toString(),
@@ -103,21 +111,29 @@ const OTCBidPage: NextPage = () => {
       nonce: Date.now(),
     }
     const { signature } = await signOTCOrder(signer, order)
-    setFormLoading(true)
+    // setFormLoading(true)
     const resp = await fetch('/api/crabotc/createOrEditBid?web=true', {
       method: 'POST',
       body: JSON.stringify({ signature, order, otcId: id }),
       headers: { 'Content-Type': 'application/json' },
     })
 
-    if(resp.ok)
-    setBidPrice('0')
+    if (resp.ok) setBidPrice('0')
 
     showMessageFromServer(resp)
-    setFormLoading(false)
+    // setFormLoading(false)
   }
 
-  if (loading) return <Typography>Loading...</Typography>
+  if (loading)
+    return (
+      <div>
+        <Head>
+          <title>Squeeth Strategy Auction</title>
+        </Head>
+        <Nav />
+        <CrabLoader />
+      </div>
+    )
 
   if (!otc)
     return (
@@ -143,17 +159,21 @@ const OTCBidPage: NextPage = () => {
           Token Approvals
         </Typography>
         <ApprovalsOtc />
-    
+
         <Grid container gap={2} mt={2}>
           <Grid item xs={12} md={12} lg={5} bgcolor="background.overlayDark" borderRadius={2}>
-            <Box display="flex" flexDirection="column" mt={4} px={2}>
-              <Box display="flex" flexDirection="column"  margin="auto">
-                <Typography variant="h6" align="center" mt={2}> Submit bid: {id} </Typography>
-                <Typography mt={4} color="textSecondary" align="center">You are {bidderAction} oSQTH</Typography>
-                <Typography color="textSecondary" mt={4}>
-                  Quantity: ~{convertBigNumber(otc?.data.quantity)} ({otc?.data.quantity})
+            <Box display="flex" flexDirection="column" mt={2} px={2}>
+              <Box display="flex" flexDirection="column" margin="auto">
+                <Typography variant="h6" align="center" mt={2}>
+                  {' '}
+                  Submit bid: {id}{' '}
                 </Typography>
-                <Typography color="textSecondary"  mt={1}>Limit Price: {otc?.data.limitPrice}</Typography>
+                <Typography mt={2} color="textSecondary" align="center">
+                  You are {bidderAction} oSQTH
+                </Typography>
+                <InfoData title="Quantity" value={`~${formatBigNumber(otc?.data.quantity)}`} unit="oSqth" />
+                <InfoData title="Limit Price" value={otc?.data.limitPrice.toString() || '0'} unit="WETH" />
+                <Expiry time={otc.data.expiry} />
                 <TextField
                   value={bidPrice}
                   onChange={e => setBidPrice(e.target.value)}
@@ -162,36 +182,62 @@ const OTCBidPage: NextPage = () => {
                   label="Enter Bid Price (ETH)"
                   variant="outlined"
                   size="small"
-                  sx={{ mt: 4, mb: 2 }}
+                  sx={{ mt: 2 }}
                   onWheel={e => (e.target as any).blur()}
                 />
 
+                {auctionIsSellingOSqth ? (
+                  <>
+                    <Typography variant="body2" color="textSecondary" mt={2}>
+                      Your Weth Balance: {convertBigNumber(wethBalance)}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary" mt={1}>
+                      Total Weth to Spend: {totalWeth.toFixed(6)}
+                    </Typography>
+                  </>
+                ) : (
+                  <>
+                    <InfoData title="Your oSQTH Balance" value={formatBigNumber(oSqthBalance)} unit="oSQTH" />
+                    <InfoData title="Total Weth to get" value={totalWeth.toFixed(5)} unit="WETH" />
+                  </>
+                )}
 
-                <Typography variant="body2" color="textSecondary" mt={2}>
-                    Your Weth Balance: {convertBigNumber(wethBalance)}
-                </Typography>
-                <Typography variant="body2" color="textSecondary" mt={2}>
-                    Total Weth to Spend: {totalWeth}
-                </Typography>
-
-                {(bidPrice && (bidPrice != '0') && !error) && (
-                <BoxLoadingButton onClick={createBid} sx={{ mt: 2 }} loading={isLoading}>
-                  Submit order
-                </BoxLoadingButton>
-                ) }
-                <Typography style={{ whiteSpace: 'pre-line' }} align="center" mt={2} mb={2} color="error.main" variant="body3">
+                {bidPrice && bidPrice != '0' && !error && (
+                  <BoxLoadingButton onClick={createBid} sx={{ mt: 2 }} loading={isLoading}>
+                    Submit order
+                  </BoxLoadingButton>
+                )}
+                <Typography
+                  style={{ whiteSpace: 'pre-line' }}
+                  align="center"
+                  mt={2}
+                  mb={2}
+                  color="error.main"
+                  variant="body3"
+                >
                   {bidPrice ? error : ''}
                 </Typography>
-                
               </Box>
             </Box>
-          </Grid>      
+          </Grid>
         </Grid>
-
-        
       </Box>
     </div>
   )
 }
 
 export default OTCBidPage
+
+const InfoData: React.FC<{ title: string; value: string; unit: string }> = ({ title, value, unit }) => {
+  return (
+    <Box display="flex" mt={1} justifyContent="space-between">
+      <Typography variant="body3">{title}</Typography>
+      <Typography variant="body2" color="textSecondary">
+        <Typography color="textPrimary" component="span" variant="numeric">
+          {value}
+        </Typography>{' '}
+        {unit}
+      </Typography>
+    </Box>
+  )
+}

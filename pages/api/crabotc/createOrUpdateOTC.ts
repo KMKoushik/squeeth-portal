@@ -18,5 +18,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await createOrUpdateOTC(crabOTC, crabOTCData)
 
-  res.status(200).json({ message: 'Successfully updated auction' })
+  res.status(200).json({ message: 'Successfully updated OTC' })
 }

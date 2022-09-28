@@ -12,6 +12,7 @@ export const crabOtcdomain = {
 
 export const crabOtctype = {
   Order: [
+    { type: 'address', name: 'initiator' },
     { type: 'address', name: 'trader' },
     { type: 'uint256', name: 'quantity' },
     { type: 'uint256', name: 'price' },

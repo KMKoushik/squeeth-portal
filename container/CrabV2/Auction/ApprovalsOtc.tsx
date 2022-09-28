@@ -39,7 +39,6 @@ const ApprovalsOtc: React.FC = () => {
       },
     ],
   })
-  
 
   const { data: wethApproveTx, writeAsync: approveWeth } = useContractWrite({
     ...WETH_CONTRACT,
@@ -121,7 +120,6 @@ const ApprovalsOtc: React.FC = () => {
   useEffect(() => {
     setCrabApproval(crabApproval || BIG_ZERO)
   }, [crabApproval, setCrabApproval])
-
 
   const isWethApproved = wethApproval?.gt(toBigNumber(1_000_000))
   const isOsqthApproved = osqthApproval?.gt(toBigNumber(1_000_000))
