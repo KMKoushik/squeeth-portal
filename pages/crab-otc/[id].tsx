@@ -78,7 +78,7 @@ const OTCBidPage: NextPage = () => {
     if (Date.now() > (otc?.data?.expiry || 0)) return 'Order expired'
   }, [otc?.data.expiry])
 
-  const error = priceError || approvalError || balanceError || expiryError
+  const error = expiryError || priceError || approvalError || balanceError
 
   React.useEffect(() => {
     if (!id) return

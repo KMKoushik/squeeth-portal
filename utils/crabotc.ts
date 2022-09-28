@@ -1,7 +1,11 @@
-import { ethers } from 'ethers'
-import { CRAB_OTC } from '../constants/address'
-import { CHAIN_ID } from '../constants/numbers'
-import { CrabOTCOrder } from '../types'
+import { ethers, BigNumber } from 'ethers'
+import { CRAB_OTC, WETH, OSQUEETH, CRAB_STRATEGY_V2 } from '../constants/address'
+import { BIG_ZERO, CHAIN_ID } from '../constants/numbers'
+import { CrabOTCBid, CrabOTCOrder, CrabOtcType, CrabOTCWithData } from '../types'
+import erc20Abi from '../abis/ERC20.json'
+import { provider } from '../server/utils/ether'
+import { ERC20 } from '../types/contracts'
+import { convertBigNumber } from './math'
 
 export const crabOtcdomain = {
   name: 'CrabOTC',
@@ -32,4 +36,59 @@ export const signOTCOrder = async (signer: any, order: CrabOTCOrder) => {
   const { r, s, v } = ethers.utils.splitSignature(signature)
 
   return { signature, r, s, v }
+}
+
+export const validateOrder = async (bid: CrabOTCBid, crabOtc: CrabOTCWithData, bidId: Number,) => {
+
+  let isValidOrder = true
+  let response = ''
+  const executionTime = Date.now() 
+
+  if (executionTime > (crabOtc?.data?.expiry || 0)) {
+    isValidOrder = false 
+    response = 'Order expired...Create/Update order above'
+    return { isValidOrder, response }
+  } else if (executionTime > (bid?.order.expiry || 0)) {
+    isValidOrder = false
+    response = `Bid #${bidId} expired` 
+    return { isValidOrder, response }
+  }
+
+  if (crabOtc.data.type == CrabOtcType.DEPOSIT) {
+    const wethContract = new ethers.Contract(WETH, erc20Abi, provider) as ERC20
+    const traderBalance = await wethContract.balanceOf(bid?.order?.trader)
+    const traderAllowance = await wethContract.allowance(bid?.order?.trader, CRAB_OTC)
+    return validateBalance(bid, crabOtc, bidId, traderAllowance, traderBalance)
+  } else {
+    const squeethContract = new ethers.Contract(OSQUEETH, erc20Abi, provider)
+    const traderBalance = await squeethContract.balanceOf(bid?.order?.trader)
+    const traderAllowance = await squeethContract.allowance(bid?.order?.trader, CRAB_OTC)
+    return validateBalance(bid, crabOtc, bidId, traderAllowance, traderBalance)
+  }
+}
+
+export const validateBalance = (
+  bid: CrabOTCBid,
+  crabOtc: CrabOTCWithData,
+  bidId: Number,
+  traderAllowance: BigNumber,
+  traderBalance: BigNumber,
+) => {
+
+  let isValidOrder = true
+  let response = ''
+  
+  const tradeAmount = (crabOtc.data.type == CrabOtcType.DEPOSIT) ? Number(bid?.order?.price || 0) * convertBigNumber(bid?.order.quantity || BIG_ZERO) : convertBigNumber(bid?.order?.quantity || BIG_ZERO)
+  if (tradeAmount > convertBigNumber(traderBalance)){
+    isValidOrder = false
+    response = `Insufficient bidder funds for Bid #${bidId}`
+    return { isValidOrder, response }
+  } 
+  if (convertBigNumber(traderAllowance) < tradeAmount || convertBigNumber(traderBalance) < tradeAmount) {
+    isValidOrder = false
+    response = `Amount approved or balance is less than order quantity for Bid #${bidId}`
+    return { isValidOrder, response }
+  }
+
+  return { isValidOrder, response }
 }
