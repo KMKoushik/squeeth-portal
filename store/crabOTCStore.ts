@@ -1,16 +1,16 @@
-import { CrabOTC } from '../types'
+import { CrabOTC, CrabOTCWithData } from '../types'
 import create from 'zustand'
 
 interface CrabOTCStore {
   otcLoading: boolean
-  userOTCs: CrabOTC[]
+  userOTC: CrabOTCWithData | null
   setOtcLoading: (loading: boolean) => void
-  setUserOTCs: (otcs: CrabOTC[]) => void
+  setUserOTC: (otcs: CrabOTCWithData | null) => void
 }
 
 export const useCrabOTCStore = create<CrabOTCStore>((set, get) => ({
   otcLoading: true,
-  userOTCs: [],
+  userOTC: null,
   setOtcLoading: loading => set({ otcLoading: loading }),
-  setUserOTCs: otcs => set({ userOTCs: otcs }),
+  setUserOTC: otc => set({ userOTC: otc }),
 }))

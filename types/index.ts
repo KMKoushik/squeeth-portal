@@ -91,6 +91,7 @@ export enum CrabOtcType {
 }
 
 export type CrabOTCOrder = {
+  initiator: string
   trader: string
   quantity: string
   price: string
@@ -105,14 +106,24 @@ export type CrabOTCBid = {
 }
 
 export type CrabOTC = {
+  cid: string
+  createdBy: string
   id?: string
+  tx?: string
+  usedBid?: string
+}
+
+export type CrabOTCData = {
   depositAmount: number
+  withdrawAmount: number
   createdBy: string
   expiry: number
   limitPrice: number
-  quantity: number
+  quantity: string
   type: CrabOtcType
   bids: { [k: string]: CrabOTCBid }
-  tx?: string
-  usedBid?: string
+}
+
+export type CrabOTCWithData = CrabOTC & {
+  data: CrabOTCData
 }
