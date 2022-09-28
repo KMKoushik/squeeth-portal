@@ -1,27 +1,369 @@
-import { TextField, Typography } from '@mui/material'
+import {
+  Grid,
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { Box } from '@mui/system'
 import { ethers } from 'ethersv5'
-import { useMemo, useState } from 'react'
-import { useContract, useContractWrite, useSigner } from 'wagmi'
-import PrimaryButton from '../../../components/button/PrimaryButton'
+import React, { useMemo, useState, useEffect } from 'react'
+import { useBalance, useContract, useSigner } from 'wagmi'
+import { BoxLoadingButton } from '../../../components/button/PrimaryButton'
 import { CRAB_OTC, CRAB_STRATEGY_V2 } from '../../../constants/address'
-import { CRAB_OTC_CONTRACT} from '../../../constants/contracts'
 import { GENERAL } from '../../../constants/message'
 import { BIG_ONE, BIG_ZERO } from '../../../constants/numbers'
 import useAccountStore from '../../../store/accountStore'
 import { useCrabOTCStore } from '../../../store/crabOTCStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import usePriceStore from '../../../store/priceStore'
-import { CrabOTC, CrabOTCBid, CrabOTCOrder, CrabOtcType, MessageWithTimeSignature } from '../../../types'
+import { CrabOTCBid, CrabOTCData, CrabOtcType, CrabOTCWithData, MessageWithTimeSignature } from '../../../types'
 import { CrabOtc, CrabStrategyV2 } from '../../../types/contracts'
 import { signMessageWithTime } from '../../../utils/auction'
 import { convertBigNumber, formatBigNumber, toBigNumber, wdiv, wmul } from '../../../utils/math'
 import crabOtc from '../../../abis/crabOtc.json'
 import crabV2 from '../../../abis/crabStrategyV2.json'
+import shallow from 'zustand/shallow'
+import ApprovalsOtc from '../Auction/ApprovalsOtc'
+import DangerButton from '../../../components/button/DangerButton'
+import useCopyToClipboard from '../../../hooks/useCopyToClipboard'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import { Expiry } from '../../CrabOTC/Expiry'
+import useToaster from '../../../hooks/useToaster'
 
 export const CrabOTCBox: React.FC = () => {
-  const userOTCs = useCrabOTCStore(s => s.userOTCs)
   const { data: signer } = useSigner()
+  const crabBalance = useAccountStore(s => s.crabBalance)
+
+  return (
+    <Box pb={8}>
+      <Typography variant="h6" sx={{ textAlign: { xs: 'center', sm: 'left' } }} mb={1}>
+        Token Approvals
+      </Typography>
+      <Box>
+        <ApprovalsOtc />
+      </Box>
+      <Grid container gap={2} mt={2}>
+        <Grid item xs={12} md={12} lg={5} bgcolor="background.overlayDark" borderRadius={2}>
+          <CreateDeposit />
+        </Grid>
+        {convertBigNumber(crabBalance) > 0 && (
+          <Grid item xs={12} md={12} lg={5} bgcolor="background.overlayDark" px={4} borderRadius={2}>
+            <Withdraw />
+          </Grid>
+        )}
+      </Grid>
+    </Box>
+  )
+}
+
+const Withdraw: React.FC = () => {
+  const userOtc = useCrabOTCStore(s => s.userOTC)
+  const { data: signer } = useSigner()
+  const { oSqthPrice } = usePriceStore(s => ({ oSqthPrice: s.oSqthPrice }), shallow)
+  const [withdrawAmount, setWithdrawAmount] = useState(userOtc?.data.withdrawAmount || '0')
+  const [limitPrice, setLimitPrice] = useState(userOtc?.data.limitPrice || '0')
+  const [osqthToBuy, setosqthToBuy] = useState(BIG_ZERO)
+  const { address, crabBalance } = useAccountStore(s => ({ address: s.address, crabBalance: s.crabBalance }), shallow)
+  const [isLoading, setLoading] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [withdrawLoading, setWithdrawLoading] = useState(false)
+  const crabApprovalOtc = useCrabV2Store(s => s.crabApprovalOtc)
+
+  const showToast = useToaster()
+
+  const isEdit = !!userOtc && userOtc.data.type === CrabOtcType.WITHDRAW
+
+  const crabV2Contract = useContract<CrabStrategyV2>({
+    addressOrName: CRAB_STRATEGY_V2,
+    contractInterface: crabV2,
+    signerOrProvider: signer,
+  })
+
+  useEffect(() => {
+    if (!userOtc) {
+      setWithdrawAmount('0')
+      setLimitPrice('0')
+    }
+  }, [userOtc])
+
+  useEffect(() => {
+    crabV2Contract.getWsqueethFromCrabAmount(toBigNumber(withdrawAmount)).then(amt => {
+      setosqthToBuy(amt)
+    })
+  }, [crabV2Contract, withdrawAmount])
+
+  const sharesError = useMemo(() => {
+    if (convertBigNumber(crabBalance) == 0) {
+      return 'You do not have any crab shares'
+    } else if (convertBigNumber(crabBalance) < Number(withdrawAmount)) {
+      return 'You do not have enough crab shares'
+    }
+  }, [crabBalance, withdrawAmount])
+
+  const approvalsError = useMemo(() => {
+    if (crabApprovalOtc.lt(toBigNumber(withdrawAmount.toString()))) {
+      return 'Approve crab token from the top section'
+    }
+  }, [crabApprovalOtc, withdrawAmount])
+
+  const withdrawError = sharesError || approvalsError
+
+  const createOtcOrder = async () => {
+    setLoading(true)
+    try {
+      const mandate: MessageWithTimeSignature = {
+        message: GENERAL,
+        time: Date.now(),
+      }
+
+      const signature = await signMessageWithTime(signer, mandate)
+
+      const crabOTCData: CrabOTCData = {
+        depositAmount: 0,
+        withdrawAmount: parseFloat(withdrawAmount.toString()),
+        expiry: Date.now() + 1200000,
+        limitPrice: parseFloat(limitPrice.toString()),
+        quantity: osqthToBuy.toString(),
+        type: CrabOtcType.WITHDRAW,
+        bids: {},
+        createdBy: address!,
+      }
+
+      const crabOTC: CrabOTCWithData = {
+        cid: '',
+        createdBy: address!,
+        data: crabOTCData,
+        tx: '',
+        id: isEdit ? userOtc.id : '',
+      }
+
+      const resp = await fetch('/api/crabotc/createOrUpdateOTC?web=true', {
+        method: 'POST',
+        body: JSON.stringify({ signature, crabOTC, mandate }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      showToast(resp)
+    } catch (e) {
+      console.log(e)
+    }
+    setLoading(false)
+  }
+
+  const crabOtcContract = useContract<CrabOtc>({
+    addressOrName: CRAB_OTC,
+    contractInterface: crabOtc,
+    signerOrProvider: signer,
+  })
+
+  const withdrawCrab = async (bid: CrabOTCBid, crabOtc: CrabOTCWithData) => {
+    setWithdrawLoading(true)
+    try {
+      const mandate: MessageWithTimeSignature = {
+        message: GENERAL,
+        time: Date.now(),
+      }
+
+      const signature = await signMessageWithTime(signer, mandate)
+      const _price = toBigNumber(crabOtc.data.limitPrice || 0)
+
+      const { r, s, v } = ethers.utils.splitSignature(bid.signature)
+
+      const order = {
+        ...bid.order,
+        r,
+        s,
+        v,
+      }
+
+      const estimatedGas = await crabOtcContract.estimateGas.withdraw(
+        toBigNumber(crabOtc.data.withdrawAmount),
+        _price,
+        order,
+      )
+      const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
+
+      const tx = await crabOtcContract.withdraw(toBigNumber(crabOtc.data.withdrawAmount), _price, order, {
+        gasLimit: estimatedGasCeil,
+      })
+
+      await tx.wait()
+      const completedOtc: CrabOTCWithData = {
+        ...crabOtc,
+        tx: tx.hash,
+        usedBid: `${bid.order.trader}-${bid.order.nonce}`,
+      }
+
+      const resp = await fetch('/api/crabotc/createOrUpdateOTC?web=true', {
+        method: 'POST',
+        body: JSON.stringify({ signature, crabOTC: completedOtc, mandate }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+    } catch (e) {
+      console.log(e)
+    }
+    setWithdrawLoading(false)
+  }
+
+  const deleteOTCOrder = async () => {
+    setDeleteLoading(true)
+    const mandate: MessageWithTimeSignature = {
+      message: GENERAL,
+      time: Date.now(),
+    }
+
+    const signature = await signMessageWithTime(signer, mandate)
+
+    const resp = await fetch('/api/crabotc/deleteOTC?web=true', {
+      method: 'DELETE',
+      body: JSON.stringify({ signature, id: userOtc?.id, mandate }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    showToast(resp)
+    setDeleteLoading(false)
+  }
+
+  return (
+    <Box display="flex" flexDirection="column" mt={4} px={2}>
+      <Box display="flex" flexDirection="column" width={300} margin="auto">
+        <Typography></Typography>
+        <Typography variant="h6" align="center" mt={2}>
+          {isEdit ? 'Edit Withdraw' : 'Create Withdraw'}
+        </Typography>
+        <Typography variant="body2" color="textSecondary" mt={2}>
+          Crab Balance: {formatBigNumber(crabBalance)}
+        </Typography>
+        <Typography variant="body2" color="textSecondary">
+          oSQTH Price: {formatBigNumber(oSqthPrice, 18)}
+        </Typography>
+
+        <TextField
+          value={withdrawAmount}
+          onChange={e => setWithdrawAmount(e.target.value)}
+          type="number"
+          id="crab"
+          label="Crab Amount to Withdraw"
+          variant="outlined"
+          size="small"
+          sx={{ mt: 4 }}
+          onWheel={e => (e.target as any).blur()}
+        />
+
+        <TextField
+          value={limitPrice}
+          onChange={e => setLimitPrice(e.target.value)}
+          type="number"
+          id="limit price"
+          label="Max Limit Price (ETH)"
+          variant="outlined"
+          size="small"
+          sx={{ mt: 2 }}
+          onWheel={e => (e.target as any).blur()}
+        />
+        <Box display="flex" mt={1} justifyContent="space-between">
+          <Typography variant="body3">Osqth to Buy</Typography>
+          <Typography variant="body2" color="textSecondary">
+            <Typography color="textPrimary" component="span" variant="numeric">
+              {formatBigNumber(osqthToBuy)}
+            </Typography>{' '}
+            oSQTH
+          </Typography>
+        </Box>
+        <Box display="flex" mt={1} justifyContent="space-between">
+          <Typography variant="body3">Slippage</Typography>
+          <Typography variant="body2" color="textSecondary">
+            <Typography color="textPrimary" component="span" variant="numeric">
+              {oSqthPrice.gt(0) ? formatBigNumber(wdiv(toBigNumber(limitPrice), oSqthPrice).sub(BIG_ONE).mul(100)) : 0}
+            </Typography>{' '}
+            %
+          </Typography>
+        </Box>
+        <CopyLink id={userOtc?.id || ''} />
+        <Expiry time={userOtc?.data.expiry || 0} />
+
+        {Number(withdrawAmount) > 0 && Number(limitPrice) > 0 && (
+          <BoxLoadingButton onClick={createOtcOrder} sx={{ width: 300, mt: 2, mb: 2 }} loading={isLoading}>
+            {isEdit ? 'Edit' : 'Create'} Withdraw OTC
+          </BoxLoadingButton>
+        )}
+        {isEdit ? (
+          <DangerButton sx={{ width: 300 }} onClick={deleteOTCOrder} loading={deleteLoading}>
+            Cancel Order
+          </DangerButton>
+        ) : null}
+        <Typography style={{ whiteSpace: 'pre-line' }} mt={2} mb={2} color="error.main" variant="body3">
+          {withdrawAmount ? withdrawError : ''}
+        </Typography>
+      </Box>
+      {isEdit ? (
+        <>
+          <Typography variant="h6" align="center" mt={2}>
+            Bids
+          </Typography>
+          <TableContainer sx={{ bgcolor: 'background.overlayDark', borderRadius: 2 }}>
+            <Table sx={{ minWidth: 500 }} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Quantity</TableCell>
+                  <TableCell>Price (ETH)</TableCell>
+                  <TableCell>Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {Object.keys(userOtc?.data.bids).map(bidId => (
+                  <TableRow key={bidId}>
+                    <TableCell component="th" scope="row">
+                      {formatBigNumber(userOtc?.data.bids[bidId].order.quantity)}
+                    </TableCell>
+                    <TableCell component="th" scope="row">
+                      {formatBigNumber(userOtc?.data.bids[bidId].order.price, 18, 6)}
+                    </TableCell>
+                    <TableCell component="th" scope="row">
+                      <BoxLoadingButton
+                        sx={{ width: 100 }}
+                        size="small"
+                        onClick={() => withdrawCrab(userOtc?.data.bids[bidId], userOtc)}
+                        loading={withdrawLoading}
+                      >
+                        Execute
+                      </BoxLoadingButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Box></Box>
+        </>
+      ) : null}
+    </Box>
+  )
+}
+
+const CreateDeposit: React.FC = () => {
+  const userOtc = useCrabOTCStore(s => s.userOTC)
+  const [ethAmount, setEthAmount] = useState(userOtc?.data.depositAmount.toString() || '0')
+  const [limitPrice, setLimitPrice] = useState(userOtc?.data.limitPrice.toString() || '0')
+  const vault = useCrabV2Store(s => s.vault)
+  const oSqthPrice = usePriceStore(s => s.oSqthPrice)
+  const address = useAccountStore(s => s.address)
+  const { data: signer } = useSigner()
+  const [isLoading, setLoading] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [isDepositCrabLoading, setDepositCrabLoading] = useState(false)
+
+  const showMessageFromServer = useToaster()
+
+  const { data: ethBalance } = useBalance({
+    addressOrName: address,
+  })
 
   const crabOtcContract = useContract<CrabOtc>({
     addressOrName: CRAB_OTC,
@@ -35,105 +377,20 @@ export const CrabOTCBox: React.FC = () => {
     signerOrProvider: signer,
   })
 
-  const { data: hedgeTx, writeAsync: deposit } = useContractWrite({
-    ...CRAB_OTC_CONTRACT,
-    functionName: 'deposit',
-    args: [],
-    overrides: {
-      value: BIG_ONE,
-    },
-  })
-
-  const depositCrab = async (bid: CrabOTCBid, crabOtc: CrabOTC) => {
-    const _qty = toBigNumber(crabOtc.quantity || 0)
-    const _price = toBigNumber(crabOtc.limitPrice || 0)
-
-    const { r, s, v } = ethers.utils.splitSignature(bid.signature)
-
-    const order = {
-      ...bid.order,
-      r,
-      s,
-      v,
+  useEffect(() => {
+    if (!userOtc) {
+      setEthAmount('0')
+      setLimitPrice('0')
     }
+  }, [userOtc])
 
-    const [,,collateral, debt] = await crabV2Contract.getVaultDetails();
-    const total_deposit = wdiv(wmul(_qty, collateral), debt); 
-
-    const estimatedGas = await crabOtcContract.estimateGas.deposit(total_deposit, _price, order, { value: toBigNumber(crabOtc.depositAmount) })
-    const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
-    await crabOtcContract.deposit(total_deposit, _price, order, { value: toBigNumber(crabOtc.depositAmount), gasLimit: estimatedGasCeil })
-
-    // const tx = await deposit({
-    //   args: [_qty, _price, order],
-    //   overrides: {
-    //     value: BIG_ONE,
-    //   },
-    // })
-  }
-
-  return (
-    <Box>
-      {userOTCs.map(otc => (
-        <Box key={otc.id} mt={1}>
-          <Typography>
-            ID: {otc.id} --- QTY:{otc.quantity} --- limit price:{otc.limitPrice}
-          </Typography>
-          <Typography>Bids:</Typography>
-          <Box ml={2}>
-            {Object.keys(otc.bids).map(bidId => (
-              <Box key={bidId}>
-                <Typography>
-                  Trader: {otc.bids[bidId].order.trader} - Qty: {otc.bids[bidId].order.quantity} - Price:{' '}
-                  {otc.bids[bidId].order.price}
-                </Typography>
-                <PrimaryButton onClick={() => depositCrab(otc.bids[bidId], otc)}>Deposit</PrimaryButton>
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      ))}
-      <CreateDeposit />
-      <Withdraw />
-    </Box>
-  )
-}
-
-const Withdraw: React.FC = () => {
-  const { data: signer } = useSigner()
-  const address = useAccountStore(s => s.address)
-
-  const crabV2Contract = useContract<CrabStrategyV2>({
-    addressOrName: CRAB_STRATEGY_V2,
-    contractInterface: crabV2,
-    signerOrProvider: signer,
-  })
-
-  const getBalance = async () => {
-    if(address){
-      const balance = await crabV2Contract.balanceOf(address);
-      console.log(balance);
-    }
-  }
-
-  return (
-    <PrimaryButton>Withdraw</PrimaryButton>
-  )
-}
-
-const CreateDeposit: React.FC = () => {
-  const [ethAmount, setEthAmount] = useState('0')
-  const [limitPrice, setLimitPrice] = useState('0')
-  const vault = useCrabV2Store(s => s.vault)
-  const oSqthPrice = usePriceStore(s => s.oSqthPrice)
-  const address = useAccountStore(s => s.address)
-  const { data: signer } = useSigner()
+  const isEdit = !!userOtc && userOtc.data.type === CrabOtcType.DEPOSIT
 
   const sqthToMint = useMemo(() => {
     if (!vault) return BIG_ZERO
 
-    const _ethAmount = toBigNumber(ethAmount, 18)
-    const _limitPrice = toBigNumber(limitPrice, 18)
+    const _ethAmount = toBigNumber(ethAmount || '0', 18)
+    const _limitPrice = toBigNumber(limitPrice || '0', 18)
     const debt = vault.shortAmount
     const collat = vault.collateral
     const cr0 = wdiv(debt, collat)
@@ -146,6 +403,48 @@ const CreateDeposit: React.FC = () => {
   }, [ethAmount, limitPrice, vault])
 
   const createOtcOrder = async () => {
+    setLoading(true)
+    try {
+      const mandate: MessageWithTimeSignature = {
+        message: GENERAL,
+        time: Date.now(),
+      }
+
+      const signature = await signMessageWithTime(signer, mandate)
+
+      const crabOTCData: CrabOTCData = {
+        depositAmount: parseFloat(ethAmount),
+        withdrawAmount: 0,
+        createdBy: address!,
+        expiry: Date.now() + 1200000,
+        limitPrice: parseFloat(limitPrice),
+        quantity: sqthToMint.toString(),
+        type: CrabOtcType.DEPOSIT,
+        bids: {},
+      }
+
+      const crabOTC: CrabOTCWithData = {
+        cid: '',
+        createdBy: address!,
+        data: crabOTCData,
+        tx: '',
+        id: isEdit ? userOtc.id : '',
+      }
+
+      const resp = await fetch('/api/crabotc/createOrUpdateOTC?web=true', {
+        method: 'POST',
+        body: JSON.stringify({ signature, crabOTC, mandate }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+      showMessageFromServer(resp)
+    } catch (e) {
+      console.log(e)
+    }
+    setLoading(false)
+  }
+
+  const deleteOTCOrder = async () => {
+    setDeleteLoading(true)
     const mandate: MessageWithTimeSignature = {
       message: GENERAL,
       time: Date.now(),
@@ -153,53 +452,198 @@ const CreateDeposit: React.FC = () => {
 
     const signature = await signMessageWithTime(signer, mandate)
 
-    const crabOTC: CrabOTC = {
-      depositAmount: parseFloat(ethAmount),
-      createdBy: address!,
-      expiry: Date.now() + 600000,
-      limitPrice: parseFloat(limitPrice),
-      quantity: convertBigNumber(sqthToMint),
-      type: CrabOtcType.DEPOSIT,
-      bids: {},
-    }
-
-    const resp = await fetch('/api/crabotc/createOrUpdateOTC?web=true', {
-      method: 'POST',
-      body: JSON.stringify({ signature, crabOTC, mandate }),
+    const resp = await fetch('/api/crabotc/deleteOTC?web=true', {
+      method: 'DELETE',
+      body: JSON.stringify({ signature, id: userOtc?.id, mandate }),
       headers: { 'Content-Type': 'application/json' },
     })
+    setDeleteLoading(false)
+  }
+
+  const depositCrab = async (bid: CrabOTCBid, crabOtc: CrabOTCWithData) => {
+    setDepositCrabLoading(true)
+    try {
+      const mandate: MessageWithTimeSignature = {
+        message: GENERAL,
+        time: Date.now(),
+      }
+
+      const signature = await signMessageWithTime(signer, mandate)
+      const _qty = crabOtc.data?.quantity ? crabOtc?.data.quantity : '0'
+      const _price = toBigNumber(crabOtc.data.limitPrice || 0)
+
+      const { r, s, v } = ethers.utils.splitSignature(bid.signature)
+
+      const order = {
+        ...bid.order,
+        r,
+        s,
+        v,
+      }
+
+      const [, , collateral, debt] = await crabV2Contract.getVaultDetails()
+      const total_deposit = wdiv(wmul(_qty, collateral), debt)
+      const estimatedGas = await crabOtcContract.estimateGas.deposit(total_deposit, _price, order, {
+        value: toBigNumber(crabOtc.data.depositAmount),
+      })
+      const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
+      const tx = await crabOtcContract.deposit(total_deposit, _price, order, {
+        value: toBigNumber(crabOtc.data.depositAmount),
+        gasLimit: estimatedGasCeil,
+      })
+
+      await tx.wait()
+
+      const completedOtc: CrabOTCWithData = {
+        ...crabOtc,
+        tx: tx.hash,
+        usedBid: `${bid.order.trader}-${bid.order.nonce}`,
+      }
+
+      const resp = await fetch('/api/crabotc/createOrUpdateOTC?web=true', {
+        method: 'POST',
+        body: JSON.stringify({ signature, crabOTC: completedOtc, mandate }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+    } catch (e) {
+      console.log(e)
+    }
+    setDepositCrabLoading(false)
   }
 
   return (
-    <Box display="flex" flexDirection="column" width={300} mt={4}>
-      <Typography>Create deposit</Typography>
-      <TextField
-        value={ethAmount}
-        onChange={e => setEthAmount(e.target.value)}
-        type="number"
-        id="eth"
-        label="ETH Amount"
-        variant="outlined"
-        size="small"
-        sx={{ mt: 4 }}
-        onWheel={e => (e.target as any).blur()}
-      />
-      <TextField
-        value={limitPrice}
-        onChange={e => setLimitPrice(e.target.value)}
-        type="number"
-        id="limit price"
-        label="Limit price"
-        variant="outlined"
-        size="small"
-        sx={{ mt: 4 }}
-        onWheel={e => (e.target as any).blur()}
-      />
-      <Typography mt={2}>oSqth Price: {formatBigNumber(oSqthPrice)} ETH</Typography>
-      <Typography mt={2} mb={2}>
-        oSQTH to sell: {formatBigNumber(sqthToMint)}
+    <Box display="flex" flexDirection="column" mt={4} px={2}>
+      <Box display="flex" flexDirection="column" width={300} margin="auto">
+        <Typography variant="h6" align="center" mt={2}>
+          {isEdit ? 'Edit Deposit' : 'Create Deposit'}
+        </Typography>
+        <Typography variant="body2" color="textSecondary" mt={2}>
+          Eth Balance: {formatBigNumber(ethBalance?.value || '0')}
+        </Typography>
+        <Typography variant="body2" color="textSecondary">
+          oSqth Price: {formatBigNumber(oSqthPrice)} ETH
+        </Typography>
+        <TextField
+          value={ethAmount}
+          onChange={e => setEthAmount(e.target.value)}
+          type="number"
+          id="eth"
+          label="ETH Amount"
+          variant="outlined"
+          size="small"
+          sx={{ mt: 4 }}
+          onWheel={e => (e.target as any).blur()}
+        />
+        <TextField
+          value={limitPrice}
+          onChange={e => setLimitPrice(e.target.value)}
+          type="number"
+          id="limit price"
+          label="Min Limit price (ETH)"
+          variant="outlined"
+          size="small"
+          sx={{ mt: 2 }}
+          onWheel={e => (e.target as any).blur()}
+        />
+        <Box display="flex" mt={1} justifyContent="space-between">
+          <Typography variant="body3">Osqth to Sell</Typography>
+          <Typography variant="body2" color="textSecondary">
+            <Typography color="textPrimary" component="span" variant="numeric">
+              {formatBigNumber(sqthToMint)}
+            </Typography>{' '}
+            oSQTH
+          </Typography>
+        </Box>
+        <Box display="flex" mt={1} justifyContent="space-between">
+          <Typography variant="body3">Slippage</Typography>
+          <Typography variant="body2" color="textSecondary">
+            <Typography color="textPrimary" component="span" variant="numeric">
+              {oSqthPrice.gt(0) ? formatBigNumber(BIG_ONE.sub(wdiv(toBigNumber(limitPrice), oSqthPrice)).mul(100)) : 0}
+            </Typography>{' '}
+            %
+          </Typography>
+        </Box>
+        <CopyLink id={userOtc?.id || ''} />
+        <Expiry time={userOtc?.data.expiry || 0} />
+
+        <BoxLoadingButton onClick={createOtcOrder} sx={{ width: 300, mt: 2, mb: 2 }} loading={isLoading}>
+          {isEdit ? 'Edit deposit OTC' : 'Create deposit OTC'}
+        </BoxLoadingButton>
+
+        {isEdit ? (
+          <DangerButton sx={{ width: 300 }} onClick={deleteOTCOrder} loading={deleteLoading}>
+            Cancel Order
+          </DangerButton>
+        ) : null}
+        {isDepositCrabLoading ? (
+          <Typography mt={2} textAlign="center">
+            Please don&apos;t close the tab
+          </Typography>
+        ) : null}
+      </Box>
+
+      {isEdit ? (
+        <>
+          <Typography variant="h6" align="center" mt={2}>
+            Bids
+          </Typography>
+          <TableContainer sx={{ bgcolor: 'background.overlayDark', borderRadius: 2 }}>
+            <Table sx={{ minWidth: 500 }} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Quantity</TableCell>
+                  <TableCell>Price (ETH)</TableCell>
+                  <TableCell>Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {Object.keys(userOtc?.data.bids).map(bidId => (
+                  <TableRow key={bidId}>
+                    <TableCell component="th" scope="row">
+                      {formatBigNumber(userOtc?.data.bids[bidId].order.quantity)}
+                    </TableCell>
+                    <TableCell component="th" scope="row">
+                      {formatBigNumber(userOtc?.data.bids[bidId].order.price, 18, 6)}
+                    </TableCell>
+                    <TableCell component="th" scope="row">
+                      <BoxLoadingButton
+                        sx={{ width: 100 }}
+                        size="small"
+                        onClick={() => depositCrab(userOtc?.data.bids[bidId], userOtc)}
+                        loading={isDepositCrabLoading}
+                      >
+                        Execute
+                      </BoxLoadingButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Box></Box>
+        </>
+      ) : null}
+    </Box>
+  )
+}
+
+const CopyLink: React.FC<{ id: string }> = ({ id }) => {
+  const [, copy] = useCopyToClipboard()
+
+  const copyClick = () => {
+    copy(`${location.href}/${id}`)
+  }
+
+  return (
+    <Box display="flex" mt={1} alignItems="center" justifyContent="space-between">
+      <Typography variant="body2" color="textSecondary">
+        Copy and share link
       </Typography>
-      <PrimaryButton onClick={createOtcOrder}>Create Deposit OTC</PrimaryButton>
+      <Box display="flex" alignItems="center">
+        <IconButton aria-label="copy" onClick={copyClick}>
+          <ContentCopyIcon fontSize="small" />
+        </IconButton>
+      </Box>
     </Box>
   )
 }

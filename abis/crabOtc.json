@@ -138,6 +138,11 @@
         "components": [
           {
             "internalType": "address",
+            "name": "initiator",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
             "name": "trader",
             "type": "address"
           },
@@ -269,6 +274,11 @@
       },
       {
         "components": [
+          {
+            "internalType": "address",
+            "name": "initiator",
+            "type": "address"
+          },
           {
             "internalType": "address",
             "name": "trader",
