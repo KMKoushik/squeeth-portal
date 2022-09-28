@@ -1,6 +1,9 @@
 {
   "name": "squeeth-portal",
   "private": true,
+  "engines": {
+    "node": "^16"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
