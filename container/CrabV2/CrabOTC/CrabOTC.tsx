@@ -432,8 +432,8 @@ const CreateDeposit: React.FC = () => {
     const collat = vault.collateral
     const cr0 = wdiv(debt, collat)
     const oSqthToMint = wdiv(
-      debt.sub(wmul(cr0, collat)).sub(wmul(cr0, _ethAmount)),
-      wmul(cr0, _limitPrice).sub(BIG_ONE),
+      debt.sub(debt).sub(wdiv(wmul(debt, _ethAmount), collat)),
+      wdiv(wmul(debt, _limitPrice), collat).sub(BIG_ONE),
     )
 
     return oSqthToMint
@@ -529,8 +529,8 @@ const CreateDeposit: React.FC = () => {
           v,
         }
 
-        const [, , collateral, debt] = await crabV2Contract.getVaultDetails()
-        const total_deposit = wdiv(wmul(_qty, collateral), debt)
+        const total_deposit = toBigNumber(crabOtc.data.depositAmount).add(wmul(_qty,_price));
+    
         const estimatedGas = await crabOtcContract.estimateGas.deposit(total_deposit, _price, order, {
           value: toBigNumber(crabOtc.data.depositAmount),
         })
