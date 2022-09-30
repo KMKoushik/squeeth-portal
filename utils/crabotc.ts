@@ -78,7 +78,7 @@ export const validateBalance = (
   let isValidOrder = true
   let response = ''
   
-  const tradeAmount = (crabOtc.data.type == CrabOtcType.DEPOSIT) ? Number(bid?.order?.price || 0) * convertBigNumber(bid?.order.quantity || BIG_ZERO) : convertBigNumber(bid?.order?.quantity || BIG_ZERO)
+  const tradeAmount = (crabOtc.data.type == CrabOtcType.DEPOSIT) ? convertBigNumber(bid?.order?.price || BIG_ZERO) * convertBigNumber(bid?.order.quantity || BIG_ZERO) : convertBigNumber(bid?.order?.quantity || BIG_ZERO)
   if (tradeAmount > convertBigNumber(traderBalance)){
     isValidOrder = false
     response = `Insufficient bidder funds for Bid #${bidId}`
