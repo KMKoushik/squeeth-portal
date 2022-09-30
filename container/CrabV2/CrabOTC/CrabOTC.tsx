@@ -695,6 +695,8 @@ const CopyLink: React.FC<{ id: string }> = ({ id }) => {
   }
 
   return (
+    <>
+    {id && (
     <Box display="flex" mt={1} alignItems="center" justifyContent="space-between">
       <Typography variant="body2" color="textSecondary">
         Copy and share link
@@ -705,6 +707,8 @@ const CopyLink: React.FC<{ id: string }> = ({ id }) => {
         </IconButton>
       </Box>
     </Box>
+    )}
+    </>
   )
 }
 

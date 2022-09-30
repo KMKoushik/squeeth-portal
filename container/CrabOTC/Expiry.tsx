@@ -15,9 +15,13 @@ const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
 
 export const Expiry: React.FC<{ time: number }> = ({ time }) => {
   return (
+    <>
+    {time > 0 && (
     <Box display="flex" mt={1} mb={1} justifyContent="space-between">
       <Typography variant="body3">Expiry in:</Typography>
       <Countdown date={time} renderer={renderer} />
     </Box>
+    )}
+    </>
   )
 }
