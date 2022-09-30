@@ -49,6 +49,9 @@ export const CrabOTCBox: React.FC = () => {
       <Box>
         <ApprovalsOtc />
       </Box>
+      <Box border="1px solid gray" mt={2} borderRadius={2} maxWidth={500}>
+        <HeaderBody />
+      </Box>
       <Grid container gap={2} mt={2}>
         <Grid item xs={12} md={12} lg={5} bgcolor="background.overlayDark" borderRadius={2}>
           <CreateDeposit />
@@ -73,7 +76,7 @@ const Withdraw: React.FC = () => {
   const { address, crabBalance } = useAccountStore(s => ({ address: s.address, crabBalance: s.crabBalance }), shallow)
   const [isLoading, setLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
-  const [withdrawLoading, setWithdrawLoading] = useState(false)
+  const [withdrawLoading, setWithdrawLoading] = useState(0)
   const crabApprovalOtc = useCrabV2Store(s => s.crabApprovalOtc)
   const [withdrawValidationError, setWithdrawValidationError] = useState('')
 
@@ -95,10 +98,10 @@ const Withdraw: React.FC = () => {
   }, [userOtc])
 
   useEffect(() => {
-    if(signer)
-    crabV2Contract.getWsqueethFromCrabAmount(toBigNumber(withdrawAmount)).then(amt => {
-      setosqthToBuy(amt)
-    })
+    if (signer)
+      crabV2Contract.getWsqueethFromCrabAmount(toBigNumber(withdrawAmount || 0)).then(amt => {
+        setosqthToBuy(amt)
+      })
   }, [crabV2Contract, withdrawAmount])
 
   const sharesError = useMemo(() => {
@@ -110,7 +113,7 @@ const Withdraw: React.FC = () => {
   }, [crabBalance, withdrawAmount])
 
   const approvalsError = useMemo(() => {
-    if (crabApprovalOtc.lt(toBigNumber(withdrawAmount.toString()))) {
+    if (crabApprovalOtc.lt(toBigNumber(withdrawAmount.toString() || 0))) {
       return 'Approve crab token from the top section'
     }
   }, [crabApprovalOtc, withdrawAmount])
@@ -167,12 +170,12 @@ const Withdraw: React.FC = () => {
   })
 
   const withdrawCrab = async (bid: CrabOTCBid, crabOtc: CrabOTCWithData, bidId: number) => {
-    setWithdrawLoading(true)
-    const { isValidOrder, response: error } = await validateOrder(bid, crabOtc,bidId)
+    setWithdrawLoading(bidId)
+    const { isValidOrder, response: error } = await validateOrder(bid, crabOtc, bidId)
 
-    if(!isValidOrder){
+    if (!isValidOrder) {
       setWithdrawValidationError(error)
-    }else{
+    } else {
       try {
         const mandate: MessageWithTimeSignature = {
           message: GENERAL,
@@ -218,7 +221,7 @@ const Withdraw: React.FC = () => {
         console.log(e)
       }
     }
-    setWithdrawLoading(false)
+    setWithdrawLoading(0)
   }
 
   const deleteOTCOrder = async () => {
@@ -251,9 +254,6 @@ const Withdraw: React.FC = () => {
         <Typography variant="body2" color="textSecondary" mt={2}>
           Crab Balance: {formatBigNumber(crabBalance)}
         </Typography>
-        <Typography variant="body2" color="textSecondary">
-          oSQTH Price: {formatBigNumber(oSqthPrice, 18)}
-        </Typography>
 
         <TextField
           value={withdrawAmount}
@@ -272,7 +272,7 @@ const Withdraw: React.FC = () => {
           onChange={e => setLimitPrice(e.target.value)}
           type="number"
           id="limit price"
-          label="Max Limit Price (ETH)"
+          label="Max Limit Price per oSqth (ETH)"
           variant="outlined"
           size="small"
           sx={{ mt: 2 }}
@@ -291,7 +291,9 @@ const Withdraw: React.FC = () => {
           <Typography variant="body3">Slippage</Typography>
           <Typography variant="body2" color="textSecondary">
             <Typography color="textPrimary" component="span" variant="numeric">
-              {oSqthPrice.gt(0) ? formatBigNumber(wdiv(toBigNumber(limitPrice), oSqthPrice).sub(BIG_ONE).mul(100)) : 0}
+              {oSqthPrice.gt(0) && Number(limitPrice) > 0
+                ? formatBigNumber(wdiv(toBigNumber(limitPrice), oSqthPrice).sub(BIG_ONE).mul(100))
+                : 0}
             </Typography>{' '}
             %
           </Typography>
@@ -299,11 +301,14 @@ const Withdraw: React.FC = () => {
         <CopyLink id={userOtc?.id || ''} />
         <Expiry time={userOtc?.data.expiry || 0} />
 
-        {Number(withdrawAmount) > 0 && Number(limitPrice) > 0 && !withdrawError &&(
-          <BoxLoadingButton onClick={createOtcOrder} sx={{ width: 300, mt: 2, mb: 2 }} loading={isLoading}>
-            {isEdit ? 'Edit' : 'Create'} Withdraw OTC
-          </BoxLoadingButton>
-        )}
+        <BoxLoadingButton
+          onClick={createOtcOrder}
+          sx={{ width: 300, mt: 2, mb: 2 }}
+          loading={isLoading}
+          disabled={!(Number(withdrawAmount) > 0 && Number(limitPrice) > 0 && !withdrawError)}
+        >
+          {isEdit ? 'Edit' : 'Create'} Withdraw OTC
+        </BoxLoadingButton>
         {isEdit ? (
           <DangerButton sx={{ width: 300 }} onClick={deleteOTCOrder} loading={deleteLoading}>
             Cancel Order
@@ -319,20 +324,20 @@ const Withdraw: React.FC = () => {
             Bids
           </Typography>
           <Typography
-                  style={{ whiteSpace: 'pre-line' }}
-                  align="center"
-                  mt={2}
-                  mb={2}
-                  color="error.main"
-                  variant="body3"
-                >
-                  {withdrawValidationError ? withdrawValidationError : ''}
+            style={{ whiteSpace: 'pre-line' }}
+            align="center"
+            mt={2}
+            mb={2}
+            color="error.main"
+            variant="body3"
+          >
+            {withdrawValidationError ? withdrawValidationError : ''}
           </Typography>
           <TableContainer sx={{ bgcolor: 'background.overlayDark', borderRadius: 2 }}>
             <Table sx={{ minWidth: 500 }} aria-label="simple table">
               <TableHead>
                 <TableRow>
-                <TableCell>Id</TableCell>
+                  <TableCell>Id</TableCell>
                   <TableCell>Quantity</TableCell>
                   <TableCell>Price (ETH)</TableCell>
                   <TableCell>Action</TableCell>
@@ -341,7 +346,7 @@ const Withdraw: React.FC = () => {
               <TableBody>
                 {Object.keys(userOtc?.data.bids).map((bidId, i) => (
                   <TableRow key={bidId}>
-                      <TableCell component="th" scope="row">
+                    <TableCell component="th" scope="row">
                       {i + 1}
                     </TableCell>
                     <TableCell component="th" scope="row">
@@ -351,21 +356,21 @@ const Withdraw: React.FC = () => {
                       {formatBigNumber(userOtc?.data.bids[bidId].order.price, 18, 6)}
                     </TableCell>
                     <TableCell component="th" scope="row">
-                    { (Date.now() <  userOtc?.data.bids[bidId].order.expiry && Date.now() <  userOtc?.data.expiry)  ? (
-                      <BoxLoadingButton
-                        sx={{ width: 100 }}
-                        size="small"
-                        onClick={() => withdrawCrab(userOtc?.data.bids[bidId], userOtc, i + 1)}
-                        loading={withdrawLoading}
-                      >
-                        Execute
-                      </BoxLoadingButton>
-                      ) : 
-                      <Typography mt={2} color="error.main">
+                      {Date.now() < userOtc?.data.bids[bidId].order.expiry && Date.now() < userOtc?.data.expiry ? (
+                        <BoxLoadingButton
+                          sx={{ width: 100 }}
+                          size="small"
+                          onClick={() => withdrawCrab(userOtc?.data.bids[bidId], userOtc, i + 1)}
+                          loading={withdrawLoading === i + 1}
+                        >
+                          Sign and Execute
+                        </BoxLoadingButton>
+                      ) : (
+                        <Typography mt={2} color="error.main">
                           Expired
-                      </Typography>
-                      }
-                    </TableCell> 
+                        </Typography>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -388,7 +393,7 @@ const CreateDeposit: React.FC = () => {
   const { data: signer } = useSigner()
   const [isLoading, setLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
-  const [isDepositCrabLoading, setDepositCrabLoading] = useState(false)
+  const [isDepositCrabLoading, setDepositCrabLoading] = useState(0)
   const [depositValidationError, setDepositValidationError] = useState('')
 
   const showMessageFromServer = useToaster()
@@ -478,34 +483,39 @@ const CreateDeposit: React.FC = () => {
 
   const deleteOTCOrder = async () => {
     setDeleteLoading(true)
-    const mandate: MessageWithTimeSignature = {
-      message: GENERAL,
-      time: Date.now(),
+    try {
+      const mandate: MessageWithTimeSignature = {
+        message: GENERAL,
+        time: Date.now(),
+      }
+
+      const signature = await signMessageWithTime(signer, mandate)
+
+      const resp = await fetch('/api/crabotc/deleteOTC?web=true', {
+        method: 'DELETE',
+        body: JSON.stringify({ signature, id: userOtc?.id, mandate }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+      showMessageFromServer(resp)
+    } catch (e) {
+      console.log(e)
     }
-
-    const signature = await signMessageWithTime(signer, mandate)
-
-    const resp = await fetch('/api/crabotc/deleteOTC?web=true', {
-      method: 'DELETE',
-      body: JSON.stringify({ signature, id: userOtc?.id, mandate }),
-      headers: { 'Content-Type': 'application/json' },
-    })
     setDeleteLoading(false)
   }
 
   const depositCrab = async (bid: CrabOTCBid, crabOtc: CrabOTCWithData, bidId: number) => {
-    setDepositCrabLoading(true)
-    const { isValidOrder, response: error } = await validateOrder(bid, crabOtc,bidId)
-      
-    if(!isValidOrder){
+    setDepositCrabLoading(bidId)
+    const { isValidOrder, response: error } = await validateOrder(bid, crabOtc, bidId)
+
+    if (!isValidOrder) {
       setDepositValidationError(error)
-    }else{
+    } else {
       try {
         const mandate: MessageWithTimeSignature = {
           message: GENERAL,
           time: Date.now(),
         }
-    
+
         const signature = await signMessageWithTime(signer, mandate)
         const _qty = crabOtc.data?.quantity ? crabOtc?.data.quantity : '0'
         const _price = toBigNumber(crabOtc.data.limitPrice || 0)
@@ -548,7 +558,7 @@ const CreateDeposit: React.FC = () => {
       }
     }
     setDepositValidationError('')
-    setDepositCrabLoading(false)
+    setDepositCrabLoading(0)
   }
 
   return (
@@ -559,9 +569,6 @@ const CreateDeposit: React.FC = () => {
         </Typography>
         <Typography variant="body2" color="textSecondary" mt={2}>
           Eth Balance: {formatBigNumber(ethBalance?.value || '0')}
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          oSqth Price: {formatBigNumber(oSqthPrice)} ETH
         </Typography>
         <TextField
           value={ethAmount}
@@ -579,7 +586,7 @@ const CreateDeposit: React.FC = () => {
           onChange={e => setLimitPrice(e.target.value)}
           type="number"
           id="limit price"
-          label="Min Limit price (ETH)"
+          label="Min Limit price per oSqth (ETH)"
           variant="outlined"
           size="small"
           sx={{ mt: 2 }}
@@ -598,18 +605,24 @@ const CreateDeposit: React.FC = () => {
           <Typography variant="body3">Slippage</Typography>
           <Typography variant="body2" color="textSecondary">
             <Typography color="textPrimary" component="span" variant="numeric">
-              {oSqthPrice.gt(0) ? formatBigNumber(BIG_ONE.sub(wdiv(toBigNumber(limitPrice), oSqthPrice)).mul(100)) : 0}
+              {oSqthPrice.gt(0) && Number(limitPrice) > 0
+                ? formatBigNumber(BIG_ONE.sub(wdiv(toBigNumber(limitPrice), oSqthPrice)).mul(100))
+                : 0}
             </Typography>{' '}
             %
           </Typography>
         </Box>
         <CopyLink id={userOtc?.id || ''} />
         <Expiry time={userOtc?.data.expiry || 0} />
-        {Number(ethAmount) > 0 && Number(limitPrice) > 0 && (
-        <BoxLoadingButton onClick={createOtcOrder} sx={{ width: 300, mt: 2, mb: 2 }} loading={isLoading}>
+
+        <BoxLoadingButton
+          onClick={createOtcOrder}
+          sx={{ width: 300, mt: 2, mb: 2 }}
+          loading={isLoading}
+          disabled={!(Number(ethAmount) > 0 && Number(limitPrice) > 0)}
+        >
           {isEdit ? 'Edit deposit OTC' : 'Create deposit OTC'}
         </BoxLoadingButton>
-          )}
         {isEdit ? (
           <DangerButton sx={{ width: 300, mt: 1 }} onClick={deleteOTCOrder} loading={deleteLoading}>
             Cancel Order
@@ -628,20 +641,20 @@ const CreateDeposit: React.FC = () => {
             Bids
           </Typography>
           <Typography
-                  style={{ whiteSpace: 'pre-line' }}
-                  align="center"
-                  mt={2}
-                  mb={2}
-                  color="error.main"
-                  variant="body3"
-                >
-                  {depositValidationError ? depositValidationError : ''}
+            style={{ whiteSpace: 'pre-line' }}
+            align="center"
+            mt={2}
+            mb={2}
+            color="error.main"
+            variant="body3"
+          >
+            {depositValidationError ? depositValidationError : ''}
           </Typography>
           <TableContainer sx={{ bgcolor: 'background.overlayDark', borderRadius: 2 }}>
             <Table sx={{ minWidth: 500 }} aria-label="simple table">
               <TableHead>
                 <TableRow>
-                <TableCell>Id</TableCell>
+                  <TableCell>Id</TableCell>
                   <TableCell>Quantity</TableCell>
                   <TableCell>Price (ETH)</TableCell>
                   <TableCell>Action</TableCell>
@@ -650,7 +663,7 @@ const CreateDeposit: React.FC = () => {
               <TableBody>
                 {Object.keys(userOtc?.data.bids).map((bidId, i) => (
                   <TableRow key={bidId}>
-                     <TableCell component="th" scope="row">
+                    <TableCell component="th" scope="row">
                       {i + 1}
                     </TableCell>
                     <TableCell component="th" scope="row">
@@ -660,20 +673,20 @@ const CreateDeposit: React.FC = () => {
                       {formatBigNumber(userOtc?.data.bids[bidId].order.price, 18, 6)}
                     </TableCell>
                     <TableCell component="th" scope="row">
-                      { (Date.now() <  userOtc?.data.bids[bidId].order.expiry && Date.now() <  userOtc?.data.expiry)  ? (
-                      <BoxLoadingButton
-                        sx={{ width: 100 }}
-                        size="small"
-                        onClick={() => depositCrab(userOtc?.data.bids[bidId], userOtc, i + 1)}
-                        loading={isDepositCrabLoading}
-                      >
-                       Execute 
-                      </BoxLoadingButton>
-                      ) : 
-                       <Typography mt={2} color="error.main">
+                      {Date.now() < userOtc?.data.bids[bidId].order.expiry && Date.now() < userOtc?.data.expiry ? (
+                        <BoxLoadingButton
+                          sx={{ width: 100 }}
+                          size="small"
+                          onClick={() => depositCrab(userOtc?.data.bids[bidId], userOtc, i + 1)}
+                          loading={isDepositCrabLoading === i + 1}
+                        >
+                          Sign and Execute
+                        </BoxLoadingButton>
+                      ) : (
+                        <Typography mt={2} color="error.main">
                           Expired
-                       </Typography>
-                       }  
+                        </Typography>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -696,20 +709,46 @@ const CopyLink: React.FC<{ id: string }> = ({ id }) => {
 
   return (
     <>
-    {id && (
-    <Box display="flex" mt={1} alignItems="center" justifyContent="space-between">
-      <Typography variant="body2" color="textSecondary">
-        Copy and share link
-      </Typography>
-      <Box display="flex" alignItems="center">
-        <IconButton aria-label="copy" onClick={copyClick}>
-          <ContentCopyIcon fontSize="small" />
-        </IconButton>
-      </Box>
-    </Box>
-    )}
+      {id && (
+        <Box display="flex" mt={1} alignItems="center" justifyContent="space-between">
+          <Typography variant="body2" color="textSecondary">
+            Copy and share link
+          </Typography>
+          <Box display="flex" alignItems="center">
+            <IconButton aria-label="copy" onClick={copyClick}>
+              <ContentCopyIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </Box>
+      )}
     </>
   )
 }
 
+const HeaderBody: React.FC = () => {
+  const { ethPriceBN, oSqthPriceBN } = usePriceStore(
+    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
+    shallow,
+  )
 
+  return (
+    <Box p={2} px={5} display="flex" overflow="auto" alignItems="center">
+      <Box display="flex" flexDirection="column" justifyContent="center">
+        <Typography color="textSecondary" variant="caption">
+          ETH Price
+        </Typography>
+        <Typography variant="numeric">${formatBigNumber(ethPriceBN)}</Typography>
+      </Box>
+      <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
+      <Box display="flex" flexDirection="column" justifyContent="center">
+        <Typography color="textSecondary" variant="caption">
+          oSQTH Price
+        </Typography>
+        <Typography variant="numeric">
+          {formatBigNumber(oSqthPriceBN)}
+          <small> ETH</small>
+        </Typography>
+      </Box>
+    </Box>
+  )
+}
