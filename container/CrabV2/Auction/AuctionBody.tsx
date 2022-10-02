@@ -34,7 +34,7 @@ const AuctionBody: React.FC = () => {
   const action = auction.isSelling ? 'Bids' : 'Offers'
 
   return (
-    <>
+    <section id="bids_offers" style={{ paddingTop: '8px' }}>
       <Box display="flex" gap={2} mt={4} mb={1}>
         <Typography variant="h6">{action}</Typography>
         {seeMyBids ? (
@@ -46,14 +46,14 @@ const AuctionBody: React.FC = () => {
         )}
       </Box>
       <Grid container spacing={5}>
-        <Grid item xs={12} md={12} lg={8}>
+        <Grid item xs={12} md={6} lg={8}>
           <Bids seeMyBids={seeMyBids} />
         </Grid>
-        <Grid item xs={12} md={12} lg={4}>
+        <Grid item xs={12} md={6} lg={4}>
           {isHistoricalView ? <FilledBids /> : <BidForm />}
         </Grid>
       </Grid>
-    </>
+    </section>
   )
 }
 
@@ -287,6 +287,7 @@ const BidForm: React.FC = () => {
   }, [auction.isSelling, auctionStatus, estClearingPrice, price])
 
   return (
+    <section id="placeBid" style={{ paddingTop: '12px' }}>
     <Box
       boxShadow={1}
       py={3}
@@ -412,6 +413,7 @@ const BidForm: React.FC = () => {
         </>
       ) : null}
     </Box>
+    </section>
   )
 }
 
