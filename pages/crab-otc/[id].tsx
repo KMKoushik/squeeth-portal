@@ -99,7 +99,7 @@ const OTCBidPage: NextPage = () => {
   const createBid = async () => {
     const _qty = otc?.data.quantity ? otc?.data.quantity : '0'
     const _price = toBigNumber(bidPrice || 0)
-    const approxQty = toBigNumber(otc?.data.quantity || 0, 0).add(100)
+    const approxQty = toBigNumber(otc?.data.quantity || 0, 0)
 
     const order: CrabOTCOrder = {
       initiator: otc?.createdBy || '',

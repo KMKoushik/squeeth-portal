@@ -25,7 +25,7 @@ import usePriceStore from '../../../store/priceStore'
 import { CrabOTCBid, CrabOTCData, CrabOtcType, CrabOTCWithData, MessageWithTimeSignature } from '../../../types'
 import { CrabOtc, CrabStrategyV2 } from '../../../types/contracts'
 import { signMessageWithTime } from '../../../utils/auction'
-import { convertBigNumber, formatBigNumber, toBigNumber, wdiv, wmul } from '../../../utils/math'
+import { convertBigNumber, formatBigNumber, toBigNumber, wdiv, wmul, cwmul } from '../../../utils/math'
 import crabOtc from '../../../abis/crabOtc.json'
 import crabV2 from '../../../abis/crabStrategyV2.json'
 import shallow from 'zustand/shallow'
@@ -423,20 +423,38 @@ const CreateDeposit: React.FC = () => {
 
   const isEdit = !!userOtc && userOtc.data.type === CrabOtcType.DEPOSIT
 
-  const sqthToMint = useMemo(() => {
-    if (!vault) return BIG_ZERO
+  const [sqthToMint, tot_dep] = useMemo(() => {
+    if (!vault) return [BIG_ZERO, BIG_ZERO]
 
     const _ethAmount = toBigNumber(ethAmount || '0', 18)
     const _limitPrice = toBigNumber(limitPrice || '0', 18)
     const debt = vault.shortAmount
     const collat = vault.collateral
-    const cr0 = wdiv(debt, collat)
-    const oSqthToMint = wdiv(
-      debt.sub(debt).sub(wdiv(wmul(debt, _ethAmount), collat)),
-      wdiv(wmul(debt, _limitPrice), collat).sub(BIG_ONE),
-    )
 
-    return oSqthToMint
+    // totalDeposit = userEth / (1-(debt*oSQTHPx / collateral))
+    const totalDeposit = wdiv(_ethAmount,(BIG_ONE.sub(wdiv(wmul(debt, _limitPrice), collat))));
+
+    if(_limitPrice.gt(0)){
+      let start = totalDeposit.sub(3);
+
+      const mth = (increase:number)=> {
+        let tot_dep = start.add(increase);
+        let to_mint = wdiv(cwmul(tot_dep, debt), collat);
+        let from_selling = wmul(to_mint, _limitPrice);
+        let trade_value =  _ethAmount.add(from_selling);
+        return [tot_dep, to_mint, trade_value];
+      }
+      for(let i =1; i <= 10; i++){
+        console.log(i);
+        const [tot_dep, to_mint, trade_value] = mth(i);
+        if(trade_value.gte(tot_dep)){
+          console.log(tot_dep.toString(), to_mint.toString(), trade_value.toString(), i);
+          return [to_mint, tot_dep]
+        }
+      }
+      throw "Unable to find oSQTH to mint";
+    }
+    return [BIG_ZERO, BIG_ZERO];
   }, [ethAmount, limitPrice, vault])
 
   const createOtcOrder = async () => {
@@ -529,10 +547,10 @@ const CreateDeposit: React.FC = () => {
           v,
         }
 
-        const total_deposit = toBigNumber(crabOtc.data.depositAmount).add(wmul(_qty,_price));
+        const total_deposit = tot_dep;
     
         const estimatedGas = await crabOtcContract.estimateGas.deposit(total_deposit, _price, order, {
-          value: toBigNumber(crabOtc.data.depositAmount),
+         value: toBigNumber(crabOtc.data.depositAmount),
         })
         const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
         const tx = await crabOtcContract.deposit(total_deposit, _price, order, {
