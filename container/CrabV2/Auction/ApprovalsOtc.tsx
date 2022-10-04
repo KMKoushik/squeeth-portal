@@ -210,7 +210,6 @@ const ApprovalsOtc: React.FC = () => {
       <Box bgcolor="background.overlayDark" p={2} borderRadius={2}>
         <Box display="flex" alignItems="center">
           <Typography mr={4}>Utilities</Typography>
-          <Typography mr={2} color="textSecondary">
           <ul>
             <li>
               <a href="https://squeeth.opyn.co/mint" target="_blank" rel="noreferrer">
@@ -223,7 +222,6 @@ const ApprovalsOtc: React.FC = () => {
               </a>
             </li>
           </ul>
-          </Typography>
         </Box>
       </Box>
     </Box>
