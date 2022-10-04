@@ -206,6 +206,24 @@ const ApprovalsOtc: React.FC = () => {
           <Typography variant="numeric">{isCrabApproved ? 'Max' : formatBigNumber(crabApproval, 18, 6)}</Typography>
         </Box>
       </Box>
+
+      <Box bgcolor="background.overlayDark" p={2} borderRadius={2}>
+        <Box display="flex" alignItems="center">
+          <Typography mr={4}>Utilities</Typography>
+          <ul>
+            <li>
+              <a href="https://squeeth.opyn.co/mint" target="_blank" rel="noreferrer">
+                <Typography color="primary">Mint / burn oSQTH</Typography>
+              </a>
+            </li>
+            <li>
+              <a href="https://app.uniswap.org/#/swap" target="_blank" rel="noreferrer">
+                <Typography color="primary">Wrap / unwrap WETH</Typography>
+              </a>
+            </li>
+          </ul>
+        </Box>
+      </Box>
     </Box>
   )
 }

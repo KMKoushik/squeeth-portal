@@ -140,6 +140,7 @@ const Withdraw: React.FC = () => {
         type: CrabOtcType.WITHDRAW,
         bids: {},
         createdBy: address!,
+        sortedBids: []
       }
 
       const crabOTC: CrabOTCWithData = {
@@ -345,24 +346,24 @@ const Withdraw: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Object.keys(userOtc?.data.bids).map((bidId, i) => (
-                  <TableRow key={bidId}>
+                {Object.keys(userOtc?.data.sortedBids).map((bidId) => (
+                  <TableRow key={Number(bidId)}>
                     <TableCell component="th" scope="row">
-                      {i + 1}
+                      {Number(bidId) + 1}
                     </TableCell>
                     <TableCell component="th" scope="row">
-                      {formatBigNumber(userOtc?.data.bids[bidId].order.quantity)}
+                      {formatBigNumber(userOtc?.data.sortedBids[Number(bidId)].order.quantity)}
                     </TableCell>
                     <TableCell component="th" scope="row">
-                      {formatBigNumber(userOtc?.data.bids[bidId].order.price, 18, 6)}
+                      {formatBigNumber(userOtc?.data.sortedBids[Number(bidId)].order.price, 18, 6)}
                     </TableCell>
                     <TableCell component="th" scope="row">
-                      {Date.now() < userOtc?.data.bids[bidId].order.expiry && Date.now() < userOtc?.data.expiry ? (
+                      {Date.now() < userOtc?.data.sortedBids[Number(bidId)].order.expiry && Date.now() < userOtc?.data.expiry ? (
                         <BoxLoadingButton
                           sx={{ width: 100 }}
                           size="small"
-                          onClick={() => withdrawCrab(userOtc?.data.bids[bidId], userOtc, i + 1)}
-                          loading={withdrawLoading === i + 1}
+                          onClick={() => withdrawCrab(userOtc?.data.sortedBids[Number(bidId)], userOtc, Number(bidId) + 1)}
+                          loading={withdrawLoading === Number(bidId) + 1}
                         >
                           Sign and Execute
                         </BoxLoadingButton>
@@ -477,6 +478,7 @@ const CreateDeposit: React.FC = () => {
         quantity: sqthToMint.toString(),
         type: CrabOtcType.DEPOSIT,
         bids: {},
+        sortedBids: []
       }
 
       const crabOTC: CrabOTCWithData = {
@@ -680,24 +682,24 @@ const CreateDeposit: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Object.keys(userOtc?.data.bids).map((bidId, i) => (
-                  <TableRow key={bidId}>
+                {Object.keys(userOtc?.data.sortedBids).map((bidId) => (
+                   <TableRow key={Number(bidId)}>
                     <TableCell component="th" scope="row">
-                      {i + 1}
+                      {Number(bidId) + 1}
                     </TableCell>
                     <TableCell component="th" scope="row">
-                      {formatBigNumber(userOtc?.data.bids[bidId].order.quantity)}
+                      {formatBigNumber(userOtc?.data.sortedBids[Number(bidId)].order.quantity)}
                     </TableCell>
                     <TableCell component="th" scope="row">
-                      {formatBigNumber(userOtc?.data.bids[bidId].order.price, 18, 6)}
+                      {formatBigNumber(userOtc?.data?.sortedBids[Number(bidId)].order.price, 18, 6)}
                     </TableCell>
                     <TableCell component="th" scope="row">
-                      {Date.now() < userOtc?.data.bids[bidId].order.expiry && Date.now() < userOtc?.data.expiry ? (
+                      {Date.now() < userOtc?.data?.sortedBids[Number(bidId)].order.expiry && Date.now() < userOtc?.data.expiry ? (
                         <BoxLoadingButton
                           sx={{ width: 100 }}
                           size="small"
-                          onClick={() => depositCrab(userOtc?.data.bids[bidId], userOtc, i + 1)}
-                          loading={isDepositCrabLoading === i + 1}
+                          onClick={() => depositCrab(userOtc?.data?.sortedBids[Number(bidId)], userOtc, Number(bidId) + 1)}
+                          loading={isDepositCrabLoading === Number(bidId) + 1}
                         >
                           Sign and Execute
                         </BoxLoadingButton>
