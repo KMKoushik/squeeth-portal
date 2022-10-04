@@ -92,3 +92,14 @@ export const validateBalance = (
 
   return { isValidOrder, response }
 }
+
+export const sortBidsForBidArray = (bids: Array<CrabOTCBid>, isSelling: boolean) => {
+  const sortedBids = bids.sort((a, b) => {
+    if (b.order.price === a.order.price) return Number(a.order.nonce) - Number(b.order.nonce)
+    if (isSelling) return Number(b.order.price) - Number(a.order.price)
+
+    return Number(a.order.price) - Number(b.order.price)
+  })
+
+  return sortedBids
+}
