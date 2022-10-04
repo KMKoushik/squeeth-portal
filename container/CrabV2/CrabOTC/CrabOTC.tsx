@@ -437,16 +437,16 @@ const CreateDeposit: React.FC = () => {
     const totalDeposit = wdiv(_ethAmount, BIG_ONE.sub(wdiv(wmul(debt, _limitPrice), collat)))
 
     if (_limitPrice.gt(0)) {
-      const start = totalDeposit.sub(3)
+      const start = totalDeposit
 
-      const mth = (increase: number) => {
-        const tot_dep = start.add(increase)
+      const mth = (decrease: number) => {
+        const tot_dep = start.sub(decrease)
         const to_mint = wdiv(cwmul(tot_dep, debt), collat)
         const from_selling = wmul(to_mint, _limitPrice)
         const trade_value = _ethAmount.add(from_selling)
         return [tot_dep, to_mint, trade_value]
       }
-      for (let i = 1; i <= 10; i++) {
+      for (let i = 0; i < 20; i++) {
         console.log(i)
         const [tot_dep, to_mint, trade_value] = mth(i)
         if (trade_value.gte(tot_dep)) {
