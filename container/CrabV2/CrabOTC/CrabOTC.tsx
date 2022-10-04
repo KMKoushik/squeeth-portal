@@ -36,6 +36,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import { Expiry } from '../../CrabOTC/Expiry'
 import useToaster from '../../../hooks/useToaster'
 import { validateOrder } from '../../../utils/crabotc'
+import { OTCInfo } from './OTCInfo'
 
 export const CrabOTCBox: React.FC = () => {
   const { data: signer } = useSigner()
@@ -49,8 +50,8 @@ export const CrabOTCBox: React.FC = () => {
       <Box>
         <ApprovalsOtc />
       </Box>
-      <Box border="1px solid gray" mt={2} borderRadius={2} maxWidth={500}>
-        <HeaderBody />
+      <Box mt={2} maxWidth={600}>
+        <OTCInfo />
       </Box>
       <Grid container gap={2} mt={2}>
         <Grid item xs={12} md={12} lg={5} bgcolor="background.overlayDark" borderRadius={2}>
@@ -432,29 +433,29 @@ const CreateDeposit: React.FC = () => {
     const collat = vault.collateral
 
     // totalDeposit = userEth / (1-(debt*oSQTHPx / collateral))
-    const totalDeposit = wdiv(_ethAmount,(BIG_ONE.sub(wdiv(wmul(debt, _limitPrice), collat))));
+    const totalDeposit = wdiv(_ethAmount, BIG_ONE.sub(wdiv(wmul(debt, _limitPrice), collat)))
 
-    if(_limitPrice.gt(0)){
-      let start = totalDeposit.sub(3);
+    if (_limitPrice.gt(0)) {
+      const start = totalDeposit.sub(3)
 
-      const mth = (increase:number)=> {
-        let tot_dep = start.add(increase);
-        let to_mint = wdiv(cwmul(tot_dep, debt), collat);
-        let from_selling = wmul(to_mint, _limitPrice);
-        let trade_value =  _ethAmount.add(from_selling);
-        return [tot_dep, to_mint, trade_value];
+      const mth = (increase: number) => {
+        const tot_dep = start.add(increase)
+        const to_mint = wdiv(cwmul(tot_dep, debt), collat)
+        const from_selling = wmul(to_mint, _limitPrice)
+        const trade_value = _ethAmount.add(from_selling)
+        return [tot_dep, to_mint, trade_value]
       }
-      for(let i =1; i <= 10; i++){
-        console.log(i);
-        const [tot_dep, to_mint, trade_value] = mth(i);
-        if(trade_value.gte(tot_dep)){
-          console.log(tot_dep.toString(), to_mint.toString(), trade_value.toString(), i);
+      for (let i = 1; i <= 10; i++) {
+        console.log(i)
+        const [tot_dep, to_mint, trade_value] = mth(i)
+        if (trade_value.gte(tot_dep)) {
+          console.log(tot_dep.toString(), to_mint.toString(), trade_value.toString(), i)
           return [to_mint, tot_dep]
         }
       }
-      throw "Unable to find oSQTH to mint";
+      throw 'Unable to find oSQTH to mint'
     }
-    return [BIG_ZERO, BIG_ZERO];
+    return [BIG_ZERO, BIG_ZERO]
   }, [ethAmount, limitPrice, vault])
 
   const createOtcOrder = async () => {
@@ -547,10 +548,10 @@ const CreateDeposit: React.FC = () => {
           v,
         }
 
-        const total_deposit = tot_dep;
-    
+        const total_deposit = tot_dep
+
         const estimatedGas = await crabOtcContract.estimateGas.deposit(total_deposit, _price, order, {
-         value: toBigNumber(crabOtc.data.depositAmount),
+          value: toBigNumber(crabOtc.data.depositAmount),
         })
         const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
         const tx = await crabOtcContract.deposit(total_deposit, _price, order, {
@@ -730,7 +731,7 @@ const CopyLink: React.FC<{ id: string }> = ({ id }) => {
       {id && (
         <Box display="flex" mt={1} alignItems="center" justifyContent="space-between">
           <Typography variant="body2" color="textSecondary">
-            Copy and share link
+            Share link with counter party
           </Typography>
           <Box display="flex" alignItems="center">
             <IconButton aria-label="copy" onClick={copyClick}>
@@ -740,33 +741,5 @@ const CopyLink: React.FC<{ id: string }> = ({ id }) => {
         </Box>
       )}
     </>
-  )
-}
-
-const HeaderBody: React.FC = () => {
-  const { ethPriceBN, oSqthPriceBN } = usePriceStore(
-    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
-    shallow,
-  )
-
-  return (
-    <Box p={2} px={5} display="flex" overflow="auto" alignItems="center">
-      <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary" variant="caption">
-          ETH Price
-        </Typography>
-        <Typography variant="numeric">${formatBigNumber(ethPriceBN)}</Typography>
-      </Box>
-      <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
-      <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary" variant="caption">
-          oSQTH Price
-        </Typography>
-        <Typography variant="numeric">
-          {formatBigNumber(oSqthPriceBN)}
-          <small> ETH</small>
-        </Typography>
-      </Box>
-    </Box>
   )
 }
