@@ -12,7 +12,9 @@ import CrabLoader from '../../components/loaders/CrabLoader'
 import { BIG_ZERO } from '../../constants/numbers'
 import { Expiry } from '../../container/CrabOTC/Expiry'
 import ApprovalsOtc from '../../container/CrabV2/Auction/ApprovalsOtc'
-import { Nav } from '../../container/Nav'
+import { OTCInfo } from '../../container/CrabV2/CrabOTC/OTCInfo'
+import { Nav } from '../../components/navbars/Nav'
+import useController from '../../hooks/useController'
 import useToaster from '../../hooks/useToaster'
 import useAccountStore from '../../store/accountStore'
 import useCrabV2Store from '../../store/crabV2Store'
@@ -22,6 +24,7 @@ import { db } from '../../utils/firebase'
 import { convertBigNumber, formatBigNumber, toBigNumber } from '../../utils/math'
 
 const OTCBidPage: NextPage = () => {
+  useController()
   const router = useRouter()
   const { id } = router.query
 
@@ -97,31 +100,36 @@ const OTCBidPage: NextPage = () => {
   }, [id])
 
   const createBid = async () => {
-    const _qty = otc?.data.quantity ? otc?.data.quantity : '0'
-    const _price = toBigNumber(bidPrice || 0)
-    const approxQty = toBigNumber(otc?.data.quantity || 0, 0).add(100)
+    setIsLoading(true)
+    try {
+      const _qty = otc?.data.quantity ? otc?.data.quantity : '0'
+      const _price = toBigNumber(bidPrice || 0)
+      const approxQty = toBigNumber(otc?.data.quantity || 0, 0)
 
-    const order: CrabOTCOrder = {
-      initiator: otc?.createdBy || '',
-      trader: address!,
-      quantity: approxQty.toString(),
-      price: _price.toString(),
-      isBuying: auctionIsSellingOSqth,
-      expiry: Date.now() + 30 * 60 * 1000,
-      nonce: Date.now(),
+      const order: CrabOTCOrder = {
+        initiator: otc?.createdBy || '',
+        trader: address!,
+        quantity: approxQty.toString(),
+        price: _price.toString(),
+        isBuying: auctionIsSellingOSqth,
+        expiry: otc?.data.expiry || 0,
+        nonce: Date.now(),
+      }
+      const { signature } = await signOTCOrder(signer, order)
+      // setFormLoading(true)
+      const resp = await fetch('/api/crabotc/createOrEditBid?web=true', {
+        method: 'POST',
+        body: JSON.stringify({ signature, order, otcId: id }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      if (resp.ok) setBidPrice('0')
+
+      showMessageFromServer(resp)
+    } catch (e) {
+      console.log(e)
     }
-    const { signature } = await signOTCOrder(signer, order)
-    // setFormLoading(true)
-    const resp = await fetch('/api/crabotc/createOrEditBid?web=true', {
-      method: 'POST',
-      body: JSON.stringify({ signature, order, otcId: id }),
-      headers: { 'Content-Type': 'application/json' },
-    })
-
-    if (resp.ok) setBidPrice('0')
-
-    showMessageFromServer(resp)
-    // setFormLoading(false)
+    setIsLoading(false)
   }
 
   if (loading)
@@ -159,6 +167,10 @@ const OTCBidPage: NextPage = () => {
           Token Approvals
         </Typography>
         <ApprovalsOtc />
+
+        <Box mt={2}>
+          <OTCInfo />
+        </Box>
 
         <Grid container gap={2} mt={2}>
           <Grid item xs={12} md={12} lg={5} bgcolor="background.overlayDark" borderRadius={2}>

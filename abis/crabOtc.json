@@ -130,11 +130,6 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint256",
-        "name": "_minPrice",
-        "type": "uint256"
-      },
-      {
         "components": [
           {
             "internalType": "address",

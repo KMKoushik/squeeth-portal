@@ -17,6 +17,8 @@ const AuctionBody: React.FC = () => {
 
 const AuctionDetails: React.FC = () => {
   return (
+    <section id="details">
+
     <Box
       boxShadow={1}
       py={2}
@@ -45,6 +47,8 @@ const AuctionDetails: React.FC = () => {
         </li>
       </ul>
     </Box>
+    </section>
+
   )
 }
 
@@ -53,6 +57,7 @@ const AuctionUtils: React.FC = () => {
     <Box
       boxShadow={1}
       py={3}
+      mb={{ xs: 8, sm: 0 }}
       px={4}
       borderRadius={2}
       bgcolor="background.overlayDark"

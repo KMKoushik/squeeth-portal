@@ -8,7 +8,7 @@ const PrimaryButton = styled(Button)(({ theme }) => ({
   color: theme.palette.primary.main,
   boxShadow: 'none',
   borderRadius: 8,
-  width: 200,
+  minWidth: 120,
   '&:hover': {
     opacity: '.5',
     backgroundColor: theme.palette.primary.light,

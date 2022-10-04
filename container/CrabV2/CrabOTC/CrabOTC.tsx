@@ -25,7 +25,7 @@ import usePriceStore from '../../../store/priceStore'
 import { CrabOTCBid, CrabOTCData, CrabOtcType, CrabOTCWithData, MessageWithTimeSignature } from '../../../types'
 import { CrabOtc, CrabStrategyV2 } from '../../../types/contracts'
 import { signMessageWithTime } from '../../../utils/auction'
-import { convertBigNumber, formatBigNumber, toBigNumber, wdiv, wmul } from '../../../utils/math'
+import { convertBigNumber, formatBigNumber, toBigNumber, wdiv, wmul, cwmul } from '../../../utils/math'
 import crabOtc from '../../../abis/crabOtc.json'
 import crabV2 from '../../../abis/crabStrategyV2.json'
 import shallow from 'zustand/shallow'
@@ -36,6 +36,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import { Expiry } from '../../CrabOTC/Expiry'
 import useToaster from '../../../hooks/useToaster'
 import { validateOrder } from '../../../utils/crabotc'
+import { OTCInfo } from './OTCInfo'
 
 export const CrabOTCBox: React.FC = () => {
   const { data: signer } = useSigner()
@@ -49,8 +50,8 @@ export const CrabOTCBox: React.FC = () => {
       <Box>
         <ApprovalsOtc />
       </Box>
-      <Box border="1px solid gray" mt={2} borderRadius={2} maxWidth={500}>
-        <HeaderBody />
+      <Box mt={2} maxWidth={600}>
+        <OTCInfo />
       </Box>
       <Grid container gap={2} mt={2}>
         <Grid item xs={12} md={12} lg={5} bgcolor="background.overlayDark" borderRadius={2}>
@@ -423,20 +424,38 @@ const CreateDeposit: React.FC = () => {
 
   const isEdit = !!userOtc && userOtc.data.type === CrabOtcType.DEPOSIT
 
-  const sqthToMint = useMemo(() => {
-    if (!vault) return BIG_ZERO
+  const [sqthToMint, tot_dep] = useMemo(() => {
+    if (!vault) return [BIG_ZERO, BIG_ZERO]
 
     const _ethAmount = toBigNumber(ethAmount || '0', 18)
     const _limitPrice = toBigNumber(limitPrice || '0', 18)
     const debt = vault.shortAmount
     const collat = vault.collateral
-    const cr0 = wdiv(debt, collat)
-    const oSqthToMint = wdiv(
-      debt.sub(wmul(cr0, collat)).sub(wmul(cr0, _ethAmount)),
-      wmul(cr0, _limitPrice).sub(BIG_ONE),
-    )
 
-    return oSqthToMint
+    // totalDeposit = userEth / (1-(debt*oSQTHPx / collateral))
+    const totalDeposit = wdiv(_ethAmount, BIG_ONE.sub(wdiv(wmul(debt, _limitPrice), collat)))
+
+    if (_limitPrice.gt(0)) {
+      const start = totalDeposit.sub(3)
+
+      const mth = (increase: number) => {
+        const tot_dep = start.add(increase)
+        const to_mint = wdiv(cwmul(tot_dep, debt), collat)
+        const from_selling = wmul(to_mint, _limitPrice)
+        const trade_value = _ethAmount.add(from_selling)
+        return [tot_dep, to_mint, trade_value]
+      }
+      for (let i = 1; i <= 10; i++) {
+        console.log(i)
+        const [tot_dep, to_mint, trade_value] = mth(i)
+        if (trade_value.gte(tot_dep)) {
+          console.log(tot_dep.toString(), to_mint.toString(), trade_value.toString(), i)
+          return [to_mint, tot_dep]
+        }
+      }
+      throw 'Unable to find oSQTH to mint'
+    }
+    return [BIG_ZERO, BIG_ZERO]
   }, [ethAmount, limitPrice, vault])
 
   const createOtcOrder = async () => {
@@ -529,13 +548,13 @@ const CreateDeposit: React.FC = () => {
           v,
         }
 
-        const [, , collateral, debt] = await crabV2Contract.getVaultDetails()
-        const total_deposit = wdiv(wmul(_qty, collateral), debt)
-        const estimatedGas = await crabOtcContract.estimateGas.deposit(total_deposit, _price, order, {
+        const total_deposit = tot_dep
+
+        const estimatedGas = await crabOtcContract.estimateGas.deposit(total_deposit, order, {
           value: toBigNumber(crabOtc.data.depositAmount),
         })
         const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
-        const tx = await crabOtcContract.deposit(total_deposit, _price, order, {
+        const tx = await crabOtcContract.deposit(total_deposit, order, {
           value: toBigNumber(crabOtc.data.depositAmount),
           gasLimit: estimatedGasCeil,
         })
@@ -712,7 +731,7 @@ const CopyLink: React.FC<{ id: string }> = ({ id }) => {
       {id && (
         <Box display="flex" mt={1} alignItems="center" justifyContent="space-between">
           <Typography variant="body2" color="textSecondary">
-            Copy and share link
+            Share link with counter party
           </Typography>
           <Box display="flex" alignItems="center">
             <IconButton aria-label="copy" onClick={copyClick}>
@@ -722,33 +741,5 @@ const CopyLink: React.FC<{ id: string }> = ({ id }) => {
         </Box>
       )}
     </>
-  )
-}
-
-const HeaderBody: React.FC = () => {
-  const { ethPriceBN, oSqthPriceBN } = usePriceStore(
-    s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
-    shallow,
-  )
-
-  return (
-    <Box p={2} px={5} display="flex" overflow="auto" alignItems="center">
-      <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary" variant="caption">
-          ETH Price
-        </Typography>
-        <Typography variant="numeric">${formatBigNumber(ethPriceBN)}</Typography>
-      </Box>
-      <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
-      <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary" variant="caption">
-          oSQTH Price
-        </Typography>
-        <Typography variant="numeric">
-          {formatBigNumber(oSqthPriceBN)}
-          <small> ETH</small>
-        </Typography>
-      </Box>
-    </Box>
   )
 }

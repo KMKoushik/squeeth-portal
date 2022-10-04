@@ -1,0 +1,19 @@
+.callToActionBtn {
+  position: absolute;
+  z-index: 1;
+  top: -30;
+
+}
+.linkText {
+  text-transform: none;
+  font-size: medium;
+}
+
+.linkText:hover {
+  cursor: pointer;
+  transform: scale(1.1);
+}
+
+.linkText:focus {
+  color: rgba(26, 232, 255);
+}

@@ -7,6 +7,7 @@ const TradeCard = styled(Box)(({ theme }) => ({
   borderRadius: theme.spacing(1),
   py: 2,
   px: 4,
+  height: '100%',
   cursor: 'pointer',
   backgroundColor: '#25191d90',
   padding: '1rem 2rem 1rem 2rem',
