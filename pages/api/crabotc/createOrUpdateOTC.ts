@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { createOrUpdateOTC } from '../../../server/utils/crab-otc'
 import { verifyMessageWithTime } from '../../../utils/auction'
+import { sendTelegramMessage } from '../../../server/utils/telegram-bot'
+import { sendDiscordMessage } from '../../../server/utils/discord-bot'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(400).json({ message: 'Only post is allowed' })
@@ -16,7 +18,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Signature can't be verified" })
   }
 
-  await createOrUpdateOTC(crabOTC, crabOTCData)
+  const resp = await createOrUpdateOTC(crabOTC, crabOTCData)
+  if (!crabOTC.id) {
+    crabOTC.id = (resp as FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>).id
+  }
+  sendTelegramMessage(crabOTC, crabOTCData, false)
+  //sendDiscordMessage()
 
   res.status(200).json({ message: 'Successfully updated OTC' })
 }
