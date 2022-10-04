@@ -195,10 +195,14 @@ const Withdraw: React.FC = () => {
           v,
         }
 
-        const estimatedGas = await crabOtcContract.estimateGas.withdraw(toBigNumber(crabOtc.data.withdrawAmount), order)
+        const estimatedGas = await crabOtcContract.estimateGas.withdraw(
+          toBigNumber(crabOtc.data.withdrawAmount),
+          _price,
+          order,
+        )
         const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
 
-        const tx = await crabOtcContract.withdraw(toBigNumber(crabOtc.data.withdrawAmount), order, {
+        const tx = await crabOtcContract.withdraw(toBigNumber(crabOtc.data.withdrawAmount), _price, order, {
           gasLimit: estimatedGasCeil,
         })
 

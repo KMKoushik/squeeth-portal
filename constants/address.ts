@@ -60,6 +60,6 @@ export const CRAB_STRATEGY_V2 = getAddress({
 })
 
 export const CRAB_OTC = getAddress({
-  1: '0x37E28915B9843fD265d714ed6feb5edDa810c0Ac',
-  3: '0x0821BEefE048a7E670ca0193B4f32B2faCDFB2e6',
+  1: '0xEEE5f26FAf22ad7940d6B2ff006944c018CbEd79',
+  3: '0x5025Cccb4E4493D719BA22BfAFf1c0E26AE8fB9E',
 })

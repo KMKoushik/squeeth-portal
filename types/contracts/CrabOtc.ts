@@ -67,7 +67,7 @@ export interface CrabOtcInterface extends utils.Interface {
     "setNonceTrue(uint256)": FunctionFragment;
     "wPowerPerp()": FunctionFragment;
     "weth()": FunctionFragment;
-    "withdraw(uint256,(address,address,uint256,uint256,bool,uint256,uint256,uint8,bytes32,bytes32))": FunctionFragment;
+    "withdraw(uint256,uint256,(address,address,uint256,uint256,bool,uint256,uint256,uint8,bytes32,bytes32))": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -94,7 +94,7 @@ export interface CrabOtcInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "weth", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdraw",
-    values: [BigNumberish, CrabOTC.OrderStruct]
+    values: [BigNumberish, BigNumberish, CrabOTC.OrderStruct]
   ): string;
 
   decodeFunctionResult(functionFragment: "controller", data: BytesLike): Result;
@@ -201,6 +201,7 @@ export interface CrabOtc extends BaseContract {
 
     withdraw(
       _crabAmount: BigNumberish,
+      _maxPrice: BigNumberish,
       _order: CrabOTC.OrderStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -233,6 +234,7 @@ export interface CrabOtc extends BaseContract {
 
   withdraw(
     _crabAmount: BigNumberish,
+    _maxPrice: BigNumberish,
     _order: CrabOTC.OrderStruct,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -265,6 +267,7 @@ export interface CrabOtc extends BaseContract {
 
     withdraw(
       _crabAmount: BigNumberish,
+      _maxPrice: BigNumberish,
       _order: CrabOTC.OrderStruct,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -334,6 +337,7 @@ export interface CrabOtc extends BaseContract {
 
     withdraw(
       _crabAmount: BigNumberish,
+      _maxPrice: BigNumberish,
       _order: CrabOTC.OrderStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -367,6 +371,7 @@ export interface CrabOtc extends BaseContract {
 
     withdraw(
       _crabAmount: BigNumberish,
+      _maxPrice: BigNumberish,
       _order: CrabOTC.OrderStruct,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

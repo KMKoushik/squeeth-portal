@@ -271,6 +271,11 @@ const _abi = [
         type: "uint256",
       },
       {
+        internalType: "uint256",
+        name: "_maxPrice",
+        type: "uint256",
+      },
+      {
         components: [
           {
             internalType: "address",
