@@ -195,14 +195,10 @@ const Withdraw: React.FC = () => {
           v,
         }
 
-        const estimatedGas = await crabOtcContract.estimateGas.withdraw(
-          toBigNumber(crabOtc.data.withdrawAmount),
-          _price,
-          order,
-        )
+        const estimatedGas = await crabOtcContract.estimateGas.withdraw(toBigNumber(crabOtc.data.withdrawAmount), order)
         const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
 
-        const tx = await crabOtcContract.withdraw(toBigNumber(crabOtc.data.withdrawAmount), _price, order, {
+        const tx = await crabOtcContract.withdraw(toBigNumber(crabOtc.data.withdrawAmount), order, {
           gasLimit: estimatedGasCeil,
         })
 
@@ -550,11 +546,11 @@ const CreateDeposit: React.FC = () => {
 
         const total_deposit = tot_dep
 
-        const estimatedGas = await crabOtcContract.estimateGas.deposit(total_deposit, _price, order, {
+        const estimatedGas = await crabOtcContract.estimateGas.deposit(total_deposit, order, {
           value: toBigNumber(crabOtc.data.depositAmount),
         })
         const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
-        const tx = await crabOtcContract.deposit(total_deposit, _price, order, {
+        const tx = await crabOtcContract.deposit(total_deposit, order, {
           value: toBigNumber(crabOtc.data.depositAmount),
           gasLimit: estimatedGasCeil,
         })

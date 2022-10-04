@@ -130,11 +130,6 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint256",
-        "name": "_minPrice",
-        "type": "uint256"
-      },
-      {
         "components": [
           {
             "internalType": "address",
@@ -265,11 +260,6 @@
       {
         "internalType": "uint256",
         "name": "_crabAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_maxPrice",
         "type": "uint256"
       },
       {

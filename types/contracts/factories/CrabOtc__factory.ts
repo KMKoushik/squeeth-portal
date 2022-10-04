@@ -138,12 +138,12 @@ const _abi = [
         type: "uint256",
       },
       {
-        internalType: "uint256",
-        name: "_minPrice",
-        type: "uint256",
-      },
-      {
         components: [
+          {
+            internalType: "address",
+            name: "initiator",
+            type: "address",
+          },
           {
             internalType: "address",
             name: "trader",
@@ -271,12 +271,12 @@ const _abi = [
         type: "uint256",
       },
       {
-        internalType: "uint256",
-        name: "_maxPrice",
-        type: "uint256",
-      },
-      {
         components: [
+          {
+            internalType: "address",
+            name: "initiator",
+            type: "address",
+          },
           {
             internalType: "address",
             name: "trader",

@@ -23,8 +23,6 @@ export const OTCInfo: React.FC = () => {
   const oSqthPrice = convertBigNumber(oSqthPriceBN, 18)
   const nf = convertBigNumber(nfBN, 18)
 
-  console.log(ethPrice, oSqthPrice, nf, calculateIV(oSqthPrice, nf, ethPrice))
-
   return (
     <Box p={2} px={5} display="flex" overflow="auto" alignItems="center" border="1px solid gray" borderRadius={2}>
       <Box display="flex" flexDirection="column" justifyContent="center">
