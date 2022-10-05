@@ -101,7 +101,7 @@ const Home: NextPage = () => {
                   <Link href="/auction-admin" passHref>
                     <AuctionAdminCard>
                       <Typography textAlign="center" variant="h5" mb={4}>
-                      Auctioneer
+                        Auctioneer
                       </Typography>
                       <Box mx="auto">
                         <Image src="/images/auction.png" alt="Picture" layout="fixed" height={64} width={64} />
