@@ -17,9 +17,9 @@ export const sendTelegramMessage = (crabOTC: CrabOTC, crabOTCData: CrabOTCData, 
 
   let msg: string
   if (crabOTCData.depositAmount !== 0) {
-    msg = `Size ${formatBigNumber(crabOTCData.quantity)} oSQTH \n  Direction: User selling, request oSQTH bid  \n Link: ${process.env.VERCEL_URL}/crab-otc/${crabOTC.id}`
+    msg = `Size ${formatBigNumber(crabOTCData.quantity)} oSQTH \nDirection: User selling, request oSQTH bid  \nLink: ${process.env.VERCEL_URL}/crab-otc/${crabOTC.id}`
   } else {
-    msg = `Size ${formatBigNumber(crabOTCData.quantity)} oSQTH \n  Direction: User  buying, request oSQTH offer \n Link: ${
+    msg = `Size ${formatBigNumber(crabOTCData.quantity)} oSQTH \nDirection: User  buying, request oSQTH offer \nLink: ${
       process.env.VERCEL_URL
     }/crab-otc/${crabOTC.id}`
   }
