@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { createOrUpdateOTC, deleteOtc, getOtc } from '../../../server/utils/crab-otc'
+import { deleteOtc, getOtc } from '../../../server/utils/crab-otc'
 import { verifyMessageWithTime } from '../../../utils/auction'
+import { sendTelegramMessage } from '../../../server/utils/telegram-bot'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'DELETE') return res.status(400).json({ message: 'Only delete is allowed' })
@@ -16,6 +17,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   await deleteOtc(crabOtc)
-
   res.status(200).json({ message: 'Successfully deleted OTC' })
 }
