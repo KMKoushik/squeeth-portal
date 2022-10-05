@@ -58,3 +58,13 @@ export const CRAB_STRATEGY_V2 = getAddress({
   1: '0x3b960e47784150f5a63777201ee2b15253d713e8',
   3: '0xdd1e9c25115e0d6e531d9f9e6ab7dbbed15158ce',
 })
+
+const getCrabCouncilMembers = () => {
+  if (CHAIN_ID === NETWORK.MAINNET) {
+    return ['']
+  } else if (CHAIN_ID === NETWORK.ROPSTEN) {
+    return ['0x56a847c21a4FA937c11258d94C8B1650cdbA21F7', '0x5B983F6b33F1e8A8588E4aBd5a1E2bE40D8B4059']
+  }
+}
+
+export const CRAB_COUNCIL_MEMBERS = getCrabCouncilMembers()

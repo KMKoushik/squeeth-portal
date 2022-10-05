@@ -5,6 +5,7 @@ import Image from 'next/image'
 import * as React from 'react'
 import shallow from 'zustand/shallow'
 import CrabLoader from '../components/loaders/CrabLoader'
+import { CRAB_COUNCIL_MEMBERS } from '../constants/address'
 import { V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
 import AdminBidView from '../container/CrabV2/Auction/Admin/AdminBidView'
 import AuctionDetails from '../container/CrabV2/Auction/Admin/AuctionDetails'
@@ -29,7 +30,10 @@ const AuctionAdmin: NextPage = () => {
   )
   const address = useAccountStore(s => s.address)
 
-  const isOwner = React.useMemo(() => address?.toLowerCase() === owner?.toLowerCase(), [address, owner])
+  const isOwner = React.useMemo(
+    () => address?.toLowerCase() === owner?.toLowerCase() || CRAB_COUNCIL_MEMBERS?.includes(address || ''),
+    [address, owner],
+  )
 
   const updateStatus = React.useCallback(() => {
     setAuctionStatus(getAuctionStatus(auction))

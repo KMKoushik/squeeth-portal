@@ -110,7 +110,6 @@ const AdminBidView: React.FC = () => {
 
   const hedgeCB = async () => {
     try {
-      const signature = await signer?.signMessage(KING_CRAB)
       const manualBids = Object.values(manualBidMap)
       const orders = (manualBids.length ? manualBids : filteredBids!)
         .filter(fb => fb.status! <= BidStatus.PARTIALLY_FILLED)
@@ -128,10 +127,14 @@ const AdminBidView: React.FC = () => {
           gasLimit: gasLimit.mul(110).div(100),
         },
       })
-      addRecentTransaction({
-        hash: tx.hash,
-        description: 'Hedge OTC',
-      })
+      try {
+        addRecentTransaction({
+          hash: tx.hash,
+          description: 'Hedge OTC',
+        })
+      } catch (e) {
+        console.log(e)
+      }
       await tx.wait()
 
       const updatedAuction: Auction = {
@@ -156,7 +159,7 @@ const AdminBidView: React.FC = () => {
 
       const resp = await fetch('/api/auction/submitAuction', {
         method: 'POST',
-        body: JSON.stringify({ signature, auction: updatedAuction }),
+        body: JSON.stringify({ auction: updatedAuction }),
         headers: { 'Content-Type': 'application/json' },
       })
       showMessageFromServer(resp)
