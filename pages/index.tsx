@@ -11,6 +11,7 @@ import TradeCard from '../components/squeethInfoActionCards/TradeCard'
 import VaultsCard from '../components/squeethInfoActionCards/VaultsCard'
 import SqueethProjects from '../container/SqueethProjects'
 import React from 'react'
+import AuctionAdminCard from '../components/squeethInfoActionCards/AuctionAdminCard'
 
 const initialAnimation = {
   visible: (i: number) => ({
@@ -77,10 +78,10 @@ const Home: NextPage = () => {
                   <Link href="/auction" passHref>
                     <AuctionCard>
                       <Typography textAlign="center" variant="h5" mb={4}>
-                        Auction
+                        Auctions
                       </Typography>
                       <Box mx="auto">
-                        <Image src="/images/auction.png" alt="Picture of vault" layout="fixed" height={64} width={64} />
+                        <Image src="/images/bidding.png" alt="Picture of vault" layout="fixed" height={70} width={70} />
                       </Box>
                       <Typography align="center" mt={4} color="textSecondary">
                         Participate on auctions by automated strategies!
@@ -90,6 +91,29 @@ const Home: NextPage = () => {
                 </motion.div>
               </Grid>
               <Grid item xs={12} md={4} sx={{ marginBottom: { xs: 2, sm: 0 } }}>
+                <motion.div
+                  initial="hidden"
+                  animate="visible"
+                  whileHover="hover"
+                  variants={initialAnimation}
+                  custom={2}
+                >
+                  <Link href="/auction-admin" passHref>
+                    <AuctionAdminCard>
+                      <Typography textAlign="center" variant="h5" mb={4}>
+                      Auctioneer
+                      </Typography>
+                      <Box mx="auto">
+                        <Image src="/images/auction.png" alt="Picture" layout="fixed" height={64} width={64} />
+                      </Box>
+                      <Typography align="center" mt={4} color="textSecondary">
+                        Manage auctions!
+                      </Typography>
+                    </AuctionAdminCard>
+                  </Link>
+                </motion.div>
+              </Grid>
+              {/* <Grid item xs={12} md={4} sx={{ marginBottom: { xs: 2, sm: 0 } }}>
                 <motion.div
                   initial="hidden"
                   animate="visible"
@@ -109,7 +133,7 @@ const Home: NextPage = () => {
                     </Typography>
                   </VaultsCard>
                 </motion.div>
-              </Grid>
+              </Grid> */}
             </Grid>
           </Grid>
           <Grid item xs={0} md={0} lg={2} />
