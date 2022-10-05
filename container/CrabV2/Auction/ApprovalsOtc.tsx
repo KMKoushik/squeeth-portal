@@ -46,10 +46,14 @@ const ApprovalsOtc: React.FC = () => {
     args: [CRAB_OTC, ethers.constants.MaxUint256],
     onSettled: data => {
       if (data?.hash) {
-        addRecentTransaction({
-          hash: data?.hash,
-          description: 'Approve WETH',
-        })
+        try {
+          addRecentTransaction({
+            hash: data?.hash,
+            description: 'Approve WETH',
+          })
+        } catch (e) {
+          console.log(e)
+        }
       }
     },
   })
@@ -60,10 +64,14 @@ const ApprovalsOtc: React.FC = () => {
     args: [CRAB_OTC, ethers.constants.MaxUint256],
     onSettled: data => {
       if (data?.hash) {
-        addRecentTransaction({
-          hash: data?.hash,
-          description: 'Approve oSQTH',
-        })
+        try {
+          addRecentTransaction({
+            hash: data?.hash,
+            description: 'Approve oSQTH',
+          })
+        } catch (e) {
+          console.log(e)
+        }
       }
     },
   })
@@ -74,10 +82,14 @@ const ApprovalsOtc: React.FC = () => {
     args: [CRAB_OTC, ethers.constants.MaxUint256],
     onSettled: data => {
       if (data?.hash) {
-        addRecentTransaction({
-          hash: data?.hash,
-          description: 'Approve Crab Spend',
-        })
+        try {
+          addRecentTransaction({
+            hash: data?.hash,
+            description: 'Approve Crab Spend',
+          })
+        } catch (e) {
+          console.log(e)
+        }
       }
     },
   })
