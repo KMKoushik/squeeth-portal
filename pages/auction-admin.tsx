@@ -50,7 +50,6 @@ const AuctionAdmin: NextPage = () => {
     <div>
       <Head>
         <title>Squeeth Portal - Auction admin</title>
-        <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials"></link>
       </Head>
       <Nav />
       <Grid container spacing={5}>
