@@ -470,6 +470,16 @@ const CreateDeposit: React.FC = () => {
     return [BIG_ZERO, BIG_ZERO]
   }, [ethAmount, limitPrice, vault])
 
+  const balanceError = useMemo(() => {
+    if (convertBigNumber(ethBalance?.value || '0') == 0) {
+      return 'You do not have any ETH...You need to ETH to mint required oSQTH'
+    } else if (convertBigNumber(ethBalance?.value || '0') < Number(ethAmount)) {
+      return 'You do not have enough ETH needed to mint required oSQTH to sell'
+    }
+  }, [ethBalance, ethAmount])
+
+  const depositError = balanceError 
+
   const createOtcOrder = async () => {
     setLoading(true)
     try {
@@ -651,7 +661,7 @@ const CreateDeposit: React.FC = () => {
           onClick={createOtcOrder}
           sx={{ width: 300, mt: 2, mb: 2 }}
           loading={isLoading}
-          disabled={!(Number(ethAmount) > 0 && Number(limitPrice) > 0)}
+          disabled={!(Number(ethAmount) > 0 && Number(limitPrice) > 0 && !depositError) }
         >
           {isEdit ? 'Edit deposit OTC' : 'Create deposit OTC'}
         </BoxLoadingButton>
@@ -665,7 +675,11 @@ const CreateDeposit: React.FC = () => {
             Please don&apos;t close the tab
           </Typography>
         ) : null}
+        <Typography style={{ whiteSpace: 'pre-line' }} mt={2} mb={2} color="error.main" variant="body3">
+          {Number(ethAmount) > 0 ? depositError : ''}
+        </Typography>
       </Box>
+     
 
       {isEdit ? (
         <>
