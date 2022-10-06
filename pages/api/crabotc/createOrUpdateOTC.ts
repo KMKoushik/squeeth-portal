@@ -22,8 +22,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!crabOTC.id) {
     crabOTC.id = (resp as FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>).id
   }
-  sendTelegramMessage(crabOTC, crabOTCData, false)
-  //sendDiscordMessage()
+  // Don't send if the tx is already over
+  if (!crabOTC.tx) {
+    // sendTelegramMessage(crabOTC, crabOTCData, false)
+    //sendDiscordMessage()
+  }
 
   res.status(200).json({ message: 'Successfully updated OTC' })
 }

@@ -140,7 +140,7 @@ const Withdraw: React.FC = () => {
         type: CrabOtcType.WITHDRAW,
         bids: {},
         createdBy: address!,
-        sortedBids: []
+        sortedBids: [],
       }
 
       const crabOTC: CrabOTCWithData = {
@@ -201,7 +201,7 @@ const Withdraw: React.FC = () => {
           _price,
           order,
         )
-        const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
+        const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.25)
 
         const tx = await crabOtcContract.withdraw(toBigNumber(crabOtc.data.withdrawAmount), _price, order, {
           gasLimit: estimatedGasCeil,
@@ -316,6 +316,11 @@ const Withdraw: React.FC = () => {
             Cancel Order
           </DangerButton>
         ) : null}
+        {withdrawLoading ? (
+          <Typography mt={2} textAlign="center">
+            Please don&apos;t close the tab
+          </Typography>
+        ) : null}
         <Typography style={{ whiteSpace: 'pre-line' }} mt={2} mb={2} color="error.main" variant="body3">
           {withdrawAmount ? withdrawError : ''}
         </Typography>
@@ -346,7 +351,7 @@ const Withdraw: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Object.keys(userOtc?.data.sortedBids).map((bidId) => (
+                {Object.keys(userOtc?.data.sortedBids).map(bidId => (
                   <TableRow key={Number(bidId)}>
                     <TableCell component="th" scope="row">
                       {Number(bidId) + 1}
@@ -358,11 +363,14 @@ const Withdraw: React.FC = () => {
                       {formatBigNumber(userOtc?.data.sortedBids[Number(bidId)].order.price, 18, 6)}
                     </TableCell>
                     <TableCell component="th" scope="row">
-                      {Date.now() < userOtc?.data.sortedBids[Number(bidId)].order.expiry && Date.now() < userOtc?.data.expiry ? (
+                      {Date.now() < userOtc?.data.sortedBids[Number(bidId)].order.expiry &&
+                        Date.now() < userOtc?.data.expiry ? (
                         <BoxLoadingButton
                           sx={{ width: 100 }}
                           size="small"
-                          onClick={() => withdrawCrab(userOtc?.data.sortedBids[Number(bidId)], userOtc, Number(bidId) + 1)}
+                          onClick={() =>
+                            withdrawCrab(userOtc?.data.sortedBids[Number(bidId)], userOtc, Number(bidId) + 1)
+                          }
                           loading={withdrawLoading === Number(bidId) + 1}
                         >
                           Sign and Execute
@@ -420,6 +428,9 @@ const CreateDeposit: React.FC = () => {
     if (!userOtc) {
       setEthAmount('0')
       setLimitPrice('0')
+    } else {
+      setEthAmount(userOtc?.data.depositAmount.toString())
+      setLimitPrice(userOtc?.data.limitPrice.toString())
     }
   }, [userOtc])
 
@@ -478,7 +489,7 @@ const CreateDeposit: React.FC = () => {
         quantity: sqthToMint.toString(),
         type: CrabOtcType.DEPOSIT,
         bids: {},
-        sortedBids: []
+        sortedBids: [],
       }
 
       const crabOTC: CrabOTCWithData = {
@@ -555,7 +566,7 @@ const CreateDeposit: React.FC = () => {
         const estimatedGas = await crabOtcContract.estimateGas.deposit(total_deposit, order, {
           value: toBigNumber(crabOtc.data.depositAmount),
         })
-        const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.1)
+        const estimatedGasCeil = Math.ceil(estimatedGas.toNumber() * 1.25)
         const tx = await crabOtcContract.deposit(total_deposit, order, {
           value: toBigNumber(crabOtc.data.depositAmount),
           gasLimit: estimatedGasCeil,
@@ -682,8 +693,8 @@ const CreateDeposit: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Object.keys(userOtc?.data.sortedBids).map((bidId) => (
-                   <TableRow key={Number(bidId)}>
+                {Object.keys(userOtc?.data.sortedBids).map(bidId => (
+                  <TableRow key={Number(bidId)}>
                     <TableCell component="th" scope="row">
                       {Number(bidId) + 1}
                     </TableCell>
@@ -694,12 +705,16 @@ const CreateDeposit: React.FC = () => {
                       {formatBigNumber(userOtc?.data?.sortedBids[Number(bidId)].order.price, 18, 6)}
                     </TableCell>
                     <TableCell component="th" scope="row">
-                      {Date.now() < userOtc?.data?.sortedBids[Number(bidId)].order.expiry && Date.now() < userOtc?.data.expiry ? (
+                      {Date.now() < userOtc?.data?.sortedBids[Number(bidId)].order.expiry &&
+                        Date.now() < userOtc?.data.expiry ? (
                         <BoxLoadingButton
                           sx={{ width: 100 }}
                           size="small"
-                          onClick={() => depositCrab(userOtc?.data?.sortedBids[Number(bidId)], userOtc, Number(bidId) + 1)}
+                          onClick={() =>
+                            depositCrab(userOtc?.data?.sortedBids[Number(bidId)], userOtc, Number(bidId) + 1)
+                          }
                           loading={isDepositCrabLoading === Number(bidId) + 1}
+                          disabled={!ethAmount || Number(ethAmount) === 0}
                         >
                           Sign and Execute
                         </BoxLoadingButton>

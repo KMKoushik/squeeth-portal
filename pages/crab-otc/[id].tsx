@@ -178,7 +178,7 @@ const OTCBidPage: NextPage = () => {
               <Box display="flex" flexDirection="column" margin="auto">
                 <Typography variant="h6" align="center" mt={2}>
                   {' '}
-                  Submit bid: {id}{' '}
+                  Submit {otc?.data.type == CrabOtcType.DEPOSIT ? 'Bid' : 'Offer'}: {id}{' '}
                 </Typography>
                 <Typography mt={2} color="textSecondary" align="center">
                   You are {bidderAction} oSQTH
