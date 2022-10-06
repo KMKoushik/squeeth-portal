@@ -46,10 +46,14 @@ const ApprovalsOtc: React.FC = () => {
     args: [CRAB_OTC, ethers.constants.MaxUint256],
     onSettled: data => {
       if (data?.hash) {
-        addRecentTransaction({
-          hash: data?.hash,
-          description: 'Approve WETH',
-        })
+        try {
+          addRecentTransaction({
+            hash: data?.hash,
+            description: 'Approve WETH',
+          })
+        } catch (e) {
+          console.log(e)
+        }
       }
     },
   })
@@ -60,10 +64,14 @@ const ApprovalsOtc: React.FC = () => {
     args: [CRAB_OTC, ethers.constants.MaxUint256],
     onSettled: data => {
       if (data?.hash) {
-        addRecentTransaction({
-          hash: data?.hash,
-          description: 'Approve oSQTH',
-        })
+        try {
+          addRecentTransaction({
+            hash: data?.hash,
+            description: 'Approve oSQTH',
+          })
+        } catch (e) {
+          console.log(e)
+        }
       }
     },
   })
@@ -74,10 +82,14 @@ const ApprovalsOtc: React.FC = () => {
     args: [CRAB_OTC, ethers.constants.MaxUint256],
     onSettled: data => {
       if (data?.hash) {
-        addRecentTransaction({
-          hash: data?.hash,
-          description: 'Approve Crab Spend',
-        })
+        try {
+          addRecentTransaction({
+            hash: data?.hash,
+            description: 'Approve Crab Spend',
+          })
+        } catch (e) {
+          console.log(e)
+        }
       }
     },
   })
@@ -204,6 +216,24 @@ const ApprovalsOtc: React.FC = () => {
             Approved Amt :
           </Typography>
           <Typography variant="numeric">{isCrabApproved ? 'Max' : formatBigNumber(crabApproval, 18, 6)}</Typography>
+        </Box>
+      </Box>
+
+      <Box bgcolor="background.overlayDark" p={2} borderRadius={2}>
+        <Box display="flex" alignItems="center">
+          <Typography mr={4}>Utilities</Typography>
+          <ul>
+            <li>
+              <a href="https://squeeth.opyn.co/mint" target="_blank" rel="noreferrer">
+                <Typography color="primary">Mint / burn oSQTH</Typography>
+              </a>
+            </li>
+            <li>
+              <a href="https://app.uniswap.org/#/swap" target="_blank" rel="noreferrer">
+                <Typography color="primary">Wrap / unwrap WETH</Typography>
+              </a>
+            </li>
+          </ul>
         </Box>
       </Box>
     </Box>

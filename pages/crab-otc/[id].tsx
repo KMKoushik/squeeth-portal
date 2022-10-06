@@ -104,7 +104,7 @@ const OTCBidPage: NextPage = () => {
     try {
       const _qty = otc?.data.quantity ? otc?.data.quantity : '0'
       const _price = toBigNumber(bidPrice || 0)
-      const approxQty = toBigNumber(otc?.data.quantity || 0, 0)
+      const approxQty = toBigNumber(otc?.data.quantity || 0, 0).add(100)
 
       const order: CrabOTCOrder = {
         initiator: otc?.createdBy || '',
@@ -178,7 +178,7 @@ const OTCBidPage: NextPage = () => {
               <Box display="flex" flexDirection="column" margin="auto">
                 <Typography variant="h6" align="center" mt={2}>
                   {' '}
-                  Submit bid: {id}{' '}
+                  Submit {otc?.data.type == CrabOtcType.DEPOSIT ? 'Bid' : 'Offer'}: {id}{' '}
                 </Typography>
                 <Typography mt={2} color="textSecondary" align="center">
                   You are {bidderAction} oSQTH

@@ -122,6 +122,7 @@ export type CrabOTCData = {
   quantity: string
   type: CrabOtcType
   bids: { [k: string]: CrabOTCBid }
+  sortedBids: CrabOTCBid[]
 }
 
 export type CrabOTCWithData = CrabOTC & {
