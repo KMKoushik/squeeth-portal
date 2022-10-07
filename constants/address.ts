@@ -70,6 +70,12 @@ export const CRAB_STRATEGY_V2 = getAddress({
   5: '0x49a423Bc9F1dEe5A052b1E72a1dbE9de488d4411',
 })
 
+export const CRAB_OTC = getAddress({
+  1: '0x46f09e866623a9CD3d316b7392937Ce78Ec834a7',
+  3: '0x4c842457211b4fB8686aC4Af75FDAC6f2F827BeB',
+  5: '0x972FddF60800976E24e4068AC9b3bc44b25f0d56',
+})
+
 const getCrabCouncilMembers = () => {
   if (CHAIN_ID === NETWORK.MAINNET) {
     return [

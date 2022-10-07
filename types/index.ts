@@ -84,3 +84,47 @@ export type MessageWithTimeSignature = {
   message: string
   time: number
 }
+
+export enum CrabOtcType {
+  DEPOSIT = 1,
+  WITHDRAW,
+}
+
+export type CrabOTCOrder = {
+  initiator: string
+  trader: string
+  quantity: string
+  price: string
+  isBuying: boolean
+  expiry: number
+  nonce: number
+}
+
+export type CrabOTCBid = {
+  order: CrabOTCOrder
+  signature: string
+}
+
+export type CrabOTC = {
+  cid: string
+  createdBy: string
+  id?: string
+  tx?: string
+  usedBid?: string
+}
+
+export type CrabOTCData = {
+  depositAmount: number
+  withdrawAmount: number
+  createdBy: string
+  expiry: number
+  limitPrice: number
+  quantity: string
+  type: CrabOtcType
+  bids: { [k: string]: CrabOTCBid }
+  sortedBids: CrabOTCBid[]
+}
+
+export type CrabOTCWithData = CrabOTC & {
+  data: CrabOTCData
+}
