@@ -9,6 +9,7 @@ import { PrimaryLoadingButton } from '../../../../components/button/PrimaryButto
 import { KING_CRAB } from '../../../../constants/message'
 import { BIG_ZERO } from '../../../../constants/numbers'
 import useToaster from '../../../../hooks/useToaster'
+import useAccountStore from '../../../../store/accountStore'
 import useCrabV2Store from '../../../../store/crabV2Store'
 import { Auction } from '../../../../types'
 import { getMinSize } from '../../../../utils/auction'
@@ -16,6 +17,7 @@ import { convertBigNumber, toBigNumber } from '../../../../utils/math'
 
 const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const { data: feeData } = useFeeData()
+  const address = useAccountStore(s => s.address)
   const auction = useCrabV2Store(s => s.auction)
   const isNew = !auction.currentAuctionId
 
@@ -51,12 +53,12 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
     async (signature: string, auction: Auction) => {
       const resp = await fetch('/api/auction/createOrEditAuction', {
         method: 'POST',
-        body: JSON.stringify({ signature, auction: auction }),
+        body: JSON.stringify({ signature, auction: auction, address }),
         headers: { 'Content-Type': 'application/json' },
       })
       showMessageFromServer(resp)
     },
-    [showMessageFromServer],
+    [address, showMessageFromServer],
   )
 
   const createOrUpdate = React.useCallback(async () => {
