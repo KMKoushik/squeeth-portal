@@ -1,21 +1,30 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { KING_CRAB } from '../../../constants/message'
 import { crabV2Contract, verifyMessage } from '../../../server/utils/ether'
-import { addOrUpdateAuction, createNewAuction } from '../../../server/utils/firebase-admin'
+import { addOrUpdateAuction, createNewAuction, getAuction } from '../../../server/utils/firebase-admin'
+import { Auction } from '../../../types'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(400).json({ message: 'Only post is allowed' })
-  const { signature, auction } = req.body
-  const owner = await crabV2Contract.owner()
+  const { auction } = req.body
 
-  try {
-    const isOwner = verifyMessage(KING_CRAB, signature, owner)
-    if (!isOwner) return res.status(401).json({ message: 'Not owner' })
-  } catch (e) {
-    return res.status(401).json({ message: "Signature can't be verified" })
-  }
+  const currentAuction = (await getAuction()).data() as Auction
 
-  await addOrUpdateAuction(auction)
+  const { bids, tx, clearingPrice, winningBids, ethPrice, oSqthPrice, dvol, normFactor, executedTime } = auction
+
+  await addOrUpdateAuction({
+    ...currentAuction,
+    bids,
+    tx,
+    clearingPrice,
+    winningBids,
+    ethPrice,
+    oSqthPrice,
+    dvol,
+    normFactor,
+    executedTime,
+  })
+
   await createNewAuction()
 
   res.status(200).json({ message: 'Auction successful' })

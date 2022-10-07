@@ -1,6 +1,9 @@
 {
   "name": "squeeth-portal",
   "private": true,
+  "engines": {
+    "node": "^16"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,6 +16,7 @@
     "@davatar/react": "^1.8.1",
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
+    "@gnosis.pm/safe-apps-wagmi": "^1.0.3",
     "@mui/icons-material": "^5.4.2",
     "@mui/lab": "^5.0.0-alpha.70",
     "@mui/material": "^5.4.0",
@@ -20,10 +24,12 @@
     "@rainbow-me/rainbowkit": "^0.4.1",
     "chart.js": "^3.7.1",
     "date-fns": "^2.28.0",
+    "discord.js": "^14.5.0",
     "ethers": "^5.5.3",
     "firebase": "^9.8.4",
     "firebase-admin": "^11.0.0",
     "framer-motion": "^6.2.6",
+    "ipfs-http-client": "^58.0.1",
     "next": "12.0.7",
     "next-global-css": "^1.2.0",
     "react": "17.0.2",
@@ -31,6 +37,7 @@
     "react-countdown": "^2.3.2",
     "react-dom": "17.0.2",
     "swr": "^1.2.2",
+    "telegraf": "^4.10.0",
     "uniswap-dapp-integration-shared": "^1.0.3",
     "uniswap-react": "^1.0.3",
     "wagmi": "^0.5.5",

@@ -21,7 +21,7 @@ export const V2_AUCTION_TIME = 10 //10 mins
 
 export const V2_AUCTION_TIME_MILLIS = V2_AUCTION_TIME * 60 * 1000 //10 mins in milliseconds
 
-export const ETHERSCAN = CHAIN_ID === 3 ? etherscanBlockExplorers.ropsten : etherscanBlockExplorers.mainnet
+export const ETHERSCAN = CHAIN_ID === 1 ? etherscanBlockExplorers.mainnet : etherscanBlockExplorers.goerli
 
 export const V2_BID_REQUEST_USUAGE_EXPIRY = 5 //5 mins
 

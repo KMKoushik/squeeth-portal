@@ -30,6 +30,10 @@ export const wmul = (num1: BigNumber | string, num2: BigNumber | string) => {
   return BigNumber.from(num1).mul(num2).div(BIG_ONE)
 }
 
+export const cwmul = (num1: BigNumber | string, num2: BigNumber | string) => {
+  return BigNumber.from(num1).mul(num2).add(BIG_ONE.div(2)).div(BIG_ONE)
+}
+
 export const wdiv = (dividend: BigNumber | number, divisor: BigNumber | number) => {
   const _dividend = BigNumber.from(dividend)
   const _divisor = BigNumber.from(divisor)

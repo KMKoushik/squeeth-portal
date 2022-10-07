@@ -12,7 +12,7 @@ try {
     ? apps[0]
     : initializeApp({
       credential: cert({
-        projectId: CHAIN_ID === 3 ? 'crab-v2-testnet' : 'crab-v2-mainnet',
+        projectId: CHAIN_ID === 1 ? 'crab-v2-mainnet' : 'crab-v2-testnet',
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
         privateKey: process.env.FIREBASE_PRIVATE_KEY,
       }),

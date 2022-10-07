@@ -22,6 +22,8 @@ import styles from '../../../styles/Auction.module.css'
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import HistoryIcon from '@mui/icons-material/History'
+import BottomNav from '../../../components/navbars/BottomNav'
+
 const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
   // Render a countdown
   return (
@@ -75,6 +77,7 @@ const Auction: React.FC = () => {
   useInterval(updateStatus, auction.auctionEnd ? Date.now() - auction.auctionEnd + V2_AUCTION_TIME_MILLIS : null)
 
   return (
+    <>
     <Box>
       <Typography variant="h6" sx={{ textAlign: { xs: 'center', sm: 'left' } }} mb={1}>
         Token Approvals
@@ -164,6 +167,11 @@ const Auction: React.FC = () => {
         </>
       ) : null}
     </Box>
+      <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+        <BottomNav />
+      </Box>
+    </>
+
   )
 }
 

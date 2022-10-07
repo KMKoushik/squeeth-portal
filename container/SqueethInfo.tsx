@@ -25,16 +25,9 @@ const SqueethInfo = React.memo(function SqueethInfo() {
   }, [indexPrice, markPrice])
 
   return (
-    <Grid container mb={4} justifyContent="space-between">
-      <Grid
-        item
-        xs={12}
-        sm={4}
-        border={1}
-        borderColor="#2D2F34"
-        borderRadius={2}
-        p={2}
-        sx={{ marginBottom: { xs: 2, sm: 0 }, marginRight: { sm: 2 }, justifyContent: { xs: 'center' } }}
+    <Grid container mb={4} justifyContent='space-between'>
+      <Grid item xs={12} sm={5} md={5} border={1} borderColor="#2D2F34" borderRadius={2} p={2}
+        sx={{ marginBottom: { xs: 2, sm: 0 },  justifyContent: { xs: 'center' } }}
       >
         <TVL name="TVL" value={tvl.toFixed(2)} />
         <Box mb={2}>
@@ -45,7 +38,7 @@ const SqueethInfo = React.memo(function SqueethInfo() {
         <LabelValue name="NF" value={formatBigNumber(nf, 18, 6)} />
       </Grid>
 
-      <Grid item xs={12} sm={6} justifyContent="center" textAlign="center">
+      <Grid item xs={12} sm={6} md={6} justifyContent="center" textAlign="center">
         <Addressbar address={address.CONTROLLER} name="💰 Controller" margin />
         <Addressbar address={address.OSQUEETH} name="🐱 OSqueeth" margin />
         <Addressbar address={address.CRAB_STRATEGY} name="🦀 Strategy" margin={false} />
