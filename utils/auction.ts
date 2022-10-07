@@ -294,7 +294,7 @@ export const validateOrderWithBalance = (
       response = 'Price should be greater than min price'
     }
 
-    const tradeAmount = wmul(BigNumber.from(order.quantity), order.price)
+    const tradeAmount = wmul(BigNumber.from(String(order.quantity)), order.price)
     if (traderAllowance.lt(tradeAmount) || traderBalance.lt(tradeAmount)) {
       isValidOrder = false
       response = 'Amount approved or balance is less than order quantity'
