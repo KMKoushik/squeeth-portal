@@ -457,9 +457,9 @@ const CreateDeposit: React.FC = () => {
         const trade_value = _ethAmount.add(from_selling)
         return [tot_dep, to_mint, trade_value]
       }
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < 1000; i++) {
         console.log(i)
-        const [tot_dep, to_mint, trade_value] = mth(i)
+        const [tot_dep, to_mint, trade_value] = mth(i*100)
         if (trade_value.gte(tot_dep)) {
           console.log(tot_dep.toString(), to_mint.toString(), trade_value.toString(), i)
           return [to_mint, tot_dep]
