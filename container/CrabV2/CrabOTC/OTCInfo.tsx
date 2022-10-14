@@ -5,6 +5,9 @@ import useControllerStore from '../../../store/controllerStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import usePriceStore from '../../../store/priceStore'
 import { calculateIV, convertBigNumber, formatBigNumber } from '../../../utils/math'
+import InfoIcon from '@mui/icons-material/InfoOutlined'
+import { HtmlTooltip } from '../../../components/utilities/HtmlToolTip'
+import { Fragment } from 'react'
 
 export const OTCInfo: React.FC = () => {
   const { ethPriceBN, oSqthPriceBN } = usePriceStore(
@@ -12,7 +15,7 @@ export const OTCInfo: React.FC = () => {
     shallow,
   )
 
-  const { ethDvol } = useCrabV2Store(s => ({ ethDvol: s.ethDvolIndex }), shallow)
+  const { ethDvol, osqthvolIndex } = useCrabV2Store(s => ({ ethDvol: s.ethDvolIndex, osqthvolIndex: s.oSqthVolIndex }), shallow)
 
   const { indexPrice, markPrice, nfBN } = useControllerStore(
     s => ({ indexPrice: s.indexPrice, markPrice: s.markPrice, nfBN: s.normFactor }),
@@ -51,9 +54,19 @@ export const OTCInfo: React.FC = () => {
       <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
-          DVOL
+          Squeeth Vol
+          <HtmlTooltip
+            title={
+              <Fragment>
+                {"Squeeth reference volatility based on deribit options and squeeth replicating portfolio..."}
+                <a href=''><b>{'Click here learn more'}</b></a>
+              </Fragment>
+            }
+          >
+            <InfoIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
+          </HtmlTooltip>
         </Typography>
-        <Typography variant="numeric">{ethDvol}%</Typography>
+        <Typography variant="numeric">{ osqthvolIndex}%</Typography>
       </Box>
     </Box>
   )

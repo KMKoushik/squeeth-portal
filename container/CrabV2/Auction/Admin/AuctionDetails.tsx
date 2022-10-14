@@ -1,6 +1,6 @@
 import { Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import { useMemo } from 'react'
+import { Fragment, useMemo } from 'react'
 import shallow from 'zustand/shallow'
 import { BIG_ZERO } from '../../../../constants/numbers'
 import useControllerStore from '../../../../store/controllerStore'
@@ -9,9 +9,11 @@ import usePriceStore from '../../../../store/priceStore'
 import { estimateAuction } from '../../../../utils/auction'
 import { calculateIV, convertBigNumber, formatBigNumber } from '../../../../utils/math'
 import AuctionBadge from '../AuctionBadge'
+import InfoIcon from '@mui/icons-material/InfoOutlined'
+import { HtmlTooltip } from '../../../../components/utilities/HtmlToolTip'
 
 const AuctionDetails: React.FC = () => {
-  const { vault, ethDvolIndex } = useCrabV2Store(s => ({ vault: s.vault, ethDvolIndex: s.ethDvolIndex }), shallow)
+  const { vault, ethDvolIndex, osqthvolIndex } = useCrabV2Store(s => ({ vault: s.vault, ethDvolIndex: s.ethDvolIndex, osqthvolIndex: s.oSqthVolIndex }), shallow)
   const { oSqthPrice, ethPrice } = usePriceStore(s => ({ oSqthPrice: s.oSqthPrice, ethPrice: s.ethPrice }), shallow)
 
   const { nfBN } = useControllerStore(
@@ -32,6 +34,7 @@ const AuctionDetails: React.FC = () => {
 
     return estimateAuction(vault.shortAmount, vault.collateral, oSqthPrice)
   }, [oSqthPrice, vault])
+
 
   return (
     <Box display="flex" border="1px solid gray" borderRadius={2} p={2}>
@@ -96,13 +99,21 @@ const AuctionDetails: React.FC = () => {
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
-      <Box display="flex" flexDirection="column" justifyContent="center">
-        <Typography color="textSecondary" variant="caption" textAlign="center">
-          DVOL
+       <Box display="flex" flexDirection="column" justifyContent="center">
+        <Typography color="textSecondary" variant="caption">
+          Squeeth Vol
+          <HtmlTooltip
+            title={
+              <Fragment>
+                {"Squeeth reference volatility based on deribit options and squeeth replicating portfolio..."}
+                <a href=''><b>{'Click here learn more'}</b></a>
+              </Fragment>
+            }
+          >
+            <InfoIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
+          </HtmlTooltip>
         </Typography>
-        <Typography variant="numeric" textAlign="center">
-          {ethDvolIndex}%
-        </Typography>
+        <Typography variant="numeric">{ osqthvolIndex}%</Typography>
       </Box>
     </Box>
   )
