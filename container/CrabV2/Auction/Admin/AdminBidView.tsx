@@ -25,7 +25,7 @@ import useApprovals from '../../../../hooks/useApprovals'
 import { CRAB_STRATEGY_V2, OSQUEETH, WETH } from '../../../../constants/address'
 import { useBalances } from '../../../../hooks/useBalances'
 import { PrimaryLoadingButton } from '../../../../components/button/PrimaryButton'
-import { Button, Checkbox, Typography } from '@mui/material'
+import { Button, Checkbox, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { SecondaryButton } from '../../../../components/button/SecondaryButton'
 import { useContract, useContractWrite, useSigner, useWaitForTransaction } from 'wagmi'
@@ -56,6 +56,9 @@ const AdminBidView: React.FC = () => {
   // Needed for manual hedge
   const [manualBidMap, setManualBidMap] = React.useState<{ [key: string]: Bid & { status?: BidStatus } }>({})
   const [manualQty, setManualQty] = React.useState('0')
+
+  const [manualTx, setManualTx] = React.useState('')
+  const [manualTimestamp, setManualTimestamp] = React.useState(0)
 
   const { ethPriceBN, oSqthPriceBN } = usePriceStore(
     s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
@@ -108,16 +111,22 @@ const AdminBidView: React.FC = () => {
     setFilterLoading(false)
   }, [auction, bids, getApprovals, getBalances, uniqueTraders])
 
+  const getOrders = () => {
+    const manualBids = Object.values(manualBidMap)
+    const orders = (manualBids.length ? manualBids : filteredBids!)
+      .filter(fb => fb.status! <= BidStatus.PARTIALLY_FILLED)
+      .map(b => {
+        const { r, s, v } = ethers.utils.splitSignature(b.signature)
+
+        return { ...b.order, v, r, s }
+      })
+
+    return { orders, manualBids }
+  }
+
   const hedgeCB = async () => {
     try {
-      const manualBids = Object.values(manualBidMap)
-      const orders = (manualBids.length ? manualBids : filteredBids!)
-        .filter(fb => fb.status! <= BidStatus.PARTIALLY_FILLED)
-        .map(b => {
-          const { r, s, v } = ethers.utils.splitSignature(b.signature)
-
-          return { ...b.order, v, r, s }
-        })
+      const { orders } = getOrders()
 
       const gasLimit = await crabV2.estimateGas.hedgeOTC(auction.oSqthAmount, clearingPrice, !auction.isSelling, orders)
 
@@ -137,36 +146,42 @@ const AdminBidView: React.FC = () => {
       }
       await tx.wait()
 
-      const updatedAuction: Auction = {
-        ...auction,
-        bids: getBidsWithReasonMap(
-          manualBids.length
-            ? bids.map(b => ({
-                ...b,
-                status: !!manualBidMap[`${b.bidder}-${b.order.nonce}`] ? BidStatus.INCLUDED : BidStatus.ALREADY_FILLED,
-              }))
-            : filteredBids!,
-        ),
-        tx: tx.hash,
-        clearingPrice,
-        winningBids: orders.map(o => `${o.trader}-${o.nonce}`),
-        ethPrice: ethPriceBN.toString(),
-        oSqthPrice: oSqthPriceBN.toString(),
-        dvol: ethDvolIndex,
-        normFactor: nfBN.toString(),
-        executedTime: (tx.timestamp || 0) * 1000,
-      }
-
-      const resp = await fetch('/api/auction/submitAuction', {
-        method: 'POST',
-        body: JSON.stringify({ auction: updatedAuction }),
-        headers: { 'Content-Type': 'application/json' },
-      })
-      showMessageFromServer(resp)
+      await submitTx(tx.hash, tx.timestamp || 0)
       clearFilter()
     } catch (e) {
       console.log(e)
     }
+  }
+
+  const submitTx = async (tx: string, timestamp: number) => {
+    const { orders, manualBids } = getOrders()
+
+    const updatedAuction: Auction = {
+      ...auction,
+      bids: getBidsWithReasonMap(
+        manualBids.length
+          ? bids.map(b => ({
+            ...b,
+            status: !!manualBidMap[`${b.bidder}-${b.order.nonce}`] ? BidStatus.INCLUDED : BidStatus.ALREADY_FILLED,
+          }))
+          : filteredBids!,
+      ),
+      tx,
+      clearingPrice,
+      winningBids: orders.map(o => `${o.trader}-${o.nonce}`),
+      ethPrice: ethPriceBN.toString(),
+      oSqthPrice: oSqthPriceBN.toString(),
+      dvol: ethDvolIndex,
+      normFactor: nfBN.toString(),
+      executedTime: (timestamp || 0) * 1000,
+    }
+
+    const resp = await fetch('/api/auction/submitAuction', {
+      method: 'POST',
+      body: JSON.stringify({ auction: updatedAuction }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    showMessageFromServer(resp)
   }
 
   const clearFilter = () => {
@@ -282,6 +297,36 @@ const AdminBidView: React.FC = () => {
           </PrimaryLoadingButton>
         ) : null}
       </Box>
+      <Box mt={4} pb={8}>
+        <Typography mb={2}>Submit tx manually if the bids are still visible after tx</Typography>
+        <Box display="flex" flexDirection="column" width={300}>
+          <TextField
+            size="small"
+            label="tx"
+            variant="outlined"
+            value={manualTx}
+            onChange={e => setManualTx(e.target.value)}
+          />
+          <TextField
+            size="small"
+            label="timestamp"
+            sx={{ mt: 2 }}
+            type="number"
+            variant="outlined"
+            value={manualTimestamp}
+            onChange={e => setManualTimestamp(Number(e.target.value))}
+          />
+          {filteredBids ? (
+            <PrimaryLoadingButton
+              loading={isHedging}
+              onClick={() => submitTx(manualTx, manualTimestamp)}
+              sx={{ mt: 2 }}
+            >
+              submit
+            </PrimaryLoadingButton>
+          ) : null}
+        </Box>
+      </Box>
     </>
   )
 }
@@ -313,7 +358,7 @@ const BidRow: React.FC<BidRowProp> = ({ bid, rank, checkEnabled, onCheck }) => {
       </TableCell>
       <TableCell>
         <Typography variant="body3">
-          {bid.bidder.substring(0, 5)}...{bid.bidder.substring(bid.bidder.length - 5)}
+          {bid.bidder.substring(0, 8)}...{bid.bidder.substring(bid.bidder.length - 5)}
         </Typography>
         <a href={`${ETHERSCAN.url}/address/${bid.bidder}`} target="_blank" rel="noreferrer">
           <OpenInNewIcon
