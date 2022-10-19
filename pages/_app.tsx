@@ -29,7 +29,6 @@ const infuraId = process.env.NEXT_PUBLIC_INFURA_API_KEY
 
 const appChain = CHAIN_ID === 1 ? chain.mainnet : CHAIN_ID === 5 ? chain.goerli : chain.ropsten
 
-
 // Chains for connectors to support
 const { chains, provider } = configureChains([appChain], [infuraProvider({ infuraId }), publicProvider()])
 
@@ -44,7 +43,6 @@ const wagmiClient = createClient({
   connectors: [...connectors(), new SafeConnector({ chains })],
   provider,
 })
-
 
 const getOsqthVol = async () => {
   return getoSqthRefVolIndex()
