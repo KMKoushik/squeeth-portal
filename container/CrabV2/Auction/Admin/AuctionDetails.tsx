@@ -10,10 +10,10 @@ import { estimateAuction } from '../../../../utils/auction'
 import { calculateIV, convertBigNumber, formatBigNumber } from '../../../../utils/math'
 import AuctionBadge from '../AuctionBadge'
 import InfoIcon from '@mui/icons-material/InfoOutlined'
-import { HtmlTooltip } from '../../../../components/utilities/HtmlToolTip'
+import { HtmlTooltip } from '../../../../components/utilities/HtmlTooltip'
 
 const AuctionDetails: React.FC = () => {
-  const { vault, ethDvolIndex, osqthvolIndex } = useCrabV2Store(s => ({ vault: s.vault, ethDvolIndex: s.ethDvolIndex, osqthvolIndex: s.oSqthVolIndex }), shallow)
+  const { vault, osqthRefvol } = useCrabV2Store(s => ({ vault: s.vault, osqthRefvol: s.oSqthRefVolIndex }), shallow)
   const { oSqthPrice, ethPrice } = usePriceStore(s => ({ oSqthPrice: s.oSqthPrice, ethPrice: s.ethPrice }), shallow)
 
   const { nfBN } = useControllerStore(
@@ -101,7 +101,7 @@ const AuctionDetails: React.FC = () => {
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
        <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
-          Squeeth Vol
+          Squeeth Ref Vol
           <HtmlTooltip
             title={
               <Fragment>
@@ -113,7 +113,7 @@ const AuctionDetails: React.FC = () => {
             <InfoIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
           </HtmlTooltip>
         </Typography>
-        <Typography variant="numeric">{ osqthvolIndex}%</Typography>
+        <Typography variant="numeric">{ osqthRefvol.toFixed(2)}%</Typography>
       </Box>
     </Box>
   )

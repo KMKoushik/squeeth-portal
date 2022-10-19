@@ -24,7 +24,7 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import HistoryIcon from '@mui/icons-material/History'
 import BottomNav from '../../../components/navbars/BottomNav'
 import InfoIcon from '@mui/icons-material/InfoOutlined'
-import { HtmlTooltip } from '../../../components/utilities/HtmlToolTip'
+import { HtmlTooltip } from '../../../components/utilities/HtmlTooltip'
 
 
 
@@ -289,7 +289,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
     s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
     shallow,
   )
-  const { ethDvol, osqthvol } = useCrabV2Store(s => ({ ethDvol: s.ethDvolIndex,  osqthvol: s.oSqthVolIndex }), shallow)
+  const { osqthRefvol } = useCrabV2Store(s => ({  osqthRefvol: s.oSqthRefVolIndex }), shallow)
   const { indexPrice, markPrice, nfBN } = useControllerStore(
     s => ({ indexPrice: s.indexPrice, markPrice: s.markPrice, nfBN: s.normFactor }),
     shallow,
@@ -382,7 +382,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
       <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
-          Squeeth Vol
+          Squeeth Ref Vol
           <HtmlTooltip
             title={
               <Fragment>
@@ -394,7 +394,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
             <InfoIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
           </HtmlTooltip>
         </Typography>
-        <Typography variant="numeric">{auction.dvol || osqthvol}%</Typography>
+        <Typography variant="numeric">{auction.osqthRefvol || osqthRefvol.toFixed(2)}%</Typography>
       </Box>
     </Box>
   )

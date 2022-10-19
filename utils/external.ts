@@ -12,13 +12,15 @@ export const getDvolIndexDeribit = async (deribitBaseUrl: string | undefined) =>
 }
 
 
-export const getOsqthVolIndex = async (squeethApiBaseUrl: string | undefined) => {
-  if (!squeethApiBaseUrl) return 0
-
+export const getoSqthRefVolIndex = async (): Promise<number> => {
+  
   const response = await fetch(
-    `${squeethApiBaseUrl}/squeeth_iv`,
-  )
-  const jsonData = await response.json()
+    `/api/currentsqueethvol`,
+  ).then((res) => res.json())
 
-  return jsonData
+  if (response.status === 'error') {
+    throw new Error(response.status)
+  }
+
+  return response*100
 }

@@ -21,8 +21,7 @@ interface CrabV2Store {
   vault: Vault | null
   sortedBids: Bid[]
   categorizedBids: BidWithStatus[]
-  ethDvolIndex: number
-  oSqthVolIndex: number
+  oSqthRefVolIndex: number
   estClearingPrice: string
   setOwner: (owner: string) => void
   setIsContractLoading: (isLoading: boolean) => void
@@ -39,8 +38,7 @@ interface CrabV2Store {
   setVault: (v: Vault) => void
   setSortedBids: (bids: Bid[]) => void
   setCategorizedBids: (bids: BidWithStatus[]) => void
-  setEthDvolIndex: (p: number) => void
-  setOsqthVolIndex: (p: number) => void
+  setOsqthRefVolIndex: (p: number) => void
   setEstClearingPrice: (price: string) => void
 }
 
@@ -61,8 +59,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   vault: null,
   sortedBids: [],
   categorizedBids: [],
-  ethDvolIndex: ZERO,
-  oSqthVolIndex: ZERO,
+  oSqthRefVolIndex: ZERO,
   estClearingPrice: '0',
   setOwner: owner => set({ owner }),
   setIsContractLoading: l => set({ isContractLoading: l, isLoading: l || get().auctionLoading }),
@@ -80,8 +77,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   setVault: vault => set({ vault }),
   setSortedBids: bids => set({ sortedBids: bids }),
   setCategorizedBids: bids => set({ categorizedBids: bids }),
-  setEthDvolIndex: p => set({ ethDvolIndex: p }),
-  setOsqthVolIndex: p => set({ oSqthVolIndex: p }),
+  setOsqthRefVolIndex: p => set({ oSqthRefVolIndex: p }),
   setEstClearingPrice: price => set({ estClearingPrice: price }),
 }))
 
