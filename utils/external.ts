@@ -24,3 +24,5 @@ export const getoSqthRefVolIndex = async (): Promise<number> => {
 
   return response*100
 }
+
+export const squeethRefVolDocLink = 'https://colab.research.google.com/drive/1HTM_2j0jmda9tzN_uskBPz9Rpma8Lp3C'

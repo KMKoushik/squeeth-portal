@@ -25,6 +25,7 @@ import HistoryIcon from '@mui/icons-material/History'
 import BottomNav from '../../../components/navbars/BottomNav'
 import InfoIcon from '@mui/icons-material/InfoOutlined'
 import { HtmlTooltip } from '../../../components/utilities/HtmlTooltip'
+import { squeethRefVolDocLink } from '../../../utils/external'
 
 
 
@@ -387,7 +388,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
             title={
               <Fragment>
                 {"Squeeth reference volatility based on deribit options and squeeth replicating portfolio..."}
-                <a href=''><b>{'Click here learn more'}</b></a>
+                <a href={squeethRefVolDocLink} target="_blank"><b>{'Click here learn more'}</b></a>
               </Fragment>
             }
           >

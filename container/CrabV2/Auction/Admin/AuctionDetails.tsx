@@ -11,6 +11,7 @@ import { calculateIV, convertBigNumber, formatBigNumber } from '../../../../util
 import AuctionBadge from '../AuctionBadge'
 import InfoIcon from '@mui/icons-material/InfoOutlined'
 import { HtmlTooltip } from '../../../../components/utilities/HtmlTooltip'
+import { squeethRefVolDocLink } from '../../../../utils/external'
 
 const AuctionDetails: React.FC = () => {
   const { vault, osqthRefvol } = useCrabV2Store(s => ({ vault: s.vault, osqthRefvol: s.oSqthRefVolIndex }), shallow)
@@ -106,7 +107,7 @@ const AuctionDetails: React.FC = () => {
             title={
               <Fragment>
                 {"Squeeth reference volatility based on deribit options and squeeth replicating portfolio..."}
-                <a href=''><b>{'Click here learn more'}</b></a>
+                <a href={squeethRefVolDocLink} target="_blank"><b>{'Click here learn more'}</b></a>
               </Fragment>
             }
           >
