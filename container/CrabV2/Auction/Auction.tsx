@@ -26,6 +26,7 @@ import BottomNav from '../../../components/navbars/BottomNav'
 import InfoIcon from '@mui/icons-material/InfoOutlined'
 import { HtmlTooltip } from '../../../components/utilities/HtmlTooltip'
 import { squeethRefVolDocLink } from '../../../utils/external'
+import { SQUEETH_REF_VOL_MESSAGE } from '../../../constants/message'
 
 
 
@@ -290,7 +291,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
     s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
     shallow,
   )
-  const { osqthRefvol } = useCrabV2Store(s => ({  osqthRefvol: s.oSqthRefVolIndex }), shallow)
+  const { osqthRefVol } = useCrabV2Store(s => ({  osqthRefVol: s.oSqthRefVolIndex }), shallow)
   const { indexPrice, markPrice, nfBN } = useControllerStore(
     s => ({ indexPrice: s.indexPrice, markPrice: s.markPrice, nfBN: s.normFactor }),
     shallow,
@@ -387,7 +388,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
           <HtmlTooltip
             title={
               <Fragment>
-                {"Squeeth reference volatility based on deribit options and squeeth replicating portfolio..."}
+                {SQUEETH_REF_VOL_MESSAGE}
                 <a href={squeethRefVolDocLink} target="_blank"><b>{'Click here learn more'}</b></a>
               </Fragment>
             }
@@ -395,7 +396,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
             <InfoIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
           </HtmlTooltip>
         </Typography>
-        <Typography variant="numeric">{auction.osqthRefvol || osqthRefvol.toFixed(2)}%</Typography>
+        <Typography variant="numeric">{auction.osqthRefVol || osqthRefVol.toFixed(2)}%</Typography>
       </Box>
     </Box>
   )

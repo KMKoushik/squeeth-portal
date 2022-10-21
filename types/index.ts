@@ -52,7 +52,6 @@ export type Auction = {
   osqthRefVol?: number,
   normFactor?: string
   executedTime?: number
-  osqthRefvol?: number
 }
 
 export enum BidStatus {

@@ -12,9 +12,10 @@ import AuctionBadge from '../AuctionBadge'
 import InfoIcon from '@mui/icons-material/InfoOutlined'
 import { HtmlTooltip } from '../../../../components/utilities/HtmlTooltip'
 import { squeethRefVolDocLink } from '../../../../utils/external'
+import { SQUEETH_REF_VOL_MESSAGE } from '../../../../constants/message'
 
 const AuctionDetails: React.FC = () => {
-  const { vault, osqthRefvol } = useCrabV2Store(s => ({ vault: s.vault, osqthRefvol: s.oSqthRefVolIndex }), shallow)
+  const { vault, osqthRefVol } = useCrabV2Store(s => ({ vault: s.vault, osqthRefVol: s.oSqthRefVolIndex }), shallow)
   const { oSqthPrice, ethPrice } = usePriceStore(s => ({ oSqthPrice: s.oSqthPrice, ethPrice: s.ethPrice }), shallow)
 
   const { nfBN } = useControllerStore(
@@ -106,7 +107,7 @@ const AuctionDetails: React.FC = () => {
           <HtmlTooltip
             title={
               <Fragment>
-                {"Squeeth reference volatility based on deribit options and squeeth replicating portfolio..."}
+                {SQUEETH_REF_VOL_MESSAGE}
                 <a href={squeethRefVolDocLink} target="_blank"><b>{'Click here learn more'}</b></a>
               </Fragment>
             }
@@ -114,7 +115,7 @@ const AuctionDetails: React.FC = () => {
             <InfoIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
           </HtmlTooltip>
         </Typography>
-        <Typography variant="numeric">{ osqthRefvol.toFixed(2)}%</Typography>
+        <Typography variant="numeric">{ osqthRefVol.toFixed(2)}%</Typography>
       </Box>
     </Box>
   )
