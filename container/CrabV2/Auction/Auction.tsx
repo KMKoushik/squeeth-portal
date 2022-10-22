@@ -389,7 +389,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
             title={
               <Fragment>
                 {SQUEETH_REF_VOL_MESSAGE}
-                <a href={squeethRefVolDocLink} target="_blank"><b>{'Click here learn more'}</b></a>
+                <a href={squeethRefVolDocLink} target="_blank"><b>{'Learn more.'}</b></a>
               </Fragment>
             }
           >
