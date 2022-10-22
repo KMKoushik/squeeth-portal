@@ -17,7 +17,7 @@ export const OTCInfo: React.FC = () => {
     shallow,
   )
 
-  const { osqthRefvol } = useCrabV2Store(s => ({  osqthRefvol: s.oSqthRefVolIndex }), shallow)
+  const { osqthRefVol } = useCrabV2Store(s => ({  osqthRefVol: s.oSqthRefVolIndex }), shallow)
 
   const { indexPrice, markPrice, nfBN } = useControllerStore(
     s => ({ indexPrice: s.indexPrice, markPrice: s.markPrice, nfBN: s.normFactor }),
@@ -68,7 +68,7 @@ export const OTCInfo: React.FC = () => {
             <InfoIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
           </HtmlTooltip>
         </Typography>
-        <Typography variant="numeric">{ osqthRefvol.toFixed(2)}%</Typography>
+        <Typography variant="numeric">{ osqthRefVol.toFixed(2)}%</Typography>
       </Box>
     </Box>
   )

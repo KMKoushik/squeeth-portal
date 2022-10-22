@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const currentAuction = (await getAuction()).data() as Auction
 
-  const { bids, tx, clearingPrice, winningBids, ethPrice, oSqthPrice, osqthRefvol, normFactor, executedTime } = auction
+  const { bids, tx, clearingPrice, winningBids, ethPrice, oSqthPrice, osqthRefVol, normFactor, executedTime } = auction
 
   await addOrUpdateAuction({
     ...currentAuction,
@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     winningBids,
     ethPrice,
     oSqthPrice,
-    osqthRefvol,
+    osqthRefVol,
     normFactor,
     executedTime,
   })
