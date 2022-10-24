@@ -10,19 +10,3 @@ export const getDvolIndexDeribit = async (deribitBaseUrl: string | undefined) =>
 
   return jsonData.result.data[0][4]
 }
-
-
-export const getoSqthRefVolIndex = async (): Promise<number> => {
-  
-  const response = await fetch(
-    `/api/currentsqueethvol`,
-  ).then((res) => res.json())
-
-  if (response.status === 'error') {
-    throw new Error(response.status)
-  }
-
-  return response*100
-}
-
-export const squeethRefVolDocLink = 'https://colab.research.google.com/drive/1HTM_2j0jmda9tzN_uskBPz9Rpma8Lp3C'

@@ -18,7 +18,7 @@ import { publicProvider } from 'wagmi/providers/public'
 import { CHAIN_ID } from '../constants/numbers'
 import useInitAccount from '../hooks/init/useInitAccount'
 import ToastMessage from '../container/Toast'
-import { getoSqthRefVolIndex } from '../utils/external'
+import { getDvolIndexDeribit } from '../utils/external'
 import useCrabV2Store from '../store/crabV2Store'
 import useInterval from '../hooks/useInterval'
 import { useAutoConnect } from '../hooks/useAutoConnect'
@@ -28,6 +28,8 @@ import { useAutoConnect } from '../hooks/useAutoConnect'
 const infuraId = process.env.NEXT_PUBLIC_INFURA_API_KEY
 
 const appChain = CHAIN_ID === 1 ? chain.mainnet : CHAIN_ID === 5 ? chain.goerli : chain.ropsten
+
+const deribitBaseUrl = process.env.NEXT_PUBLIC_DERIBIT_BASE_URL
 
 // Chains for connectors to support
 const { chains, provider } = configureChains([appChain], [infuraProvider({ infuraId }), publicProvider()])
@@ -44,8 +46,8 @@ const wagmiClient = createClient({
   provider,
 })
 
-const getOsqthVol = async () => {
-  return getoSqthRefVolIndex()
+const getDvolIndex = async () => {
+  return getDvolIndexDeribit(deribitBaseUrl)
 }
 
 const InitializePrice = React.memo(function InitializePrice() {
@@ -56,20 +58,20 @@ const InitializePrice = React.memo(function InitializePrice() {
     s => ({ setEthPrice: s.setEthPrice, setOsqthPrice: s.setOsqthPrice }),
     shallow,
   )
-  const { setOsqthRefVolIndex } = useCrabV2Store(s => ({ setOsqthRefVolIndex: s.setOsqthRefVolIndex }), shallow)
+  const { setEthDvolIndex } = useCrabV2Store(s => ({ setEthDvolIndex: s.setEthDvolIndex }), shallow)
 
   const updatePrices = React.useCallback(() => {
     const p1 = oracle.getTwap(SQUEETH_UNI_POOL, OSQUEETH, WETH, 1, true)
     const p2 = oracle.getTwap(WETH_USDC_POOL, WETH, USDC, 1, true)
-    const p3 = getOsqthVol()
+    const p3 = getDvolIndex()
 
     Promise.all([p1, p2, p3]).then(prices => {
-      const [_sqthPrice, _ethPrice, _volIndex] = prices
+      const [_sqthPrice, _ethPrice, _dvolIndex] = prices
       setOsqthPrice(_sqthPrice)
       setEthPrice(_ethPrice)
-      setOsqthRefVolIndex(_volIndex)
+      setEthDvolIndex(_dvolIndex)
     })
-  }, [oracle, setEthPrice, setOsqthPrice, setOsqthRefVolIndex])
+  }, [oracle, setEthPrice, setOsqthPrice, setEthDvolIndex])
 
   React.useEffect(() => {
     updatePrices()

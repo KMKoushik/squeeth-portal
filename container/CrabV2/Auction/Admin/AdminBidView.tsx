@@ -46,7 +46,7 @@ const AdminBidView: React.FC = () => {
   const [clearingPrice, setClearingPrice] = React.useState('')
   const auction = useCrabV2Store(s => s.auction)
   const bids = useCrabV2Store(s => s.sortedBids)
-  const oSqthRefVolIndex = useCrabV2Store(s => s.oSqthRefVolIndex)
+  const ethDvolIndex = useCrabV2Store(s => s.ethDvolIndex)
   const uniqueTraders = getUniqueTraders(bids)
   const { getApprovals } = useApprovals(uniqueTraders, auction.isSelling ? WETH : OSQUEETH, CRAB_STRATEGY_V2)
   const { getBalances } = useBalances(uniqueTraders, auction.isSelling ? WETH : OSQUEETH)
@@ -145,8 +145,8 @@ const AdminBidView: React.FC = () => {
         console.log(e)
       }
       await tx.wait()
-      await submitTx(tx.hash, tx.timestamp || 0)
 
+      await submitTx(tx.hash, tx.timestamp || 0)
       clearFilter()
     } catch (e) {
       console.log(e)
@@ -171,7 +171,7 @@ const AdminBidView: React.FC = () => {
       winningBids: orders.map(o => `${o.trader}-${o.nonce}`),
       ethPrice: ethPriceBN.toString(),
       oSqthPrice: oSqthPriceBN.toString(),
-      osqthRefVol: oSqthRefVolIndex,
+      dvol: ethDvolIndex,
       normFactor: nfBN.toString(),
       executedTime: (timestamp || 0) * 1000,
     }
