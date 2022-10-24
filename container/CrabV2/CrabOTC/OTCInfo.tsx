@@ -5,6 +5,11 @@ import useControllerStore from '../../../store/controllerStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import usePriceStore from '../../../store/priceStore'
 import { calculateIV, convertBigNumber, formatBigNumber } from '../../../utils/math'
+import InfoIcon from '@mui/icons-material/InfoOutlined'
+import { HtmlTooltip } from '../../../components/utilities/HtmlTooltip'
+import { Fragment } from 'react'
+import { squeethRefVolDocLink } from '../../../utils/external'
+import { SQUEETH_REF_VOL_MESSAGE } from '../../../constants/message'
 
 export const OTCInfo: React.FC = () => {
   const { ethPriceBN, oSqthPriceBN } = usePriceStore(
@@ -12,7 +17,7 @@ export const OTCInfo: React.FC = () => {
     shallow,
   )
 
-  const { ethDvol } = useCrabV2Store(s => ({ ethDvol: s.ethDvolIndex }), shallow)
+  const { osqthRefVol } = useCrabV2Store(s => ({  osqthRefVol: s.oSqthRefVolIndex }), shallow)
 
   const { indexPrice, markPrice, nfBN } = useControllerStore(
     s => ({ indexPrice: s.indexPrice, markPrice: s.markPrice, nfBN: s.normFactor }),
@@ -51,9 +56,19 @@ export const OTCInfo: React.FC = () => {
       <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
-          DVOL
+          Squeeth Ref Vol
+          <HtmlTooltip
+            title={
+              <Fragment>
+                {SQUEETH_REF_VOL_MESSAGE}
+                <a href={squeethRefVolDocLink} target="_blank"><b>{'Learn more.'}</b></a>
+              </Fragment>
+            }
+          >
+            <InfoIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
+          </HtmlTooltip>
         </Typography>
-        <Typography variant="numeric">{ethDvol}%</Typography>
+        <Typography variant="numeric">{ osqthRefVol.toFixed(2)}%</Typography>
       </Box>
     </Box>
   )
