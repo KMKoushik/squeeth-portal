@@ -76,6 +76,18 @@ export const CRAB_OTC = getAddress({
   5: '0xe23dd6e59436a2cbc000c8ce20f5217beb68177e',
 })
 
+export const CRAB_NETTING = getAddress({
+  1: '',
+  3: '',
+  5: '0xf3e40abf4c06b9454440cb93d42e60de5e67db2a',
+})
+
+export const QUOTER = getAddress({
+  1: '0xC8d3a4e6BB4952E3658CCA5081c358e6935Efa43',
+  3: '0x267aEB76BEb6DC7Ab0D88FeEaC8A948e237e2d69',
+  5: '0x5D9D69aF49130fEb2511fdFc1A55B5746897BdE4',
+})
+
 const getCrabCouncilMembers = () => {
   if (CHAIN_ID === NETWORK.MAINNET) {
     return [
@@ -95,6 +107,7 @@ const getCrabCouncilMembers = () => {
       '0x1F63BC5b8285591227684F3c2E3ce24e282c48E5',
       '0xEa2efa0D31F56cE31af8C87D555ba357D4a4aa59',
       '0x56a847c21a4FA937c11258d94C8B1650cdbA21F7',
+      '0x7A715777B6Aa892E83C46A11105663c9b9292C17',
     ]
   }
 }

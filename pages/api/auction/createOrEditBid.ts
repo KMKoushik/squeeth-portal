@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const oldBid = auction.bids[`${order.trader}-${order.nonce}`] as Bid
 
     try {
-      const isOwner = verifyOrder(order, signature, oldBid?.bidder || order.trader)
+      const isOwner = verifyOrder(order, signature, oldBid?.bidder || order.trader, auction.type)
       if (!isOwner) return res.status(401).json({ message: 'Not owner' })
     } catch (e) {
       return res.status(401).json({ message: "Signature can't be verified" })
@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { isValidOrder, response: errorMessage } = await validateOrder(order, auction)
+    const { isValidOrder, response: errorMessage } = await validateOrder(order, auction, auction.type)
     if (!isValidOrder) return res.status(401).json({ message: errorMessage })
   } catch (e) {
     return res.status(401).json({ message: "Order can't be validated" })

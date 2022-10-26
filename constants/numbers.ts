@@ -1,5 +1,6 @@
 import { BigNumber } from 'ethers'
 import { etherscanBlockExplorers } from 'wagmi'
+import { NETWORK } from './address'
 
 export const BIG_ZERO = BigNumber.from(0)
 
@@ -26,3 +27,9 @@ export const ETHERSCAN = CHAIN_ID === 1 ? etherscanBlockExplorers.mainnet : ethe
 export const V2_BID_REQUEST_USUAGE_EXPIRY = 5 //5 mins
 
 export const V2_BID_REQUEST_USAGE_EXPIRY_TIME_MILLIS = V2_BID_REQUEST_USUAGE_EXPIRY * 60 * 1000 //2 mins in milliseconds
+
+export const ETH_USDC_FEE = 3000
+
+export const ETH_OSQTH_FEE = 3000
+
+export const DEFAULT_SLIPPAGE = 0.25

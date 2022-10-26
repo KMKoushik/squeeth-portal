@@ -18,6 +18,10 @@ export const convertBigNumber = (bn: BigNumber | string, decimals = 18) => {
   return parseFloat(ethers.utils.formatUnits(bn, decimals))
 }
 
+export const convertBigNumberStr = (bn: BigNumber | string, decimals = 18) => {
+  return ethers.utils.formatUnits(bn, decimals)
+}
+
 export const toBigNumber = (num: number | string, decimals = 18) => {
   return parseUnits(num.toString(), decimals)
 }
@@ -55,4 +59,17 @@ export const calculateIV = (oSqthPrice: number, normFactor: number, ethPrice: nu
 
 export const calculateDollarValue = (ethPrice: number, ethToUSD: number) => {
   return ethToUSD * ethPrice
+}
+
+export const calculateCrabUSDCValue = (
+  ethPrice: BigNumber,
+  oSqthPrice: BigNumber,
+  collat: BigNumber,
+  debt: BigNumber,
+  supply: BigNumber,
+) => {
+  const ethDebt = wmul(debt, oSqthPrice)
+  const ethValue = collat.sub(ethDebt)
+
+  return wdiv(wmul(ethValue, ethPrice), supply)
 }

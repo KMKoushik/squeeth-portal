@@ -18,7 +18,10 @@ export const useInitCrabOTC = () => {
       if (querySnapshot.docs.length) {
         fetch(`/api/crabotc/getCrabOTCById?id=${querySnapshot.docs[0].id}`).then(async resp => {
           const otc = (await resp.json()) as CrabOTCWithData
-          otc.data.sortedBids = sortBidsForBidArray(Object.values(otc.data.bids), otc.data.type == CrabOtcType.DEPOSIT ? true : false)
+          otc.data.sortedBids = sortBidsForBidArray(
+            Object.values(otc.data.bids),
+            otc.data.type == CrabOtcType.DEPOSIT ? true : false,
+          )
           setUserOTC(otc)
           setOtcLoading(false)
         })

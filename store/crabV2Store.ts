@@ -23,6 +23,7 @@ interface CrabV2Store {
   categorizedBids: BidWithStatus[]
   oSqthRefVolIndex: number
   estClearingPrice: string
+  totalSupply: BigNumber
   setOwner: (owner: string) => void
   setIsContractLoading: (isLoading: boolean) => void
   setAuction: (a: Auction) => void
@@ -40,6 +41,7 @@ interface CrabV2Store {
   setCategorizedBids: (bids: BidWithStatus[]) => void
   setOsqthRefVolIndex: (p: number) => void
   setEstClearingPrice: (price: string) => void
+  setTotalSupply: (supply: BigNumber) => void
 }
 
 const useCrabV2Store = create<CrabV2Store>((set, get) => ({
@@ -61,6 +63,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   categorizedBids: [],
   oSqthRefVolIndex: ZERO,
   estClearingPrice: '0',
+  totalSupply: BIG_ZERO,
   setOwner: owner => set({ owner }),
   setIsContractLoading: l => set({ isContractLoading: l, isLoading: l || get().auctionLoading }),
   setAuction: auction => set({ auction }),
@@ -79,6 +82,7 @@ const useCrabV2Store = create<CrabV2Store>((set, get) => ({
   setCategorizedBids: bids => set({ categorizedBids: bids }),
   setOsqthRefVolIndex: p => set({ oSqthRefVolIndex: p }),
   setEstClearingPrice: price => set({ estClearingPrice: price }),
+  setTotalSupply: supply => set({ totalSupply: supply }),
 }))
 
 export default useCrabV2Store

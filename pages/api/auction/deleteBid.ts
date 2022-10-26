@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const bid = auction.bids[bidId]
 
   try {
-    const isOwner = verifyMessageWithTime(mandate, signature, bid.bidder)
+    const isOwner = verifyMessageWithTime(mandate, signature, bid.bidder, auction.type)
     if (!isOwner) return res.status(401).json({ message: 'Not owner' })
   } catch (e) {
     return res.status(401).json({ message: "Signature can't be verified" })

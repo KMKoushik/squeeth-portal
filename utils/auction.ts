@@ -1,10 +1,11 @@
 import { BigNumber, ethers } from 'ethers'
 import { doc, setDoc } from 'firebase/firestore'
-import { CRAB_STRATEGY_V2, WETH, OSQUEETH } from '../constants/address'
+import { CRAB_STRATEGY_V2, WETH, OSQUEETH, CRAB_NETTING } from '../constants/address'
 import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
 import {
   Auction,
   AuctionStatus,
+  AuctionType,
   Bid,
   BidStatus,
   BidWithStatus,
@@ -13,7 +14,7 @@ import {
   Order,
 } from '../types'
 import { db } from './firebase'
-import { convertBigNumber, toBigNumber, wdiv, wmul } from './math'
+import { toBigNumber, wdiv, wmul } from './math'
 import erc20Abi from '../abis/ERC20.json'
 import { provider } from '../server/utils/ether'
 import { ERC20 } from '../types/contracts'
@@ -29,6 +30,7 @@ export const emptyAuction: Auction = {
   winningBids: [],
   clearingPrice: '0',
   minSize: 0,
+  type: AuctionType.CRAB_HEDGE,
 }
 
 export const AUCTION_COLLECTION =
@@ -82,6 +84,14 @@ export const categorizeBidsWithReason = (
       const _osqth = BigNumber.from(b.order.quantity)
       const _price = BigNumber.from(b.order.price)
       const erc20Needed = auction.isSelling ? wmul(_osqth, _price) : _osqth
+
+      try {
+        if (!verifyOrder(b.order, b.signature, b.bidder, auction.type)) {
+          return { ...b, status: BidStatus.WRONG_AUCTION_TYPE }
+        }
+      } catch (e) {
+        return { ...b, status: BidStatus.WRONG_AUCTION_TYPE }
+      }
 
       if ((auction.isSelling && _price.lt(auctionPrice)) || (!auction.isSelling && _price.gt(auctionPrice)))
         return { ...b, status: BidStatus.PRICE_MISMATCH }
@@ -198,11 +208,22 @@ export function convertArrayToMap<Type>(arr1: Array<string>, arr2: Array<Type>) 
   return result
 }
 
-export const domain = {
+export const hedgeDomain = {
   name: 'CrabOTC',
   version: '2',
   chainId: CHAIN_ID,
   verifyingContract: CRAB_STRATEGY_V2,
+}
+
+export const nettingDomain = {
+  name: 'CRABNetting',
+  version: '1',
+  chainId: CHAIN_ID,
+  verifyingContract: CRAB_NETTING,
+}
+
+const getDomain = (type: AuctionType) => {
+  return type === AuctionType.CRAB_HEDGE ? hedgeDomain : nettingDomain
 }
 
 export const type = {
@@ -224,15 +245,15 @@ export const messageWithTimeType = {
   ],
 }
 
-export const signOrder = async (signer: any, order: Order) => {
-  const signature = await signer._signTypedData(domain, type, order)
+export const signOrder = async (signer: any, order: Order, auctionType = AuctionType.CRAB_HEDGE) => {
+  const signature = await signer._signTypedData(getDomain(auctionType), type, order)
   const { r, s, v } = ethers.utils.splitSignature(signature)
 
   return { signature, r, s, v }
 }
 
-export const verifyOrder = async (order: Order, signature: string, address: string) => {
-  const addr = ethers.utils.verifyTypedData(domain, type, order, signature)
+export const verifyOrder = (order: Order, signature: string, address: string, auctionType = AuctionType.CRAB_HEDGE) => {
+  const addr = ethers.utils.verifyTypedData(getDomain(auctionType), type, order, signature)
   return address.toLowerCase() === addr.toLowerCase()
 }
 
@@ -259,15 +280,24 @@ export const getBgColor = (status?: BidStatus) => {
   return 'success.light'
 }
 
-export const signMessageWithTime = async (signer: any, data: MessageWithTimeSignature) => {
-  const signature = await signer._signTypedData(domain, messageWithTimeType, data)
+export const signMessageWithTime = async (
+  signer: any,
+  data: MessageWithTimeSignature,
+  auctionType = AuctionType.CRAB_HEDGE,
+) => {
+  const signature = await signer._signTypedData(getDomain(auctionType), messageWithTimeType, data)
   const { r, s, v } = ethers.utils.splitSignature(signature)
 
   return { signature, r, s, v }
 }
 
-export const verifyMessageWithTime = (data: MessageWithTimeSignature, signature: string, address: string) => {
-  const addr = ethers.utils.verifyTypedData(domain, messageWithTimeType, data, signature!)
+export const verifyMessageWithTime = (
+  data: MessageWithTimeSignature,
+  signature: string,
+  address: string,
+  auctionType = AuctionType.CRAB_HEDGE,
+) => {
+  const addr = ethers.utils.verifyTypedData(getDomain(auctionType), messageWithTimeType, data, signature!)
   return address.toLowerCase() === addr.toLowerCase()
 }
 
@@ -299,6 +329,14 @@ export const validateOrderWithBalance = (
     }
 
     const tradeAmount = wmul(BigNumber.from(String(order.quantity)), order.price)
+    console.log(
+      'Trade amount:',
+      tradeAmount.toString(),
+      'Trade bal:',
+      traderBalance.toString(),
+      'Trade allowance:',
+      traderAllowance.toString(),
+    )
     if (traderAllowance.lt(tradeAmount) || traderBalance.lt(tradeAmount)) {
       isValidOrder = false
       response = 'Amount approved or balance is less than order quantity'
@@ -318,16 +356,22 @@ export const validateOrderWithBalance = (
   return { isValidOrder, response }
 }
 
-export const validateOrder = async (order: Order, auction: Auction) => {
+export const validateOrder = async (order: Order, auction: Auction, auctionType = AuctionType.CRAB_HEDGE) => {
   if (order.isBuying) {
     const wethContract = new ethers.Contract(WETH, erc20Abi, provider) as ERC20
     const traderBalance = await wethContract.balanceOf(order.trader)
-    const traderAllowance = await wethContract.allowance(order.trader, CRAB_STRATEGY_V2)
+    const traderAllowance = await wethContract.allowance(
+      order.trader,
+      auctionType === AuctionType.CRAB_HEDGE ? CRAB_STRATEGY_V2 : CRAB_NETTING,
+    )
     return validateOrderWithBalance(order, auction, traderAllowance, traderBalance)
   } else {
     const squeethContract = new ethers.Contract(OSQUEETH, erc20Abi, provider)
     const traderBalance = await squeethContract.balanceOf(order.trader)
-    const traderAllowance = await squeethContract.allowance(order.trader, CRAB_STRATEGY_V2)
+    const traderAllowance = await squeethContract.allowance(
+      order.trader,
+      auctionType === AuctionType.CRAB_HEDGE ? CRAB_STRATEGY_V2 : CRAB_NETTING,
+    )
     return validateOrderWithBalance(order, auction, traderAllowance, traderBalance)
   }
 }
@@ -341,6 +385,7 @@ export const getBidStatus = (status?: BidStatus) => {
   if (status === BidStatus.PRICE_MISMATCH) return 'min/max price criteria not met'
   if (status === BidStatus.ORDER_DIRECTION_MISMATCH) return 'Wrong order direction'
   if (status === BidStatus.MIN_SIZE_NOT_MET) return 'Qty less than min size'
+  if (status === BidStatus.WRONG_AUCTION_TYPE) return 'Wrong auction type'
 
   return '--'
 }

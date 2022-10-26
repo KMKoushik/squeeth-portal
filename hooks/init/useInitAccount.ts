@@ -37,7 +37,7 @@ const useInitAccount = () => {
     setOsqthBalance((data[0] as unknown as BigNumber) || BIG_ZERO)
     setWethBalance((data[1] as unknown as BigNumber) || BIG_ZERO)
     setCrabBalance((data[2] as unknown as BigNumber) || BIG_ZERO)
-  }, [data, isLoading, setOsqthBalance, setWethBalance,setCrabBalance])
+  }, [data, isLoading, setOsqthBalance, setWethBalance, setCrabBalance])
 }
 
 export default useInitAccount

@@ -1,36 +1,63 @@
-import { Switch, TextField, Typography } from '@mui/material'
+import { FormControl, InputLabel, MenuItem, Select, Switch, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
+import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
+import { ethers } from 'ethers'
 import * as React from 'react'
-import { useFeeData, useSigner } from 'wagmi'
+import { useContractWrite, useFeeData, useSigner, useWaitForTransaction } from 'wagmi'
 import DangerButton from '../../../../components/button/DangerButton'
 import { PrimaryLoadingButton } from '../../../../components/button/PrimaryButton'
+import { CRAB_NETTING_CONTRACT } from '../../../../constants/contracts'
 import { KING_CRAB } from '../../../../constants/message'
 import { BIG_ZERO } from '../../../../constants/numbers'
+import useQuoter from '../../../../hooks/useQuoter'
 import useToaster from '../../../../hooks/useToaster'
 import useAccountStore from '../../../../store/accountStore'
+import { useCrabNettingStore } from '../../../../store/crabNettingStore'
 import useCrabV2Store from '../../../../store/crabV2Store'
-import { Auction } from '../../../../types'
+import usePriceStore from '../../../../store/priceStore'
+import { Auction, AuctionType } from '../../../../types'
 import { getMinSize } from '../../../../utils/auction'
-import { convertBigNumber, toBigNumber } from '../../../../utils/math'
+import { getWsqueethFromCrabAmount } from '../../../../utils/crab'
+import { calculateTotalDeposit } from '../../../../utils/crabNetting'
+import { convertBigNumber, convertBigNumberStr, toBigNumber } from '../../../../utils/math'
 
 const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const { data: feeData } = useFeeData()
   const address = useAccountStore(s => s.address)
   const auction = useCrabV2Store(s => s.auction)
+  const vault = useCrabV2Store(s => s.vault)
+  const totalSupply = useCrabV2Store(s => s.totalSupply)
+  const quoter = useQuoter()
+  const usdcDeposits = useCrabNettingStore(s => s.depositQueued)
+  const crabDeposits = useCrabNettingStore(s => s.withdrawQueued)
+  const isNettingAuctionLive = useCrabNettingStore(s => s.isAuctionLive)
+  const setIsAuctionLive = useCrabNettingStore(s => s.setAuctionLive)
   const isNew = !auction.currentAuctionId
 
-  const [oSqthAmount, setOsqthAmount] = React.useState(convertBigNumber(auction.oSqthAmount, 18).toString())
-  const [price, setPrice] = React.useState(convertBigNumber(auction.price, 18).toString())
+  const [oSqthAmount, setOsqthAmount] = React.useState(convertBigNumberStr(auction.oSqthAmount, 18))
+  const [price, setPrice] = React.useState(convertBigNumberStr(auction.price, 18).toString())
   const [endDate, setEndDate] = React.useState<Date>(auction.auctionEnd ? new Date(auction.auctionEnd) : new Date())
   const [isSelling, setIsSelling] = React.useState<boolean>(!!auction.isSelling)
   const [loading, setLoading] = React.useState(false)
   const [minSize, setMinSize] = React.useState(auction.minSize || 0)
   const [clearing, setClearing] = React.useState(false)
+  const [auctionType, setAuctionType] = React.useState(auction.type || AuctionType.CRAB_HEDGE)
 
   const { data: signer } = useSigner()
   const showMessageFromServer = useToaster()
+  const addRecentTransaction = useAddRecentTransaction()
+
+  const { data: toggleAuctionLiveTx, writeAsync: toggleAuction } = useContractWrite({
+    ...CRAB_NETTING_CONTRACT,
+    functionName: 'toggleAuctionLive',
+    args: [],
+  })
+
+  const { isLoading: isToggling } = useWaitForTransaction({
+    hash: toggleAuctionLiveTx?.hash,
+  })
 
   const updateSqthAmount = React.useCallback(
     (v: string) => {
@@ -69,11 +96,14 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
       const updatedAuction: Auction = {
         ...auction,
         currentAuctionId: isNew ? auction.nextAuctionId : auction.currentAuctionId,
-        oSqthAmount: toBigNumber(Number(oSqthAmount)).toString(),
-        price: toBigNumber(Number(price)).toString(),
+        oSqthAmount: toBigNumber(oSqthAmount).toString(),
+        price: toBigNumber(price).toString(),
         auctionEnd: endDate.getTime(),
-        minSize,
+        minSize: auctionType === AuctionType.NETTING ? 0 : minSize,
         isSelling,
+        type: auctionType,
+        usdAmount: usdcDeposits.toString(),
+        crabAmount: crabDeposits.toString(),
       }
 
       await updateAuction(signature!, updatedAuction)
@@ -81,7 +111,20 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
       console.log(e)
     }
     setLoading(false)
-  }, [signer, auction, isNew, oSqthAmount, price, endDate, minSize, isSelling, updateAuction])
+  }, [
+    signer,
+    auction,
+    isNew,
+    oSqthAmount,
+    price,
+    endDate,
+    auctionType,
+    minSize,
+    isSelling,
+    usdcDeposits,
+    crabDeposits,
+    updateAuction,
+  ])
 
   const clearBids = React.useCallback(async () => {
     setClearing(true)
@@ -100,17 +143,79 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
     setClearing(false)
   }, [auction, signer, updateAuction])
 
+  const isUSDCHigher = convertBigNumber(usdcDeposits, 6) > convertBigNumber(crabDeposits, 18)
+
+  const updateAuctionType = async (aucType: AuctionType) => {
+    setAuctionType(aucType)
+    if (aucType === AuctionType.NETTING) {
+      updateOsqthAmount(price)
+      setIsSelling(isUSDCHigher ? true : false)
+    } else {
+      setOsqthAmount(convertBigNumberStr(auction.oSqthAmount, 18))
+    }
+  }
+
+  const updateOsqthAmount = async (_price: string) => {
+    if (!vault || auctionType === AuctionType.CRAB_HEDGE) return null
+
+    if (isUSDCHigher) {
+      const { sqthToMint } = await calculateTotalDeposit(quoter, usdcDeposits, toBigNumber(_price, 18), vault)
+      console.log(sqthToMint.toString())
+      setOsqthAmount(convertBigNumberStr(sqthToMint, 18))
+    } else {
+      const osqthToBuy = getWsqueethFromCrabAmount(crabDeposits, vault, totalSupply)
+      setOsqthAmount(convertBigNumberStr(osqthToBuy, 18))
+    }
+  }
+
+  const updateLimitPrice = (limitPrice: string) => {
+    updateMinAmount(limitPrice)
+    updateOsqthAmount(limitPrice)
+  }
+
+  const onToggle = async () => {
+    const tx = await toggleAuction()
+    try {
+      addRecentTransaction({
+        hash: tx.hash,
+        description: `${isNettingAuctionLive ? 'Stop' : 'Start'} netting auction`,
+      })
+    } catch (e) {
+      console.log(e)
+    }
+
+    await tx.wait()
+    setIsAuctionLive(!isNettingAuctionLive)
+  }
+
   return (
-    <Box width={300} display="flex" flexDirection="column" justifyContent="center">
+    <Box width={300} display="flex" flexDirection="column" justifyContent="center" pb={5}>
       <Typography variant="h6" color="primary">
         {isNew ? 'Create' : 'Edit'} Auction
       </Typography>
       <Typography mt={2}>Auction ID: {auction.currentAuctionId || auction.nextAuctionId}</Typography>
+      <FormControl sx={{ mt: 2 }}>
+        <InputLabel id="auction-type-label">Auction type</InputLabel>
+        <Select
+          labelId="auction-type-label"
+          label="Auction type"
+          value={auctionType}
+          onChange={e => updateAuctionType(e.target.value as AuctionType)}
+        >
+          <MenuItem value={AuctionType.CRAB_HEDGE}>Crab Hedge</MenuItem>
+          <MenuItem value={AuctionType.NETTING}>Netting</MenuItem>
+        </Select>
+      </FormControl>
       <Box mt={2} display="flex" alignItems="center" justifyContent="space-between">
         <Typography>Is selling oSqth</Typography>
-        <Switch checked={isSelling} onChange={e => setIsSelling(e.target.checked)} />
+        <Switch
+          disabled={auctionType === AuctionType.NETTING}
+          checked={isSelling}
+          onChange={e => setIsSelling(e.target.checked)}
+        />
       </Box>
       <TextField
+        disabled={auctionType === AuctionType.NETTING}
         type="number"
         variant="outlined"
         sx={{ mt: 2 }}
@@ -124,7 +229,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
         sx={{ mt: 2, mb: 2 }}
         label={isSelling ? 'Min Price' : 'Max Price'}
         value={price}
-        onChange={e => updateMinAmount(e.target.value)}
+        onChange={e => updateLimitPrice(e.target.value)}
       />
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <DateTimePicker
@@ -144,6 +249,13 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
       <DangerButton sx={{ m: 'auto', mt: 2, width: 200 }} onClick={clearBids} loading={clearing}>
         Clear bids
       </DangerButton>
+      {auctionType === AuctionType.NETTING ? (
+        <Box alignItems="center" display="flex" flexDirection="column" justifyContent="center" mt={2}>
+          <PrimaryLoadingButton loading={isToggling} onClick={onToggle}>
+            {isNettingAuctionLive ? 'Stop auction' : 'Start auction'}
+          </PrimaryLoadingButton>
+        </Box>
+      ) : null}
     </Box>
   )
 })

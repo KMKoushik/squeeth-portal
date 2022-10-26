@@ -38,19 +38,18 @@ export const signOTCOrder = async (signer: any, order: CrabOTCOrder) => {
   return { signature, r, s, v }
 }
 
-export const validateOrder = async (bid: CrabOTCBid, crabOtc: CrabOTCWithData, bidId: Number,) => {
-
+export const validateOrder = async (bid: CrabOTCBid, crabOtc: CrabOTCWithData, bidId: Number) => {
   let isValidOrder = true
   let response = ''
-  const executionTime = Date.now() 
+  const executionTime = Date.now()
 
   if (executionTime > (crabOtc?.data?.expiry || 0)) {
-    isValidOrder = false 
+    isValidOrder = false
     response = 'Order expired...Create/Update order above'
     return { isValidOrder, response }
   } else if (executionTime > (bid?.order.expiry || 0)) {
     isValidOrder = false
-    response = `Bid #${bidId} expired` 
+    response = `Bid #${bidId} expired`
     return { isValidOrder, response }
   }
 
@@ -74,16 +73,18 @@ export const validateBalance = (
   traderAllowance: BigNumber,
   traderBalance: BigNumber,
 ) => {
-
   let isValidOrder = true
   let response = ''
-  
-  const tradeAmount = (crabOtc.data.type == CrabOtcType.DEPOSIT) ? convertBigNumber(bid?.order?.price || BIG_ZERO) * convertBigNumber(bid?.order.quantity || BIG_ZERO) : convertBigNumber(bid?.order?.quantity || BIG_ZERO)
-  if (tradeAmount > convertBigNumber(traderBalance)){
+
+  const tradeAmount =
+    crabOtc.data.type == CrabOtcType.DEPOSIT
+      ? convertBigNumber(bid?.order?.price || BIG_ZERO) * convertBigNumber(bid?.order.quantity || BIG_ZERO)
+      : convertBigNumber(bid?.order?.quantity || BIG_ZERO)
+  if (tradeAmount > convertBigNumber(traderBalance)) {
     isValidOrder = false
     response = `Insufficient bidder funds for Bid #${bidId}`
     return { isValidOrder, response }
-  } 
+  }
   if (convertBigNumber(traderAllowance) < tradeAmount || convertBigNumber(traderBalance) < tradeAmount) {
     isValidOrder = false
     response = `Amount approved or balance is less than order quantity for Bid #${bidId}`

@@ -63,11 +63,8 @@ const InitializePrice = React.memo(function InitializePrice() {
     const p2 = oracle.getTwap(WETH_USDC_POOL, WETH, USDC, 1, true)
     const p3 = getOsqthVol()
 
-    console.log('Test', p1, p2, p3)
-
     Promise.all([p1, p2, p3]).then(prices => {
       const [_sqthPrice, _ethPrice, _volIndex] = prices
-      console.log(_sqthPrice.toString(), _ethPrice.toString(), _volIndex, 'hello')
       setOsqthPrice(_sqthPrice)
       setEthPrice(_ethPrice)
       setOsqthRefVolIndex(_volIndex)
@@ -122,6 +119,7 @@ function MyApp({ Component, pageProps, router }: AppProps) {
           appInfo={{
             appName: 'Squeeth Portal',
           }}
+          showRecentTransactions
         >
           <ThemeProvider theme={theme}>
             <CssBaseline />

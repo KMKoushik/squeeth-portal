@@ -16,6 +16,11 @@ export enum HedgeType {
   PRICE_HEDGE_ON_UNISWAP,
 }
 
+export enum AuctionType {
+  CRAB_HEDGE,
+  NETTING,
+}
+
 export type Order = {
   bidId: number
   trader: string
@@ -40,6 +45,8 @@ export type Auction = {
   currentAuctionId: number
   nextAuctionId: number
   oSqthAmount: string
+  usdAmount?: string
+  crabAmount?: string
   price: string
   auctionEnd: number
   isSelling: boolean
@@ -53,6 +60,7 @@ export type Auction = {
   osqthRefVol?: number
   normFactor?: string
   executedTime?: number
+  type: AuctionType
 }
 
 export enum BidStatus {
@@ -64,6 +72,7 @@ export enum BidStatus {
   MIN_SIZE_NOT_MET,
   NO_BALANCE,
   NO_APPROVAL,
+  WRONG_AUCTION_TYPE,
 }
 
 export enum AuctionStatus {

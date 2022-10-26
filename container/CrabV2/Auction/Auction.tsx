@@ -307,7 +307,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
           {isUpcoming && auction.oSqthAmount === '0' ? 'Estimated' : ''} Size
         </Typography>
         <Typography variant="numeric">
-          {formatBigNumber(isUpcoming && auction.oSqthAmount === '0' ? osqthEstimate! : auction.oSqthAmount, 18, 2)}{' '}
+          {formatBigNumber(isUpcoming && auction.oSqthAmount === '0' ? osqthEstimate! : auction.oSqthAmount, 18, 5)}{' '}
           <small>oSQTH</small>
         </Typography>
       </Box>

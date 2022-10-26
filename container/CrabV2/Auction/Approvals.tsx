@@ -6,30 +6,34 @@ import { useEffect, useMemo } from 'react'
 import { useContractReads, useContractWrite, useWaitForTransaction } from 'wagmi'
 import { BoxLoadingButton } from '../../../components/button/PrimaryButton'
 import { SecondaryButton } from '../../../components/button/SecondaryButton'
-import { CRAB_STRATEGY_V2 } from '../../../constants/address'
+import { CRAB_NETTING, CRAB_STRATEGY_V2 } from '../../../constants/address'
 import { OSQUEETH_CONTRACT, WETH_CONTRACT } from '../../../constants/contracts'
 import { BIG_ZERO } from '../../../constants/numbers'
 import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
+import { AuctionType } from '../../../types'
 import { formatBigNumber, toBigNumber } from '../../../utils/math'
 
 const Approvals: React.FC = () => {
   const address = useAccountStore(s => s.address)
+  const auction = useCrabV2Store(s => s.auction)
   const setOsqthApproval = useCrabV2Store(s => s.setOsqthApproval)
   const setWethApproval = useCrabV2Store(s => s.setWethApproval)
   const addRecentTransaction = useAddRecentTransaction()
+
+  const auctionContract = auction.type === AuctionType.CRAB_HEDGE ? CRAB_STRATEGY_V2 : CRAB_NETTING
 
   const { data, isLoading, refetch } = useContractReads({
     contracts: [
       {
         ...OSQUEETH_CONTRACT,
         functionName: 'allowance',
-        args: [address, CRAB_STRATEGY_V2],
+        args: [address, auctionContract],
       },
       {
         ...WETH_CONTRACT,
         functionName: 'allowance',
-        args: [address, CRAB_STRATEGY_V2],
+        args: [address, auctionContract],
       },
     ],
   })
@@ -37,7 +41,7 @@ const Approvals: React.FC = () => {
   const { data: sqthApproveTx, writeAsync: approveOsqth } = useContractWrite({
     ...OSQUEETH_CONTRACT,
     functionName: 'approve',
-    args: [CRAB_STRATEGY_V2, ethers.constants.MaxUint256],
+    args: [auctionContract, ethers.constants.MaxUint256],
     onSettled: data => {
       if (data?.hash) {
         addRecentTransaction({
@@ -51,7 +55,7 @@ const Approvals: React.FC = () => {
   const { data: wethApproveTx, writeAsync: approveWeth } = useContractWrite({
     ...WETH_CONTRACT,
     functionName: 'approve',
-    args: [CRAB_STRATEGY_V2, ethers.constants.MaxUint256],
+    args: [auctionContract, ethers.constants.MaxUint256],
     onSettled: data => {
       if (data?.hash) {
         addRecentTransaction({
