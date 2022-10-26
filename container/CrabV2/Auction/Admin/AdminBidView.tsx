@@ -316,15 +316,9 @@ const AdminBidView: React.FC = () => {
             value={manualTimestamp}
             onChange={e => setManualTimestamp(Number(e.target.value))}
           />
-          {filteredBids ? (
-            <PrimaryLoadingButton
-              loading={isHedging}
-              onClick={() => submitTx(manualTx, manualTimestamp)}
-              sx={{ mt: 2 }}
-            >
-              submit
-            </PrimaryLoadingButton>
-          ) : null}
+          <PrimaryLoadingButton loading={isHedging} onClick={() => submitTx(manualTx, manualTimestamp)} sx={{ mt: 2 }}>
+            submit
+          </PrimaryLoadingButton>
         </Box>
       </Box>
     </>
@@ -351,7 +345,7 @@ const BidRow: React.FC<BidRowProp> = ({ bid, rank, checkEnabled, onCheck }) => {
   return (
     <>
       <TableCell component="th" scope="row">
-        <Checkbox onChange={onCheck} disabled={!checkEnabled} color="primary" />
+        <Checkbox onChange={onCheck} color="primary" />
       </TableCell>
       <TableCell component="th" scope="row">
         {rank}
