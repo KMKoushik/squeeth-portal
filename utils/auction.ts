@@ -346,6 +346,14 @@ export const validateOrderWithBalance = (
     }
 
     const tradeAmount = wmul(BigNumber.from(String(order.quantity)), order.price)
+    console.log(
+      'Trade amount:',
+      tradeAmount.toString(),
+      'Trade bal:',
+      traderBalance.toString(),
+      'Trade allowance:',
+      traderAllowance.toString(),
+    )
     if (traderAllowance.lt(tradeAmount) || traderBalance.lt(tradeAmount)) {
       isValidOrder = false
       response = 'Amount approved or balance is less than order quantity'

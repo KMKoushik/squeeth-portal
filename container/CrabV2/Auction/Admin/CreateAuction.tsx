@@ -100,7 +100,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
         oSqthAmount: toBigNumber(oSqthAmount).toString(),
         price: toBigNumber(price).toString(),
         auctionEnd: endDate.getTime(),
-        minSize,
+        minSize: auctionType === AuctionType.NETTING ? 0 : minSize,
         isSelling,
         type: auctionType,
         usdAmount: usdcDeposits.toString(),
