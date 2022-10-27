@@ -49,7 +49,7 @@ export type Auction = {
   minSize: number
   ethPrice?: string
   oSqthPrice?: string
-  dvol?: number
+  osqthRefVol?: number,
   normFactor?: string
   executedTime?: number
 }

@@ -16,13 +16,19 @@ import { AuctionStatus } from '../../../types'
 import AuctionInfo from './AuctionInfo'
 import Link from 'next/link'
 import useInterval from '../../../hooks/useInterval'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
 import AuctionBadge from './AuctionBadge'
 import styles from '../../../styles/Auction.module.css'
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import HistoryIcon from '@mui/icons-material/History'
 import BottomNav from '../../../components/navbars/BottomNav'
+import InfoIcon from '@mui/icons-material/InfoOutlined'
+import { HtmlTooltip } from '../../../components/utilities/HtmlTooltip'
+import { squeethRefVolDocLink } from '../../../utils/external'
+import { SQUEETH_REF_VOL_MESSAGE } from '../../../constants/message'
+
+
 
 const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
   // Render a countdown
@@ -285,7 +291,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
     s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
     shallow,
   )
-  const { ethDvol } = useCrabV2Store(s => ({ ethDvol: s.ethDvolIndex }), shallow)
+  const { osqthRefVol } = useCrabV2Store(s => ({  osqthRefVol: s.oSqthRefVolIndex }), shallow)
   const { indexPrice, markPrice, nfBN } = useControllerStore(
     s => ({ indexPrice: s.indexPrice, markPrice: s.markPrice, nfBN: s.normFactor }),
     shallow,
@@ -378,9 +384,19 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
       <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
-          DVOL
+          Squeeth Ref Vol
+          <HtmlTooltip
+            title={
+              <Fragment>
+                {SQUEETH_REF_VOL_MESSAGE}
+                <a href={squeethRefVolDocLink} target="_blank"><b>{'Learn more.'}</b></a>
+              </Fragment>
+            }
+          >
+            <InfoIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
+          </HtmlTooltip>
         </Typography>
-        <Typography variant="numeric">{auction.dvol || ethDvol}%</Typography>
+        <Typography variant="numeric">{auction.osqthRefVol || osqthRefVol.toFixed(2)}%</Typography>
       </Box>
     </Box>
   )
