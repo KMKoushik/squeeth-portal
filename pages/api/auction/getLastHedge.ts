@@ -11,7 +11,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const lastHedgeAuction = (await getAuctionById((auction.currentAuctionId - 1).toString())).data() as Auction
 
-  res
-    .status(200)
-    .json({ auction: lastHedgeAuction, message: 'Retrieve successful' })
+  res.status(200).json({ auction: lastHedgeAuction, message: 'Retrieve successful' })
 }
