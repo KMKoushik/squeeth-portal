@@ -31,8 +31,12 @@ export const emptyAuction: Auction = {
   minSize: 0,
 }
 
+export const AUCTION_COLLECTION =
+  process.env.AUCTION_COLLECTION || process.env.NEXT_PUBLIC_AUCTION_COLLECTION || 'auction'
+
+console.log('Auction collection', process.env.AUCTION_COLLECTION, AUCTION_COLLECTION)
 export const createOrEditAuction = async (auction: Auction) => {
-  await setDoc(doc(db, 'auction', 'current'), { ...auction }, { merge: true })
+  await setDoc(doc(db, AUCTION_COLLECTION, 'current'), { ...auction }, { merge: true })
 }
 
 export const sortBids = (auction: Auction) => {

@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { ETHERSCAN } from '../../../constants/numbers'
 import useCrabV2Store from '../../../store/crabV2Store'
 import { Auction } from '../../../types'
+import { AUCTION_COLLECTION } from '../../../utils/auction'
 import { db } from '../../../utils/firebase'
 import { formatBigNumber } from '../../../utils/math'
 
@@ -15,7 +16,7 @@ const AuctionHistory: React.FC = () => {
 
   React.useEffect(() => {
     const updateData = async () => {
-      const auctionRef = collection(db, 'auction')
+      const auctionRef = collection(db, AUCTION_COLLECTION)
       const auctionQuery = query(
         auctionRef,
         where('auctionEnd', '<=', Date.now()),
@@ -23,7 +24,7 @@ const AuctionHistory: React.FC = () => {
         limit(10),
       )
       const querySnapshot = await getDocs(auctionQuery)
-      setPrevAuctions(querySnapshot.docs.map(d => d.data() as Auction))
+      if (!querySnapshot.empty) setPrevAuctions(querySnapshot.docs.map(d => d.data() as Auction))
     }
 
     updateData()

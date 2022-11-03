@@ -32,11 +32,11 @@ const AuctionDetails: React.FC = () => {
     oSqthAmount: oSqthAmountEst,
     delta,
   } = useMemo(() => {
-    if (!vault) return { isSellingAuction: true, oSqthAmount: BIG_ZERO, ethAmount: BIG_ZERO, delta: BIG_ZERO }
+    if (!vault || oSqthPrice.isZero())
+      return { isSellingAuction: true, oSqthAmount: BIG_ZERO, ethAmount: BIG_ZERO, delta: BIG_ZERO }
 
     return estimateAuction(vault.shortAmount, vault.collateral, oSqthPrice)
   }, [oSqthPrice, vault])
-
 
   return (
     <Box display="flex" border="1px solid gray" borderRadius={2} p={2}>
@@ -101,21 +101,23 @@ const AuctionDetails: React.FC = () => {
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
-       <Box display="flex" flexDirection="column" justifyContent="center">
+      <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
           Squeeth Ref Vol
           <HtmlTooltip
             title={
               <Fragment>
                 {SQUEETH_REF_VOL_MESSAGE}
-                <a href={squeethRefVolDocLink} target="_blank"><b>{'Learn more.'}</b></a>
+                <a href={squeethRefVolDocLink} target="_blank" rel="noreferrer">
+                  <b>{'Learn more.'}</b>
+                </a>
               </Fragment>
             }
           >
             <InfoIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
           </HtmlTooltip>
         </Typography>
-        <Typography variant="numeric">{ osqthRefVol.toFixed(2)}%</Typography>
+        <Typography variant="numeric">{osqthRefVol.toFixed(2)}%</Typography>
       </Box>
     </Box>
   )

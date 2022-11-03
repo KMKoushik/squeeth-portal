@@ -11,7 +11,7 @@ import useController from '../../hooks/useController'
 import { useInitCrabV2 } from '../../hooks/useCrabV2'
 import useCrabV2Store from '../../store/crabV2Store'
 import { Auction } from '../../types'
-import { sortBids } from '../../utils/auction'
+import { AUCTION_COLLECTION, sortBids } from '../../utils/auction'
 import { db } from '../../utils/firebase'
 
 const AuctionHistory: NextPage = () => {
@@ -29,7 +29,7 @@ const AuctionHistory: NextPage = () => {
 
   React.useEffect(() => {
     if (id) {
-      getDoc(doc(db, 'auction', id as string)).then(d => {
+      getDoc(doc(db, AUCTION_COLLECTION, id as string)).then(d => {
         setAuctionLoading(false)
         if (d.exists()) {
           const data = d.data() as Auction
