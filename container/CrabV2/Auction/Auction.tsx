@@ -28,8 +28,6 @@ import { HtmlTooltip } from '../../../components/utilities/HtmlTooltip'
 import { squeethRefVolDocLink } from '../../../utils/external'
 import { SQUEETH_REF_VOL_MESSAGE } from '../../../constants/message'
 
-
-
 const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
   // Render a countdown
   return (
@@ -84,100 +82,99 @@ const Auction: React.FC = () => {
 
   return (
     <>
-    <Box>
-      <Typography variant="h6" sx={{ textAlign: { xs: 'center', sm: 'left' } }} mb={1}>
-        Token Approvals
-      </Typography>
-      <Approvals />
-      <Box
-        display="flex"
-        gap={1}
-        mt={4}
-        mb={isHistoricalView ? 1 : 0}
-        alignItems="center"
-        flexWrap="wrap"
-        justifyContent={{ xs: 'center', sm: 'start' }}
-      >
-        <Typography variant="h6">
-          Auction {isHistoricalView ? new Date(auction.auctionEnd).toLocaleDateString() : ''}
+      <Box>
+        <Typography variant="h6" sx={{ textAlign: { xs: 'center', sm: 'left' } }} mb={1}>
+          Token Approvals
         </Typography>
-        <AuctionBadge />
-      </Box>
+        <Approvals />
+        <Box
+          display="flex"
+          gap={1}
+          mt={4}
+          mb={isHistoricalView ? 1 : 0}
+          alignItems="center"
+          flexWrap="wrap"
+          justifyContent={{ xs: 'center', sm: 'start' }}
+        >
+          <Typography variant="h6">
+            Auction {isHistoricalView ? new Date(auction.auctionEnd).toLocaleDateString() : ''}
+          </Typography>
+          <AuctionBadge />
+        </Box>
 
-      <Box
-        display="flex"
-        flexWrap="wrap"
-        gap={2}
-        justifyContent={{ xs: 'center', sm: 'start' }}
-        mb={isHistoricalView ? 2 : 0}
-      >
-        {isHistoricalView ? (
-          <Box display="flex" flexWrap="wrap" gap={2} justifyContent={{ xs: 'center', sm: 'start' }}>
-            <Link href={`/auctionHistory/${auction.currentAuctionId - 1}`} passHref>
-              <Typography variant="button" color="GrayText" className={styles.linkText}>
-                <ArrowBackIosNewIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
-                Prev
-              </Typography>
-            </Link>
+        <Box
+          display="flex"
+          flexWrap="wrap"
+          gap={2}
+          justifyContent={{ xs: 'center', sm: 'start' }}
+          mb={isHistoricalView ? 2 : 0}
+        >
+          {isHistoricalView ? (
+            <Box display="flex" flexWrap="wrap" gap={2} justifyContent={{ xs: 'center', sm: 'start' }}>
+              <Link href={`/auctionHistory/${auction.currentAuctionId - 1}`} passHref>
+                <Typography variant="button" color="GrayText" className={styles.linkText}>
+                  <ArrowBackIosNewIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
+                  Prev
+                </Typography>
+              </Link>
 
-            <Link href={`/auction`} passHref>
-              <Typography variant="button" color="primary.main" className={styles.linkText}>
-                Current
-              </Typography>
-            </Link>
-            <Link href={`/auctionHistory/${auction.currentAuctionId + 1}`} passHref>
-              <Typography variant="button" color="GrayText" className={styles.linkText}>
-                Next
-                <ArrowForwardIosIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
-              </Typography>
-            </Link>
-          </Box>
+              <Link href={`/auction`} passHref>
+                <Typography variant="button" color="primary.main" className={styles.linkText}>
+                  Current
+                </Typography>
+              </Link>
+              <Link href={`/auctionHistory/${auction.currentAuctionId + 1}`} passHref>
+                <Typography variant="button" color="GrayText" className={styles.linkText}>
+                  Next
+                  <ArrowForwardIosIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
+                </Typography>
+              </Link>
+            </Box>
+          ) : null}
+          <Link href={`/auctionHistory/`} passHref>
+            <Typography variant="button" color="whitesmoke" className={styles.linkText}>
+              <HistoryIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
+              History
+            </Typography>
+          </Link>
+        </Box>
+        <Box mt={1} border="1px solid grey" borderRadius={2} minHeight={150}>
+          {Date.now() > auction.auctionEnd + 30 * 60 * 1000 && !isHistoricalView ? (
+            <Typography textAlign="center" mt={3} variant="h6">
+              No auctions scheduled yet!
+            </Typography>
+          ) : (
+            <Box>
+              <AuctionDetailsHeader
+                isAuctionLive={auctionStatus === AuctionStatus.LIVE}
+                isSelling={
+                  auctionStatus === AuctionStatus.UPCOMING && auction.oSqthAmount === '0'
+                    ? isSellingAuction
+                    : auction.isSelling
+                }
+              />
+              <AuctionHeaderBody
+                osqthEstimate={auctionStatus === AuctionStatus.UPCOMING ? oSqthAmountEst.toString() : undefined}
+                isUpcoming={isUpcoming}
+              />
+            </Box>
+          )}
+        </Box>
+        {Date.now() < auction.auctionEnd + V2_AUCTION_TIME_MILLIS || isHistoricalView ? (
+          <>
+            <Box>
+              <AuctionBody />
+            </Box>
+            <Box display="flex" mt={1}>
+              <AuctionInfo />
+            </Box>
+          </>
         ) : null}
-        <Link href={`/auctionHistory/`} passHref>
-          <Typography variant="button" color="whitesmoke" className={styles.linkText}>
-            <HistoryIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
-            History
-          </Typography>
-        </Link>
       </Box>
-      <Box mt={1} border="1px solid grey" borderRadius={2} minHeight={150}>
-        {Date.now() > auction.auctionEnd + 30 * 60 * 1000 && !isHistoricalView ? (
-          <Typography textAlign="center" mt={3} variant="h6">
-            No auctions scheduled yet!
-          </Typography>
-        ) : (
-          <Box>
-            <AuctionDetailsHeader
-              isAuctionLive={auctionStatus === AuctionStatus.LIVE}
-              isSelling={
-                auctionStatus === AuctionStatus.UPCOMING && auction.oSqthAmount === '0'
-                  ? isSellingAuction
-                  : auction.isSelling
-              }
-            />
-            <AuctionHeaderBody
-              osqthEstimate={auctionStatus === AuctionStatus.UPCOMING ? oSqthAmountEst.toString() : undefined}
-              isUpcoming={isUpcoming}
-            />
-          </Box>
-        )}
-      </Box>
-      {Date.now() < auction.auctionEnd + V2_AUCTION_TIME_MILLIS || isHistoricalView ? (
-        <>
-          <Box>
-            <AuctionBody />
-          </Box>
-          <Box display="flex" mt={1}>
-            <AuctionInfo />
-          </Box>
-        </>
-      ) : null}
-    </Box>
       <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
         <BottomNav />
       </Box>
     </>
-
   )
 }
 
@@ -291,11 +288,13 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
     s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
     shallow,
   )
-  const { osqthRefVol } = useCrabV2Store(s => ({  osqthRefVol: s.oSqthRefVolIndex }), shallow)
+  const { osqthRefVol } = useCrabV2Store(s => ({ osqthRefVol: s.oSqthRefVolIndex }), shallow)
   const { indexPrice, markPrice, nfBN } = useControllerStore(
     s => ({ indexPrice: s.indexPrice, markPrice: s.markPrice, nfBN: s.normFactor }),
     shallow,
   )
+
+  console.log(ethPriceBN.toString(), oSqthPriceBN.toString())
 
   const ethPrice = convertBigNumber(auction.ethPrice || ethPriceBN, 18)
   const oSqthPrice = convertBigNumber(auction.oSqthPrice || oSqthPriceBN, 18)
@@ -389,7 +388,9 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
             title={
               <Fragment>
                 {SQUEETH_REF_VOL_MESSAGE}
-                <a href={squeethRefVolDocLink} target="_blank"><b>{'Learn more.'}</b></a>
+                <a href={squeethRefVolDocLink} target="_blank" rel="noreferrer">
+                  <b>{'Learn more.'}</b>
+                </a>
               </Fragment>
             }
           >
