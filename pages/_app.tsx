@@ -15,7 +15,7 @@ import { SafeConnector } from '@gnosis.pm/safe-apps-wagmi'
 import { chain, configureChains, createClient, WagmiConfig } from 'wagmi'
 import { infuraProvider } from 'wagmi/providers/infura'
 import { publicProvider } from 'wagmi/providers/public'
-import { CHAIN_ID } from '../constants/numbers'
+import { CHAIN_ID, TWAP_PERIOD } from '../constants/numbers'
 import useInitAccount from '../hooks/init/useInitAccount'
 import ToastMessage from '../container/Toast'
 import { getoSqthRefVolIndex } from '../utils/external'
@@ -59,8 +59,8 @@ const InitializePrice = React.memo(function InitializePrice() {
   const { setOsqthRefVolIndex } = useCrabV2Store(s => ({ setOsqthRefVolIndex: s.setOsqthRefVolIndex }), shallow)
 
   const updatePrices = React.useCallback(() => {
-    const p1 = oracle.getTwap(SQUEETH_UNI_POOL, OSQUEETH, WETH, 1, true)
-    const p2 = oracle.getTwap(WETH_USDC_POOL, WETH, USDC, 1, true)
+    const p1 = oracle.getTwap(SQUEETH_UNI_POOL, OSQUEETH, WETH, TWAP_PERIOD, true)
+    const p2 = oracle.getTwap(WETH_USDC_POOL, WETH, USDC, TWAP_PERIOD, true)
     const p3 = getOsqthVol()
 
     Promise.all([p1, p2, p3]).then(prices => {

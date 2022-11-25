@@ -33,3 +33,7 @@ export const ETH_USDC_FEE = 3000
 export const ETH_OSQTH_FEE = 3000
 
 export const DEFAULT_SLIPPAGE = 0.25
+
+export const TWAP_PERIOD = 420
+
+export const WETH_DECIMALS_DIFF = 1e12

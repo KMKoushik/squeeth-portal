@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "next lint",
     "codegen:contracts": "typechain --target=ethers-v5 --out-dir types/contracts 'abis/*.json'",
-    "test": "jest tests/**/*.ts"
+    "test": "jest tests/**/quoter*.ts"
   },
   "dependencies": {
     "@davatar/react": "^1.8.1",
