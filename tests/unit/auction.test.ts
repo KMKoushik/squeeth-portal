@@ -1,7 +1,7 @@
 import { describe, expect, test } from '@jest/globals'
 import { BIG_ONE } from '../../constants/numbers'
-import { Auction, BidStatus, Order } from '../../types'
-import { emptyAuction, getBidStatus, validateOrderWithBalance } from '../../utils/auction'
+import { Auction, Bid, BidStatus, Order } from '../../types'
+import { emptyAuction, getBidStatus, sortBidsForBidArray, validateOrderWithBalance } from '../../utils/auction'
 import { toBigNumber } from '../../utils/math'
 
 const POINT_ONE = toBigNumber(0.1)
@@ -285,5 +285,70 @@ describe('Util: Auction: Validate order', () => {
       const { isValidOrder } = validateOrderWithBalance(order, buyingAuctionWithParams, BIG_ONE, BIG_ONE)
       expect(isValidOrder).toBe(true)
     })
+  })
+})
+
+describe('Util: Auction: Bids Sort order', () => {
+  const bid1: Bid = {
+    order: {
+      bidId: 1,
+      trader: '0x1',
+      quantity: BIG_ONE.toString(),
+      price: POINT_ONE.toString(),
+      isBuying: false,
+      expiry: Date.now(),
+      nonce: 1,
+    },
+    bidder: '0x1',
+    signature: 'signature1',
+    updatedTime: Date.now(),
+  }
+
+  const bid2: Bid = {
+    order: {
+      bidId: 1,
+      trader: '0x2',
+      quantity: BIG_ONE.toString(),
+      price: POINT_ONE.mul(2).toString(),
+      isBuying: false,
+      expiry: Date.now() + 10,
+      nonce: 2,
+    },
+    bidder: '0x2',
+    signature: 'signature2',
+    updatedTime: Date.now(),
+  }
+
+  const bid3: Bid = {
+    order: {
+      bidId: 1,
+      trader: '0x3',
+      quantity: BIG_ONE.toString(),
+      price: POINT_ONE.mul(3).toString(),
+      isBuying: false,
+      expiry: Date.now() + 20,
+      nonce: 3,
+    },
+    bidder: '0x3',
+    signature: 'signature3',
+    updatedTime: Date.now(),
+  }
+
+  test('Should sort bids in descending order of price if the auction is selling', () => {
+    const bids = sortBidsForBidArray([bid1, bid2, bid3], true)
+    expect(bids).toStrictEqual([bid3, bid2, bid1])
+    expect(sortBidsForBidArray([bid2, bid1, bid3], true)).toStrictEqual([bid3, bid2, bid1])
+  })
+
+  test('Should sort bids in ascending order of price if the auction is buying', () => {
+    const bids = sortBidsForBidArray([bid1, bid2, bid3], false)
+    expect(bids).toStrictEqual([bid1, bid2, bid3])
+    expect(sortBidsForBidArray([bid2, bid1, bid3], false)).toStrictEqual([bid1, bid2, bid3])
+  })
+
+  test('Should sort bids based on updated time if the price is same', () => {
+    const bid3New = { ...bid3, order: { ...bid3.order, price: POINT_ONE.toString() } }
+    expect(sortBidsForBidArray([bid1, bid2, bid3New], true)).toStrictEqual([bid2, bid1, bid3New])
+    expect(sortBidsForBidArray([bid1, bid2, bid3New], false)).toStrictEqual([bid1, bid3New, bid2])
   })
 })
