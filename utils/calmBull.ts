@@ -2,7 +2,6 @@ import { BigNumber } from 'ethers'
 import { USDC, WETH } from '../constants/address'
 import { ETH_USDC_FEE, WETH_DECIMALS_DIFF } from '../constants/numbers'
 import { Quoter } from '../types/contracts'
-import { wdiv, wmul } from './math'
 
 type levRebalDetailsType = {
   quoter: Quoter
@@ -31,12 +30,12 @@ export async function getLeverageRebalanceDetails(params: levRebalDetailsType) {
     crUpper,
   } = params
 
-  const usdcDebtTarget = wmul(crabUsdPrice, crabBalance).div(WETH_DECIMALS_DIFF)
+  const usdcDebtTarget = crabUsdPrice.wmul(crabBalance).div(WETH_DECIMALS_DIFF)
   const isSellingUsdc = usdcDebtTarget.gt(loanDebt) ? true : false
   const usdcAmount = isSellingUsdc ? usdcDebtTarget.sub(loanDebt) : loanDebt.sub(usdcDebtTarget)
   const wethAmount = await getEthAmountToLeverageRebalance(usdcAmount, isSellingUsdc, quoter)
 
-  const limitPrice = wdiv(usdcAmount.mul(WETH_DECIMALS_DIFF), wethAmount)
+  const limitPrice = usdcAmount.mul(WETH_DECIMALS_DIFF).wdiv(wethAmount)
 
   const { delta: deltaNew, cr: crNew } = getDeltaAndCollat({
     crabUsdPrice,
