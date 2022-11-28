@@ -15,6 +15,9 @@ import { Auction, AuctionStatus, Bid, BidStatus, BidWithStatus } from '../../../
 import usePriceStore from '../../../store/priceStore'
 import shallow from 'zustand/shallow'
 import useControllerStore from '../../../store/controllerStore'
+import { HtmlTooltip } from '../../../components/utilities/HtmlTooltip'
+import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined'
+import { Fragment } from 'react'
 
 const getStatus = (auction: Auction, isHistoricalView: boolean, bid: Bid, clearingPrice: string, amount: string) => {
   if (isHistoricalView) {
@@ -112,6 +115,8 @@ const BidRow: React.FC<{ bid: BidWithAmount; rank: number }> = ({ bid, rank }) =
 
   const qty = BigNumber.from(bid.order.quantity)
   const price = BigNumber.from(bid.order.price)
+  // For older auction it uses nonce, for auctions that will be created hereafter will use updated time
+  const bidTime = new Date(bid.updatedTime || bid.order.nonce).toString()
 
   const { ethPriceBN } = usePriceStore(s => ({ ethPriceBN: s.ethPrice }), shallow)
 
@@ -147,6 +152,9 @@ const BidRow: React.FC<{ bid: BidWithAmount; rank: number }> = ({ bid, rank }) =
               ? `Partial: ${formatBigNumber(bid.filledAmount, 18, 5)}`
               : getBidStatus(bid.status)}
           </Typography>
+          <HtmlTooltip title={<Fragment>Bid entered/Last updated time: {bidTime}</Fragment>}>
+            <TimerOutlinedIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
+          </HtmlTooltip>
         </TableCell>
       ) : (
         <TableCell align="right">
@@ -155,6 +163,9 @@ const BidRow: React.FC<{ bid: BidWithAmount; rank: number }> = ({ bid, rank }) =
               Edit
             </Button>
           ) : null}
+          <HtmlTooltip title={<Fragment>Bid entered/Last updated time: {bidTime}</Fragment>}>
+            <TimerOutlinedIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
+          </HtmlTooltip>
         </TableCell>
       )}
     </>

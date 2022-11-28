@@ -40,6 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     order,
     bidder: order.trader,
     signature,
+    updatedTime: Date.now(),
   }
   auction.bids[`${bid.bidder}-${order.nonce}`] = bid
 

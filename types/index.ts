@@ -30,6 +30,7 @@ export type Bid = {
   order: Order
   signature: string
   bidder: string
+  updatedTime?: number
   status?: BidStatus
 }
 
@@ -49,7 +50,7 @@ export type Auction = {
   minSize: number
   ethPrice?: string
   oSqthPrice?: string
-  osqthRefVol?: number,
+  osqthRefVol?: number
   normFactor?: string
   executedTime?: number
 }

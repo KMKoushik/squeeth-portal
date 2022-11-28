@@ -39,6 +39,9 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import useControllerStore from '../../../../store/controllerStore'
 import usePriceStore from '../../../../store/priceStore'
 import shallow from 'zustand/shallow'
+import { Fragment } from 'react'
+import { HtmlTooltip } from '../../../../components/utilities/HtmlTooltip'
+import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined'
 
 const AdminBidView: React.FC = () => {
   const [filteredBids, setFilteredBids] = React.useState<Array<Bid & { status?: BidStatus }>>()
@@ -341,6 +344,8 @@ const BidRow: React.FC<BidRowProp> = ({ bid, rank, checkEnabled, onCheck }) => {
 
   const ethPrice = convertBigNumber(ethPriceBN, 18)
   const nf = convertBigNumber(nfBN, 18)
+  // For older auction it uses nonce, for auctions that will be created hereafter will use updated time
+  const bidTime = new Date(bid.updatedTime || bid.order.nonce).toString()
 
   return (
     <>
@@ -381,6 +386,9 @@ const BidRow: React.FC<BidRowProp> = ({ bid, rank, checkEnabled, onCheck }) => {
         <Typography variant="body3" color="textSecondary">
           {getBidStatus(bid.status)}
         </Typography>
+        <HtmlTooltip title={<Fragment>Bid entered/Last updated time: {bidTime}</Fragment>}>
+          <TimerOutlinedIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
+        </HtmlTooltip>
       </TableCell>
     </>
   )
