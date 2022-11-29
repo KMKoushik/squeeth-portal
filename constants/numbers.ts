@@ -8,6 +8,8 @@ export const ZERO = 0
 
 export const BIG_ONE = BigNumber.from(10).pow(18)
 
+export const POINT_ONE = BIG_ONE.div(10)
+
 export const INDEX_SCALE = 10000
 
 export const FUNDING_PERIOD = 17.5

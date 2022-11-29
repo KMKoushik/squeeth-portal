@@ -3,20 +3,40 @@ import { USDC, WETH } from '../constants/address'
 import { DEFAULT_SLIPPAGE, ETH_USDC_FEE } from '../constants/numbers'
 import { ERC20, Quoter } from '../types/contracts'
 
-export async function convertWETHToEth(quoter: Quoter, wethAmount: BigNumber, slippage = DEFAULT_SLIPPAGE) {
+export async function quoteExactIn(
+  quoter: Quoter,
+  tokenIn: string,
+  tokenOut: string,
+  amountIn: BigNumber,
+  poolFee: number,
+  slippage = DEFAULT_SLIPPAGE,
+) {
   const { amountOut } = await quoter.callStatic.quoteExactInputSingle({
-    tokenIn: WETH,
-    tokenOut: USDC,
-    amountIn: wethAmount,
-    fee: ETH_USDC_FEE,
+    tokenIn,
+    tokenOut,
+    amountIn: amountIn,
+    fee: poolFee,
     sqrtPriceLimitX96: 0,
   })
 
   return amountOut.mul(100 * (100 - slippage)).div(10000) // Include slippage
 }
 
-export async function getBalance(erc20: ERC20, address: string) {
-  const balance = erc20.balanceOf(address)
+export async function quoteExactOut(
+  quoter: Quoter,
+  tokenIn: string,
+  tokenOut: string,
+  amountOut: BigNumber,
+  poolFee: number,
+  slippage = DEFAULT_SLIPPAGE,
+) {
+  const { amountIn } = await quoter.callStatic.quoteExactOutputSingle({
+    tokenIn,
+    tokenOut,
+    amount: amountOut,
+    fee: poolFee,
+    sqrtPriceLimitX96: 0,
+  })
 
-  return balance
+  return amountIn.mul(100 * (100 + slippage)).div(10000) // Include slippage
 }
