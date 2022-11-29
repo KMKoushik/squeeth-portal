@@ -73,3 +73,11 @@ export const calculateCrabUSDCValue = (
 
   return wdiv(wmul(ethValue, ethPrice), supply)
 }
+
+BigNumber.prototype.wmul = function (num) {
+  return wmul(this, num)
+}
+
+BigNumber.prototype.wdiv = function (divisor) {
+  return wdiv(this, divisor)
+}

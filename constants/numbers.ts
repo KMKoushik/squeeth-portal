@@ -8,6 +8,8 @@ export const ZERO = 0
 
 export const BIG_ONE = BigNumber.from(10).pow(18)
 
+export const POINT_ONE = BIG_ONE.div(10)
+
 export const INDEX_SCALE = 10000
 
 export const FUNDING_PERIOD = 17.5
@@ -33,3 +35,7 @@ export const ETH_USDC_FEE = CHAIN_ID === 1 ? 500 : 3000
 export const ETH_OSQTH_FEE = 3000
 
 export const DEFAULT_SLIPPAGE = 0.25
+
+export const TWAP_PERIOD = 420
+
+export const WETH_DECIMALS_DIFF = 1e12

@@ -9,6 +9,13 @@ declare module '@mui/material/styles/createPalette' {
   }
 }
 
+declare module 'ethers' {
+  interface BigNumber {
+    wmul(num: BigNumber): BigNumber
+    wdiv(divisor: BigNumber): BigNumber
+  }
+}
+
 export enum HedgeType {
   TIME_HEDGE = 1,
   PRICE_HEDGE,
@@ -19,6 +26,7 @@ export enum HedgeType {
 export enum AuctionType {
   CRAB_HEDGE,
   NETTING,
+  CALM_BULL,
 }
 
 export type Order = {
