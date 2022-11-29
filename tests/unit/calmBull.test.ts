@@ -43,7 +43,7 @@ describe('CalmBull: Leverage Rebalance', () => {
    * CR = 2
    * delta = 1
    */
-  test('Rebalance when ETH price go down', async () => {
+  test('Rebalance when crab price go down', async () => {
     const ethPrice = BIG_ONE.mul(800).div(WETH_DECIMALS_DIFF)
     const crabUsdPrice = BIG_ONE.mul(480)
 
@@ -70,7 +70,7 @@ describe('CalmBull: Leverage Rebalance', () => {
     expect(cr.toString()).toBe('1625000')
   })
 
-  test('Rebalance when ETH price go up', async () => {
+  test('Rebalance when crab price go up', async () => {
     const ethPrice = BIG_ONE.mul(1200).div(WETH_DECIMALS_DIFF)
     const crabUsdPrice = BIG_ONE.mul(510)
     mockQuoterFunctions(ethPrice)
@@ -96,7 +96,7 @@ describe('CalmBull: Leverage Rebalance', () => {
     expect(cr.toString()).toBe('2372549')
   })
 
-  test('Rebalance should if CR is higher than limit', async () => {
+  test('Should not rebalance if CR is higher than limit', async () => {
     const ethPrice = BIG_ONE.mul(1200).div(WETH_DECIMALS_DIFF)
     const crabUsdPrice = BIG_ONE.mul(300)
     mockQuoterFunctions(ethPrice)
@@ -118,7 +118,7 @@ describe('CalmBull: Leverage Rebalance', () => {
     expect(isRebalPossible).toBe(false)
   })
 
-  test('Rebalance should if CR is lower than limit', async () => {
+  test('Should not rebalance if CR is lower than limit', async () => {
     const ethPrice = BIG_ONE.mul(800).div(WETH_DECIMALS_DIFF)
     const crabUsdPrice = BIG_ONE.mul(1600)
     mockQuoterFunctions(ethPrice)
