@@ -12,6 +12,7 @@ import useAccountStore from '../../../store/accountStore'
 import { useCrabNettingStore } from '../../../store/crabNettingStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import usePriceStore from '../../../store/priceStore'
+import { bnComparator } from '../../../utils'
 import { calculateCrabUSDCValue, convertBigNumber, formatBigNumber, toBigNumber, wdiv, wmul } from '../../../utils/math'
 import { HeaderInfo } from '../../HeaderInfo'
 
@@ -20,29 +21,11 @@ export const NettingAdmin: React.FC = () => {
   const [usdAmount, setUsdAmount] = useState('0')
 
   const { oSqthPrice, ethPrice } = usePriceStore(s => ({ oSqthPrice: s.oSqthPrice, ethPrice: s.ethPrice }))
-  const { vault, loading, supply } = useCrabV2Store(s => ({
-    loading: s.isContractLoading,
-    vault: s.vault,
-    supply: s.totalSupply,
-  }))
-
   const usdcDeposits = useCrabNettingStore(s => s.depositQueued)
   const crabWithdraws = useCrabNettingStore(s => s.withdrawQueued)
   const owner = useCrabNettingStore(s => s.owner)
   const address = useAccountStore(s => s.address)
-
-  const crabUsdcValue = useMemo(() => {
-    if (loading || !vault) return BIG_ZERO
-
-    console.log(
-      ethPrice.toString(),
-      oSqthPrice.toString(),
-      vault.collateral.toString(),
-      vault.shortAmount.toString(),
-      supply,
-    )
-    return calculateCrabUSDCValue(ethPrice, oSqthPrice, vault.collateral, vault.shortAmount, supply || BIG_ONE)
-  }, [ethPrice, loading, oSqthPrice, supply, vault])
+  const crabUsdcValue = useCrabV2Store(s => s.crabUsdcValue, bnComparator)
 
   const { data: netTx, writeAsync: netAtPrice } = useContractWrite({
     ...CRAB_NETTING_CONTRACT,

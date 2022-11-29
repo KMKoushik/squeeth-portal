@@ -36,7 +36,6 @@ export const emptyAuction: Auction = {
 export const AUCTION_COLLECTION =
   process.env.AUCTION_COLLECTION || process.env.NEXT_PUBLIC_AUCTION_COLLECTION || 'auction'
 
-console.log('Auction collection', process.env.AUCTION_COLLECTION, AUCTION_COLLECTION)
 export const createOrEditAuction = async (auction: Auction) => {
   await setDoc(doc(db, AUCTION_COLLECTION, 'current'), { ...auction }, { merge: true })
 }
@@ -329,14 +328,6 @@ export const validateOrderWithBalance = (
     }
 
     const tradeAmount = wmul(BigNumber.from(String(order.quantity)), order.price)
-    console.log(
-      'Trade amount:',
-      tradeAmount.toString(),
-      'Trade bal:',
-      traderBalance.toString(),
-      'Trade allowance:',
-      traderAllowance.toString(),
-    )
     if (traderAllowance.lt(tradeAmount) || traderBalance.lt(tradeAmount)) {
       isValidOrder = false
       response = 'Amount approved or balance is less than order quantity'
