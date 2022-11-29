@@ -179,6 +179,9 @@ const Home: NextPage = () => {
               <Typography color="primary" sx={{ textDecoration: 'underline' }}>
                 <Link href="/auction-admin">Auction admin</Link>
               </Typography>
+              <Typography color="primary" sx={{ textDecoration: 'underline' }}>
+                <Link href="/calm-bull-rebalance">Cal bull rebalance</Link>
+              </Typography>
             </Box>
           </Grid>
           <Grid item xs={0} md={0} lg={2} />

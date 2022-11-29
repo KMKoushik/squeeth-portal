@@ -21,12 +21,6 @@ export const NettingAdmin: React.FC = () => {
   const [usdAmount, setUsdAmount] = useState('0')
 
   const { oSqthPrice, ethPrice } = usePriceStore(s => ({ oSqthPrice: s.oSqthPrice, ethPrice: s.ethPrice }))
-  const { vault, loading, supply } = useCrabV2Store(s => ({
-    loading: s.isContractLoading,
-    vault: s.vault,
-    supply: s.totalSupply,
-  }))
-
   const usdcDeposits = useCrabNettingStore(s => s.depositQueued)
   const crabWithdraws = useCrabNettingStore(s => s.withdrawQueued)
   const owner = useCrabNettingStore(s => s.owner)
