@@ -4,7 +4,7 @@ import { QUOTER } from '../../constants/address'
 import { BIG_ONE, DEFAULT_SLIPPAGE, WETH_DECIMALS_DIFF } from '../../constants/numbers'
 import { Quoter } from '../../types/contracts'
 import quoterAbi from '../../abis/quoter.json'
-import { getLeverageRebalanceDetails } from '../../utils/calmBull'
+import { getAuctionDetails, getFullRebalanceDetails, getLeverageRebalanceDetails } from '../../utils/calmBull'
 import * as quoterFns from '../../utils/quoter'
 import '../../utils/math'
 
@@ -139,4 +139,86 @@ describe('CalmBull: Leverage Rebalance', () => {
 
     expect(isRebalPossible).toBe(false)
   })
+})
+
+
+describe('CalmBull: Full Rebalance', () => {
+  const crabBalance = BIG_ONE.mul(200)
+  const loanCollat = BIG_ONE.mul(200)
+  const loanDebt = BIG_ONE.mul(100_000).div(WETH_DECIMALS_DIFF)
+  const squeethInCrab =  BIG_ONE.mul(5_000)
+  const ethInCrab = BIG_ONE.mul(1000)
+  const crabTotalSupply = BIG_ONE.mul(1000)
+  const targetCr = BigNumber.from('2') // 2
+
+
+  function mockQuoterFunctions(ethPrice: BigNumber) {
+    jest
+      .spyOn(quoterFns, 'quoteExactIn')
+      .mockImplementation((quoter: Quoter, tokenIn: string, tokenOut: string, amountIn: BigNumber, poolFee: number) => {
+        return Promise.resolve(amountIn.wdiv(ethPrice))
+      })
+
+    jest
+      .spyOn(quoterFns, 'quoteExactOut')
+      .mockImplementation(
+        (quoter: Quoter, tokenIn: string, tokenOut: string, amountOut: BigNumber, poolFee: number) => {
+          return Promise.resolve(amountOut.wdiv(ethPrice))
+        },
+      )
+  }
+
+  /**
+   * Initial values
+   * ETH price = 1000
+   * crabPrice = 480
+   * sqth price = .08
+   */
+  test('Rebalance when ETH price go down', async () => {
+    const ethUsdPrice = BIG_ONE.mul(800).div(WETH_DECIMALS_DIFF)
+    const crabUsdPrice = BIG_ONE.mul(480)
+
+    mockQuoterFunctions(ethUsdPrice)
+
+    const {crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice} = await getAuctionDetails({
+      crabUsdPrice,
+      loanCollat,
+      loanDebt,
+      crabBalance,
+      squeethInCrab,
+      ethInCrab,
+      crabTotalSupply,
+      quoter,
+      ethUsdPrice,
+      targetCr,
+      slippageTolerance: DEFAULT_SLIPPAGE
+    })
+
+    expect(crabToTrade.toString()).toBe('37500000000000000000')
+    expect(oSQTHAuctionAmount.toString()).toBe('187500000000000000000')
+    expect(isDepositingIntoCrab).toBe(false)
+
+    const squeethEthPrice = BIG_ONE.mul(BigNumber.from(8)).div(100)
+    const clearingPrice = BIG_ONE.mul(BigNumber.from(8)).div(100)
+  
+    const {crabAmount, wethTargetInEuler} = await getFullRebalanceDetails({
+      oSQTHAuctionAmount,
+      isDepositingIntoCrab,
+      loanCollat,
+      loanDebt,
+      crabBalance,
+      squeethInCrab,
+      ethInCrab,
+      crabTotalSupply,
+      ethUsdPrice,
+      crabUsdPrice,
+      squeethEthPrice,
+      clearingPrice,
+    })
+    expect(crabAmount.toString()).toBe("37500000000000000000")
+    expect(wethTargetInEuler.toString()).toBe("195000000000000000000")
+  })
+
+
+
 })
