@@ -43,7 +43,7 @@ describe('CalmBull: Leverage Rebalance', () => {
    * CR = 2
    * delta = 1
    */
-  test('Rebalance when ETH price go down', async () => {
+  test('Rebalance when crab price go down', async () => {
     const ethPrice = BIG_ONE.mul(800).div(WETH_DECIMALS_DIFF)
     const crabUsdPrice = BIG_ONE.mul(480)
 
@@ -70,7 +70,7 @@ describe('CalmBull: Leverage Rebalance', () => {
     expect(cr.toString()).toBe('1625000')
   })
 
-  test('Rebalance when ETH price go up', async () => {
+  test('Rebalance when crab price go up', async () => {
     const ethPrice = BIG_ONE.mul(1200).div(WETH_DECIMALS_DIFF)
     const crabUsdPrice = BIG_ONE.mul(510)
     mockQuoterFunctions(ethPrice)
@@ -96,7 +96,7 @@ describe('CalmBull: Leverage Rebalance', () => {
     expect(cr.toString()).toBe('2372549')
   })
 
-  test('Rebalance should if CR is higher than limit', async () => {
+  test('Should not rebalance if CR is higher than limit', async () => {
     const ethPrice = BIG_ONE.mul(1200).div(WETH_DECIMALS_DIFF)
     const crabUsdPrice = BIG_ONE.mul(300)
     mockQuoterFunctions(ethPrice)
@@ -118,7 +118,7 @@ describe('CalmBull: Leverage Rebalance', () => {
     expect(isRebalPossible).toBe(false)
   })
 
-  test('Rebalance should if CR is lower than limit', async () => {
+  test('Should not rebalance if CR is lower than limit', async () => {
     const ethPrice = BIG_ONE.mul(800).div(WETH_DECIMALS_DIFF)
     const crabUsdPrice = BIG_ONE.mul(1600)
     mockQuoterFunctions(ethPrice)
@@ -141,18 +141,15 @@ describe('CalmBull: Leverage Rebalance', () => {
   })
 })
 
-
 describe('CalmBull: Full Rebalance', () => {
   const crabBalance = BIG_ONE.mul(200)
   const loanCollat = BIG_ONE.mul(200)
   const loanDebt = BIG_ONE.mul(100_000).div(WETH_DECIMALS_DIFF)
-  const squeethInCrab =  BIG_ONE.mul(5_000)
+  const squeethInCrab = BIG_ONE.mul(5_000)
   const ethInCrab = BIG_ONE.mul(1000)
   const crabTotalSupply = BIG_ONE.mul(1000)
   const targetCr = BigNumber.from('2') // 2
   const feeRate = BigNumber.from(0) // minting fee
-
-
 
   function mockQuoterFunctions(ethPrice: BigNumber) {
     jest
@@ -181,7 +178,7 @@ describe('CalmBull: Full Rebalance', () => {
 
     mockQuoterFunctions(ethUsdPrice)
 
-    const {crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice} = await getAuctionDetails({
+    const { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice } = await getAuctionDetails({
       crabUsdPrice,
       squeethEthPrice,
       loanCollat,
@@ -194,7 +191,7 @@ describe('CalmBull: Full Rebalance', () => {
       ethUsdPrice,
       targetCr,
       slippageTolerance: DEFAULT_SLIPPAGE,
-      feeRate
+      feeRate,
     })
 
     expect(crabToTrade.toString()).toBe('37500000000000000000')
@@ -202,8 +199,8 @@ describe('CalmBull: Full Rebalance', () => {
     expect(isDepositingIntoCrab).toBe(false)
 
     const clearingPrice = BIG_ONE.mul(BigNumber.from(8)).div(100)
-  
-    const {crabAmount, wethTargetInEuler} = await getFullRebalanceDetails({
+
+    const { crabAmount, wethTargetInEuler } = await getFullRebalanceDetails({
       oSQTHAuctionAmount,
       isDepositingIntoCrab,
       loanCollat,
@@ -216,10 +213,10 @@ describe('CalmBull: Full Rebalance', () => {
       crabUsdPrice,
       squeethEthPrice,
       clearingPrice,
-      feeRate
+      feeRate,
     })
-    expect(crabAmount.toString()).toBe("37500000000000000000")
-    expect(wethTargetInEuler.toString()).toBe("195000000000000000000")
+    expect(crabAmount.toString()).toBe('37500000000000000000')
+    expect(wethTargetInEuler.toString()).toBe('195000000000000000000')
   })
 
   /**
@@ -233,7 +230,7 @@ describe('CalmBull: Full Rebalance', () => {
 
     mockQuoterFunctions(ethUsdPrice)
 
-    const {crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice} = await getAuctionDetails({
+    const { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice } = await getAuctionDetails({
       crabUsdPrice,
       squeethEthPrice,
       loanCollat,
@@ -246,7 +243,7 @@ describe('CalmBull: Full Rebalance', () => {
       ethUsdPrice,
       targetCr,
       slippageTolerance: DEFAULT_SLIPPAGE,
-      feeRate
+      feeRate,
     })
 
     expect(crabToTrade.toString()).toBe('45833333331249999999')
@@ -254,8 +251,8 @@ describe('CalmBull: Full Rebalance', () => {
     expect(isDepositingIntoCrab).toBe(true)
 
     const clearingPrice = BIG_ONE.mul(BigNumber.from(8)).div(100)
-  
-    const {crabAmount, wethTargetInEuler} = await getFullRebalanceDetails({
+
+    const { crabAmount, wethTargetInEuler } = await getFullRebalanceDetails({
       oSQTHAuctionAmount,
       isDepositingIntoCrab,
       loanCollat,
@@ -268,11 +265,9 @@ describe('CalmBull: Full Rebalance', () => {
       crabUsdPrice,
       squeethEthPrice,
       clearingPrice,
-      feeRate
+      feeRate,
     })
-    expect(crabAmount.toString()).toBe("45833333331249999999")
-    expect(wethTargetInEuler.toString()).toBe("196666666666666666667")
+    expect(crabAmount.toString()).toBe('45833333331249999999')
+    expect(wethTargetInEuler.toString()).toBe('196666666666666666667')
   })
-
-
 })
