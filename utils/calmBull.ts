@@ -15,7 +15,7 @@ type getAuctionDetailsType = {
   crabTotalSupply: BigNumber
   ethUsdPrice: BigNumber
   targetCr: BigNumber
-  slippageTolerance: BigNumber
+  slippageTolerance: number
 
 }
 
@@ -38,15 +38,15 @@ export async function getAuctionDetails(params: getAuctionDetailsType) {
   const loanDebt = loanDebtRaw.mul(WETH_DECIMALS_DIFF)
 
   // new collateral should be total equity value
-  const newLoanCollat = new BigNumber(crabBalance.wmul(crabUsdPrice).add(loanCollat.wmul(ethUsdPrice)) - loanDebt)
+  const newLoanCollat = crabBalance.wmul(crabUsdPrice).add(loanCollat.wmul(ethUsdPrice)).sub(loanDebt)
   // new loan debt to hit target cr
-  const newLoanDebt = new BigNumber(newLoanCollat.wmul(ethUsdPrice).wdiv(targetCr))
+  const newLoanDebt = newLoanCollat.wmul(ethUsdPrice).wdiv(targetCr)
   // dollar value of eth collateral change
   const dollarProceeds = (loanCollat.sub(newLoanCollat)).wmul(ethUsdPrice)
   // amount of crab to pay/recieve target dollar amount
   const crabToTrade = dollarProceeds.wdiv(crabUsdPrice)
   // deposit into crab if we have extra $ after changing loan composition 
-  const isDepositingIntoCrab = loanDebt.sub(newLoanDebt).sub(dollarProceeds)>0 ? false: true
+  const isDepositingIntoCrab = loanDebt.sub(newLoanDebt).sub(dollarProceeds).gt(0) ? false: true
   // fee adjustment for deposit to crab case
   const adjStrategyCollateral = strategyCollateral // TODO: Get strategydebt/collateral Add fee adjust
   // Auction oSQTH amount will include provision for the fee if depositing
@@ -55,14 +55,14 @@ export async function getAuctionDetails(params: getAuctionDetailsType) {
     crabToTrade.wmul(strategyDebt).div(crabTotalSupply)
 
   const wethLimitPrice = 0
-  if (dollarProceeds >0) {
+  if (dollarProceeds.gt(0)) {
      // selling eth, buying usdc (exactOut)
-     const wethAmount = getWethAmountForUSDC(Math.abs(dollarProceeds), false, quoter, slippageTolerance)
-     const wethLimitPrice = new BigNumber(Math.abs(dollarProceeds)).wdiv(wethAmount)
+     const wethAmount = await getWethAmountForUSDC(dollarProceeds.abs(), false, quoter, slippageTolerance)
+     const wethLimitPrice = (dollarProceeds.abs()).wdiv(wethAmount)
   } else {
     // selling usdc, buying eth (exactIn)
-    const wethAmount = getWethAmountForUSDC(Math.abs(dollarProceeds), true, quoter, slippageTolerance)
-    const wethLimitPrice = new BigNumber(Math.abs(dollarProceeds)).wdiv(wethAmount)
+    const wethAmount = await getWethAmountForUSDC(dollarProceeds.abs(), true, quoter, slippageTolerance)
+    const wethLimitPrice = (dollarProceeds.abs()).wdiv(wethAmount)
   }
 
   return {oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice}
