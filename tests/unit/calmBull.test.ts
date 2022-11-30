@@ -174,7 +174,7 @@ describe('CalmBull: Full Rebalance', () => {
    * crabPrice = 480
    * sqth price = .08
    */
-  test('Rebalance when ETH price go down', async () => {
+  test('Full rebalance when ETH price go down', async () => {
     const ethUsdPrice = BIG_ONE.mul(800).div(WETH_DECIMALS_DIFF)
     const crabUsdPrice = BIG_ONE.mul(480)
 
@@ -219,6 +219,51 @@ describe('CalmBull: Full Rebalance', () => {
     expect(wethTargetInEuler.toString()).toBe("195000000000000000000")
   })
 
+
+  test('Full rebalance when ETH price go up', async () => {
+    const ethUsdPrice = BIG_ONE.mul(1200).div(WETH_DECIMALS_DIFF)
+    const crabUsdPrice = BIG_ONE.mul(480)
+
+    mockQuoterFunctions(ethUsdPrice)
+
+    const {crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice} = await getAuctionDetails({
+      crabUsdPrice,
+      loanCollat,
+      loanDebt,
+      crabBalance,
+      squeethInCrab,
+      ethInCrab,
+      crabTotalSupply,
+      quoter,
+      ethUsdPrice,
+      targetCr,
+      slippageTolerance: DEFAULT_SLIPPAGE
+    })
+
+    expect(crabToTrade.toString()).toBe('-45833333331249999999')
+    expect(oSQTHAuctionAmount.toString()).toBe('-229166666656249999993')
+    expect(isDepositingIntoCrab).toBe(true)
+
+    const squeethEthPrice = BIG_ONE.mul(BigNumber.from(8)).div(100)
+    const clearingPrice = BIG_ONE.mul(BigNumber.from(8)).div(100)
+  
+    const {crabAmount, wethTargetInEuler} = await getFullRebalanceDetails({
+      oSQTHAuctionAmount,
+      isDepositingIntoCrab,
+      loanCollat,
+      loanDebt,
+      crabBalance,
+      squeethInCrab,
+      ethInCrab,
+      crabTotalSupply,
+      ethUsdPrice,
+      crabUsdPrice,
+      squeethEthPrice,
+      clearingPrice,
+    })
+    expect(crabAmount.toString()).toBe("-45833333331249999997")
+    expect(wethTargetInEuler.toString()).toBe("196666666666666666667")
+  })
 
 
 })
