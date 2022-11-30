@@ -88,6 +88,18 @@ export const QUOTER = getAddress({
   5: '0x5D9D69aF49130fEb2511fdFc1A55B5746897BdE4',
 })
 
+export const BULL_STRATEGY = getAddress({
+  1: '',
+  3: '',
+  5: '0x312416A95237d49A42d63fc3f734608A57e77eaB',
+})
+
+export const AUCTION_BULL = getAddress({
+  1: '',
+  3: '',
+  5: '0x893E0b9c34f40908cA13468ED8A0bb0a44bc7676',
+})
+
 const getCrabCouncilMembers = () => {
   if (CHAIN_ID === NETWORK.MAINNET) {
     return [
