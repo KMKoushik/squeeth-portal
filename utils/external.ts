@@ -15,7 +15,7 @@ export const getoSqthRefVolIndex = async (): Promise<number> => {
   const response = await fetch(`/api/currentsqueethvol`).then(res => res.json())
 
   if (response.status === 'error') {
-    throw new Error(response.status)
+    console.log('Error in fetching squeeth vol', response.status)
   }
 
   return response * 100

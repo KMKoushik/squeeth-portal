@@ -13,13 +13,13 @@ const getAddress = (addr: { 1: string; 3: string; 5: string }) => {
 export const CONTROLLER = getAddress({
   1: '0x64187ae08781B09368e6253F9E94951243A493D5',
   3: '0x59F0c781a6eC387F09C40FAA22b7477a2950d209',
-  5: '0x2c60f986260c8412De7fA3384C7f0Bab1a4F72bf',
+  5: '0x6fc3f76f8a2d256cc091bd58bab8c2bc3f51d508',
 })
 
 export const OSQUEETH = getAddress({
   1: '0xf1B99e3E573A1a9C5E6B2Ce818b617F0E664E86B',
   3: '0xa4222f78d23593e82Aa74742d25D06720DCa4ab7',
-  5: '0x6b03eD2C590A301E79E2DCe4ce38D7402dC6735a',
+  5: '0x9421c968d28dd789363fbd8c9aa5cf2090f0a656',
 })
 
 export const CRAB_STRATEGY = getAddress({
@@ -31,31 +31,31 @@ export const CRAB_STRATEGY = getAddress({
 export const ORACLE = getAddress({
   1: '0x65D66c76447ccB45dAf1e8044e918fA786A483A1',
   3: '0xBD9F4bE886653177D22fA9c79FD0DFc41407fC89',
-  5: '0x3A1B8e5D405F4080442C878aA114B17a1D60E14B',
+  5: '0xf7f94b4607bcd1235212803be8fd1b54d1d01b77',
 })
 
 export const SQUEETH_UNI_POOL = getAddress({
   1: '0x82c427AdFDf2d245Ec51D8046b41c4ee87F0d29C',
   3: '0x921c384F79de1BAe96d6f33E3E5b8d0B2B34cb68',
-  5: '0xB583EA07699c5DEa4da084056273d6D70c2C3309',
+  5: '0xc3c29372b5138d48993f0699a129b9eadf5191bf',
 })
 
 export const WETH = getAddress({
   1: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
   3: '0xc778417e063141139fce010982780140aa0cd5ab',
-  5: '0x0719E63EC564259D1ce12dFFD1431269C7d88700',
+  5: '0x083fd3D47eC8DC56b572321bc4dA8b26f7E82103',
 })
 
 export const WETH_USDC_POOL = getAddress({
   1: '0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8',
   3: '0x8356AbC730a218c24446C2c85708F373f354F0D8',
-  5: '0x8875e9c9EB0909da889CB3Dc9c5E8856093CE6b0',
+  5: '0x5d3EfE9157003f05be0d4031F00D43F952d6F6b7',
 })
 
 export const USDC = getAddress({
   1: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
   3: '0x27415c30d8c87437becbd4f98474f26e712047f4',
-  5: '0x12F263aAB668aF8918E077af3a9CF5da9fE9A417',
+  5: '0x306bf03b689f7d7e5e9D3aAC87a068F16AFF9482',
 })
 
 export const CRAB_MIGRATION = getAddress({
@@ -67,7 +67,7 @@ export const CRAB_MIGRATION = getAddress({
 export const CRAB_STRATEGY_V2 = getAddress({
   1: '0x3b960e47784150f5a63777201ee2b15253d713e8',
   3: '0xdd1e9c25115e0d6e531d9f9e6ab7dbbed15158ce',
-  5: '0x49a423Bc9F1dEe5A052b1E72a1dbE9de488d4411',
+  5: '0x3ff39f6bf8156bda997d93e3eff6904c2bc4481f',
 })
 
 export const CRAB_OTC = getAddress({
@@ -85,7 +85,7 @@ export const CRAB_NETTING = getAddress({
 export const QUOTER = getAddress({
   1: '0xC8d3a4e6BB4952E3658CCA5081c358e6935Efa43',
   3: '0x267aEB76BEb6DC7Ab0D88FeEaC8A948e237e2d69',
-  5: '0x5D9D69aF49130fEb2511fdFc1A55B5746897BdE4',
+  5: '0x759442726c06f7938cd2cb63ac9ae373dc1decf6',
 })
 
 export const BULL_STRATEGY = getAddress({
@@ -98,6 +98,18 @@ export const AUCTION_BULL = getAddress({
   1: '',
   3: '',
   5: '0x893E0b9c34f40908cA13468ED8A0bb0a44bc7676',
+})
+
+export const WETH_E_TOKEN = getAddress({
+  1: '',
+  3: '',
+  5: '0xef5e087d827194732bc1843351cca80982e154eb',
+})
+
+export const USDC_D_TOKEN = getAddress({
+  1: '',
+  3: '',
+  5: '0x356079240635b276a63065478471d89340443c49',
 })
 
 const getCrabCouncilMembers = () => {
