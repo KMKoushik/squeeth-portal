@@ -4,10 +4,12 @@ import { NextPage } from 'next'
 import Head from 'next/head'
 import { Nav } from '../components/navbars/Nav'
 import { BullRebalance } from '../container/CalmBull/BullRebalance'
+import { useInitBull } from '../hooks/init/useInitBull'
 import { useInitCrabV2 } from '../hooks/useCrabV2'
 
 const CalmBullReBalancePage: NextPage = () => {
   useInitCrabV2()
+  useInitBull()
 
   return (
     <div>

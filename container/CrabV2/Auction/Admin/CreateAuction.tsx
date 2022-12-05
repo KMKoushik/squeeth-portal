@@ -151,15 +151,15 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const updateAuctionType = async (aucType: AuctionType) => {
     setAuctionType(aucType)
     if (aucType === AuctionType.NETTING) {
-      updateOsqthAmount(price)
+      updateOsqthAmountForNetting(price)
       setIsSelling(isUSDCHigher ? true : false)
     } else {
       setOsqthAmount(convertBigNumberStr(auction.oSqthAmount, 18))
     }
   }
 
-  const updateOsqthAmount = async (_price: string) => {
-    if (!vault || auctionType === AuctionType.CRAB_HEDGE) return null
+  const updateOsqthAmountForNetting = async (_price: string) => {
+    if (!vault || auctionType !== AuctionType.NETTING) return null
 
     if (isUSDCHigher) {
       const { sqthToMint } = await calculateTotalDeposit(quoter, usdcDeposits, toBigNumber(_price, 18), vault)
@@ -173,7 +173,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
 
   const updateLimitPrice = (limitPrice: string) => {
     updateMinAmount(limitPrice)
-    updateOsqthAmount(limitPrice)
+    updateOsqthAmountForNetting(limitPrice)
   }
 
   const onToggle = async () => {
@@ -207,6 +207,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
         >
           <MenuItem value={AuctionType.CRAB_HEDGE}>Crab Hedge</MenuItem>
           <MenuItem value={AuctionType.NETTING}>Netting</MenuItem>
+          <MenuItem value={AuctionType.CALM_BULL}>Bull</MenuItem>
         </Select>
       </FormControl>
       <Box mt={2} display="flex" alignItems="center" justifyContent="space-between">
