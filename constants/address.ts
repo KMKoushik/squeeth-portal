@@ -91,13 +91,13 @@ export const QUOTER = getAddress({
 export const BULL_STRATEGY = getAddress({
   1: '',
   3: '',
-  5: '0x312416A95237d49A42d63fc3f734608A57e77eaB',
+  5: '0x95F6251D3A0e0Dc5a7E52a13ef74951C5fF6503a',
 })
 
 export const AUCTION_BULL = getAddress({
   1: '',
   3: '',
-  5: '0x893E0b9c34f40908cA13468ED8A0bb0a44bc7676',
+  5: '0x17f08f2994d411e77271161142363CdAcaD898FD',
 })
 
 export const WETH_E_TOKEN = getAddress({

@@ -10,9 +10,10 @@ import { getLeverageRebalanceDetails } from '../../utils/calmBull'
 import { formatBigNumber } from '../../utils/math'
 import { HeaderInfo } from '../HeaderInfo'
 import { useQuoter } from '../../hooks/useQuoter'
-import { useContractWrite, useWaitForTransaction } from 'wagmi'
+import { useContract, useContractWrite, useSigner, useWaitForTransaction } from 'wagmi'
 import { AUCTION_BULL_CONTRACT } from '../../constants/contracts'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
+import { AuctionBull } from '../../types/contracts/AuctionBull'
 
 export const BullRebalance: React.FC = () => {
   const crabUsdcValue = useCrabV2Store(s => s.crabUsdcValue)
@@ -80,15 +81,20 @@ export const BullRebalance: React.FC = () => {
     setNewCr(_newCr)
     setLimitPrice(_limitPrice)
     setIsSellingUSDC(_isSelling)
-
-    console.log('Rebalance details', usdcAmount.toString(), isRebalPossible)
   }
 
+  const { data: signer } = useSigner()
+
+  const auctionBull = useContract<AuctionBull>({
+    ...AUCTION_BULL_CONTRACT,
+    signerOrProvider: signer,
+  })
+
   React.useEffect(() => {
-    if (isReady) {
+    if (isReady && crabUsdcValue.gt(0)) {
       fetchLeverageBalanceDetails(Number(slippage))
     }
-  }, [isReady])
+  }, [isReady, crabUsdcValue.toString()])
 
   async function onSlippageUpdate(_slippage: string) {
     setSlippage(_slippage)
@@ -96,17 +102,24 @@ export const BullRebalance: React.FC = () => {
   }
 
   async function executeLeverageRebalance() {
+    const gasLimit = await auctionBull.estimateGas.leverageRebalance(
+      isSellingUSDC,
+      usdcToTrade,
+      limitPrice,
+      ETH_USDC_FEE,
+    )
+
     const tx = await leverageRebalance({
       args: [isSellingUSDC, usdcToTrade, limitPrice, ETH_USDC_FEE],
       overrides: {
-        gasLimit: 5000000,
+        gasLimit: gasLimit.mul(125).div(100),
       },
     })
 
     try {
       addRecentTransaction({
         hash: tx.hash,
-        description: 'Net at price',
+        description: 'Leverage rebalance',
       })
     } catch (e) {
       console.log(e)
