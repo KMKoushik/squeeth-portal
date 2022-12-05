@@ -1,7 +1,13 @@
 import { describe, expect, test } from '@jest/globals'
 import { BIG_ONE } from '../../constants/numbers'
-import { Auction, Bid, BidStatus, Order } from '../../types'
-import { emptyAuction, getBidStatus, sortBidsForBidArray, validateOrderWithBalance } from '../../utils/auction'
+import { Auction, AuctionType, Bid, BidStatus, Order } from '../../types'
+import {
+  emptyAuction,
+  getAuctionDomain,
+  getBidStatus,
+  sortBidsForBidArray,
+  validateOrderWithBalance,
+} from '../../utils/auction'
 import { toBigNumber } from '../../utils/math'
 
 const POINT_ONE = toBigNumber(0.1)
@@ -350,5 +356,15 @@ describe('Util: Auction: Bids Sort order', () => {
     const bid3New = { ...bid3, order: { ...bid3.order, price: POINT_ONE.toString() } }
     expect(sortBidsForBidArray([bid1, bid2, bid3New], true)).toStrictEqual([bid2, bid1, bid3New])
     expect(sortBidsForBidArray([bid1, bid2, bid3New], false)).toStrictEqual([bid1, bid3New, bid2])
+  })
+})
+
+describe('Util: Auction: Auction domain', () => {
+  test('Should not get empty domain for available auction type', () => {
+    Object.values(AuctionType)
+      .filter(v => !isNaN(Number(v)))
+      .map(v => {
+        expect(getAuctionDomain(v as AuctionType).name).not.toBe('EMPTY')
+      })
   })
 })

@@ -1,6 +1,6 @@
 import { BigNumber, ethers } from 'ethers'
 import { doc, setDoc } from 'firebase/firestore'
-import { CRAB_STRATEGY_V2, WETH, OSQUEETH, CRAB_NETTING } from '../constants/address'
+import { CRAB_STRATEGY_V2, WETH, OSQUEETH, CRAB_NETTING, AUCTION_BULL } from '../constants/address'
 import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
 import {
   Auction,
@@ -221,8 +221,26 @@ export const nettingDomain = {
   verifyingContract: CRAB_NETTING,
 }
 
-const getDomain = (type: AuctionType) => {
-  return type === AuctionType.CRAB_HEDGE ? hedgeDomain : nettingDomain
+export const bullDomain = {
+  name: 'AuctionBull',
+  version: '1',
+  chainId: CHAIN_ID,
+  verifyingContract: AUCTION_BULL,
+}
+
+export const emptyDomain = {
+  name: 'EMPTY',
+  version: '1',
+  chainId: CHAIN_ID,
+  verifyingContract: CRAB_NETTING,
+}
+
+export const getAuctionDomain = (type: AuctionType) => {
+  if (type === AuctionType.CRAB_HEDGE) return hedgeDomain
+  if (type === AuctionType.NETTING) return nettingDomain
+  if (type === AuctionType.CALM_BULL) return bullDomain
+
+  return emptyDomain
 }
 
 export const type = {
@@ -245,14 +263,14 @@ export const messageWithTimeType = {
 }
 
 export const signOrder = async (signer: any, order: Order, auctionType = AuctionType.CRAB_HEDGE) => {
-  const signature = await signer._signTypedData(getDomain(auctionType), type, order)
+  const signature = await signer._signTypedData(getAuctionDomain(auctionType), type, order)
   const { r, s, v } = ethers.utils.splitSignature(signature)
 
   return { signature, r, s, v }
 }
 
 export const verifyOrder = (order: Order, signature: string, address: string, auctionType = AuctionType.CRAB_HEDGE) => {
-  const addr = ethers.utils.verifyTypedData(getDomain(auctionType), type, order, signature)
+  const addr = ethers.utils.verifyTypedData(getAuctionDomain(auctionType), type, order, signature)
   return address.toLowerCase() === addr.toLowerCase()
 }
 
@@ -284,7 +302,7 @@ export const signMessageWithTime = async (
   data: MessageWithTimeSignature,
   auctionType = AuctionType.CRAB_HEDGE,
 ) => {
-  const signature = await signer._signTypedData(getDomain(auctionType), messageWithTimeType, data)
+  const signature = await signer._signTypedData(getAuctionDomain(auctionType), messageWithTimeType, data)
   const { r, s, v } = ethers.utils.splitSignature(signature)
 
   return { signature, r, s, v }
@@ -296,7 +314,7 @@ export const verifyMessageWithTime = (
   address: string,
   auctionType = AuctionType.CRAB_HEDGE,
 ) => {
-  const addr = ethers.utils.verifyTypedData(getDomain(auctionType), messageWithTimeType, data, signature!)
+  const addr = ethers.utils.verifyTypedData(getAuctionDomain(auctionType), messageWithTimeType, data, signature!)
   return address.toLowerCase() === addr.toLowerCase()
 }
 

@@ -200,6 +200,8 @@ type getDeltaAndCollatType = {
 export function getDeltaAndCollat(params: getDeltaAndCollatType) {
   const { crabUsdPrice, ethUsdPrice, loanCollat, loanDebt, crabBalance } = params
 
+  console.log(crabBalance.toString(), crabUsdPrice.toString())
+
   const delta = loanCollat
     .wmul(ethUsdPrice)
     .wdiv(crabBalance.wmul(crabUsdPrice).add(loanCollat.wmul(ethUsdPrice)).sub(loanDebt.mul(WETH_DECIMALS_DIFF)))
