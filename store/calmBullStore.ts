@@ -3,6 +3,7 @@ import create from 'zustand'
 import { BIG_ZERO } from '../constants/numbers'
 
 interface CalmBullStore {
+  isReady: boolean
   auctionManager: string
   crabBalance: BigNumber
   delta: BigNumber
@@ -26,10 +27,12 @@ interface CalmBullStore {
     setDeltaLower: (deltaLower: BigNumber) => void
     setCrUpper: (crUpper: BigNumber) => void
     setCrLower: (crLower: BigNumber) => void
+    setIsReady: (isReady: boolean) => void
   }
 }
 
 export const useCalmBullStore = create<CalmBullStore>(set => ({
+  isReady: false,
   auctionManager: '',
   crabBalance: BIG_ZERO,
   delta: BIG_ZERO,
@@ -53,6 +56,7 @@ export const useCalmBullStore = create<CalmBullStore>(set => ({
     setDeltaLower: deltaLower => set({ deltaLower }),
     setCrUpper: crUpper => set({ crUpper }),
     setCrLower: crLower => set({ crLower }),
+    setIsReady: isReady => set({ isReady }),
   },
 }))
 
