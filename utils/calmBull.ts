@@ -68,7 +68,7 @@ export async function getAuctionDetails(params: getAuctionDetailsType) {
     ? await getWethAmountForUSDC(dollarProceeds.abs(), false, quoter, slippageTolerance)
     : await getWethAmountForUSDC(dollarProceeds.abs(), true, quoter, slippageTolerance)
   // Price for weth/usd trade including slippage
-  const wethLimitPrice = dollarProceeds.abs().wdiv(wethAmount)
+  const wethLimitPrice = dollarProceeds.abs().wdiv(wethAmount).mul(WETH_DECIMALS_DIFF)
 
   return { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice }
 }

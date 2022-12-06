@@ -21,7 +21,9 @@ import { Auction, AuctionType } from '../../../../types'
 import { getMinSize } from '../../../../utils/auction'
 import { getWsqueethFromCrabAmount } from '../../../../utils/crab'
 import { calculateTotalDeposit } from '../../../../utils/crabNetting'
+import * as calmBull from '../../../../utils/calmBull'
 import { convertBigNumber, convertBigNumberStr, toBigNumber } from '../../../../utils/math'
+import { useBullAuction } from '../../../../hooks/useBullAuction'
 
 const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const { data: feeData } = useFeeData()
@@ -44,10 +46,12 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const [minSize, setMinSize] = React.useState(auction.minSize || 0)
   const [clearing, setClearing] = React.useState(false)
   const [auctionType, setAuctionType] = React.useState(auction.type || AuctionType.CRAB_HEDGE)
+  const [wethLimitPrice, setWethLimitPrice] = React.useState(auction.wethLimitPrice || '')
 
   const { data: signer } = useSigner()
   const showMessageFromServer = useToaster()
   const addRecentTransaction = useAddRecentTransaction()
+  const { getBullAuctionDetails } = useBullAuction()
 
   const { data: toggleAuctionLiveTx, writeAsync: toggleAuction } = useContractWrite({
     ...CRAB_NETTING_CONTRACT,
@@ -99,11 +103,12 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
         oSqthAmount: toBigNumber(oSqthAmount).toString(),
         price: toBigNumber(price).toString(),
         auctionEnd: endDate.getTime(),
-        minSize: auctionType === AuctionType.NETTING ? 0 : minSize,
+        minSize: auctionType === AuctionType.CRAB_HEDGE ? minSize : 0,
         isSelling,
         type: auctionType,
         usdAmount: usdcDeposits.toString(),
         crabAmount: crabDeposits.toString(),
+        wethLimitPrice,
       }
 
       await updateAuction(signature!, updatedAuction)
@@ -124,6 +129,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
     usdcDeposits,
     crabDeposits,
     updateAuction,
+    wethLimitPrice,
   ])
 
   const clearBids = React.useCallback(async () => {
@@ -150,6 +156,12 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
     if (aucType === AuctionType.NETTING) {
       updateOsqthAmountForNetting(price)
       setIsSelling(isUSDCHigher ? true : false)
+    } else if (aucType === AuctionType.CALM_BULL) {
+      const { oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice } = await getBullAuctionDetails()
+      console.log(oSQTHAuctionAmount.toString())
+      setOsqthAmount(convertBigNumberStr(oSQTHAuctionAmount, 18))
+      setIsSelling(!isDepositingIntoCrab)
+      setWethLimitPrice(wethLimitPrice.toString())
     } else {
       setOsqthAmount(convertBigNumberStr(auction.oSqthAmount, 18))
     }

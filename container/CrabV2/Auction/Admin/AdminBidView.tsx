@@ -17,6 +17,7 @@ import {
   sortBidsForBidArray,
   getBidsWithReasonMap,
   getBidStatus,
+  getAuctionContract,
 } from '../../../../utils/auction'
 import { calculateIV, convertBigNumber, formatBigNumber, wmul } from '../../../../utils/math'
 import { BigNumber, ethers } from 'ethers'
@@ -29,8 +30,13 @@ import { Button, Checkbox, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { SecondaryButton } from '../../../../components/button/SecondaryButton'
 import { useBalance, useContract, useContractWrite, useSigner, useWaitForTransaction } from 'wagmi'
-import { CRAB_NETTING_CONTRACT, CRAB_V2_CONTRACT } from '../../../../constants/contracts'
-import { CrabNetting, CrabStrategyV2 } from '../../../../types/contracts'
+import {
+  AUCTION_BULL_CONTRACT,
+  BULL_CONTRACT,
+  CRAB_NETTING_CONTRACT,
+  CRAB_V2_CONTRACT,
+} from '../../../../constants/contracts'
+import { AuctionBull, BullStrategy, CrabNetting, CrabStrategyV2 } from '../../../../types/contracts'
 import { KING_CRAB } from '../../../../constants/message'
 import useToaster from '../../../../hooks/useToaster'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
@@ -51,6 +57,7 @@ import {
 } from '../../../../utils/crabNetting'
 import useQuoter from '../../../../hooks/useQuoter'
 import { getCrabFromSqueethAmount, getWsqueethFromCrabAmount } from '../../../../utils/crab'
+import { useBullAuction } from '../../../../hooks/useBullAuction'
 
 const AdminBidView: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
@@ -61,11 +68,12 @@ const AdminBidView: React.FC = () => {
   const { getApprovals } = useApprovals(
     uniqueTraders,
     auction.isSelling ? WETH : OSQUEETH,
-    auction.type === AuctionType.NETTING ? CRAB_NETTING : CRAB_STRATEGY_V2,
+    getAuctionContract(auction.type),
   )
   const { getBalances } = useBalances(uniqueTraders, auction.isSelling ? WETH : OSQUEETH)
   const showMessageFromServer = useToaster()
   const addRecentTransaction = useAddRecentTransaction()
+  const { getRebalanceDetails, getBullAuctionDetails } = useBullAuction()
   const vault = useCrabV2Store(s => s.vault)
 
   const quoter = useQuoter()
@@ -108,13 +116,17 @@ const AdminBidView: React.FC = () => {
     args: [],
   })
 
+  const { data: bullAuctionTx, writeAsync: fullRebalance } = useContractWrite({
+    ...AUCTION_BULL_CONTRACT,
+    functionName: 'fullRebalance',
+    args: [],
+  })
+
   const { data, isFetched: balfetched } = useBalance({
     addressOrName: CRAB_NETTING,
   })
 
   const nettingBalance = data ? data.value : BIG_ZERO
-
-  console.log('Queue: ', nettingBalance.toString())
 
   const { data: signer } = useSigner()
 
@@ -128,6 +140,11 @@ const AdminBidView: React.FC = () => {
     signerOrProvider: signer,
   })
 
+  const auctionBull = useContract<AuctionBull>({
+    ...AUCTION_BULL_CONTRACT,
+    signerOrProvider: signer,
+  })
+
   const { isLoading: isHedging } = useWaitForTransaction({
     hash: hedgeTx?.hash,
   })
@@ -138,6 +155,10 @@ const AdminBidView: React.FC = () => {
 
   const { isLoading: isWithdrawing } = useWaitForTransaction({
     hash: withdrawAuctxTx?.hash,
+  })
+
+  const { isLoading: isBullExecuting } = useWaitForTransaction({
+    hash: bullAuctionTx?.hash,
   })
 
   const filterBids = React.useCallback(async () => {
@@ -201,7 +222,7 @@ const AdminBidView: React.FC = () => {
     }
   }
 
-  const executeDepositAuction = async () => {
+  const executeCrabDepositAuction = async () => {
     try {
       const { orders } = getOrders()
 
@@ -223,15 +244,6 @@ const AdminBidView: React.FC = () => {
         auctionOsqthAmount = auctionSqth
       }
 
-      console.log(
-        'Auction amount',
-        auctionOsqthAmount.toString(),
-        'Debt',
-        formatBigNumber(vault!.shortAmount),
-        'collat',
-        formatBigNumber(vault!.collateral),
-      )
-
       // If we have less sqth amount in auction get amount USDC to match the squeeth amount
       const { totalUSDCToDeposit, sqthToMint } = await getActualDepositAmount(
         quoter,
@@ -240,18 +252,6 @@ const AdminBidView: React.FC = () => {
         neededSqth,
         vault!,
         BigNumber.from(auction.price),
-      )
-
-      console.log(
-        'Queue:',
-        'Needed:',
-        formatBigNumber(neededSqth, 18, 18),
-        'Available: ',
-        formatBigNumber(auctionOsqthAmount, 18, 18),
-        'USDC: ',
-        totalUSDCToDeposit.toString(),
-        'USDC auc: ',
-        auction.usdAmount!,
       )
 
       // Re-do the deposit calculation with new amounts. You will have excess ETH if we use less usd amount than original.
@@ -264,8 +264,6 @@ const AdminBidView: React.FC = () => {
         auctionOsqthAmount,
       )
 
-      console.log(nettingBalance.toString(), excessEth.toString(), sqthToMint.toString())
-
       // Calculate ETH to flash deposit for existing contract balance and excess eth
       const ethToFlashDeposit = await getFlashDepositAmount(
         quoter,
@@ -276,8 +274,6 @@ const AdminBidView: React.FC = () => {
         vault!.collateral,
         vault!.shortAmount,
       )
-
-      console.log('Eth to flash deposit', ethToFlashDeposit.toString(), nettingBalance.add(excessEth).toString())
 
       const gasLimit = await crabNetting.estimateGas.depositAuction({
         depositsQueued: totalUSDCToDeposit,
@@ -290,16 +286,6 @@ const AdminBidView: React.FC = () => {
         flashDepositFee: ETH_OSQTH_FEE,
       })
 
-      //const gasLimit = BigNumber.from(7000000)
-
-      console.log(
-        totalUSDCToDeposit.toString(),
-        ethToGet.toString(),
-        totalDeposit.toString(),
-        orders,
-        clearingPrice,
-        '0',
-      )
       const tx = await depositAuction({
         args: [
           {
@@ -335,7 +321,7 @@ const AdminBidView: React.FC = () => {
     }
   }
 
-  const executeWithdrawAuction = async () => {
+  const executeCrabWithdrawAuction = async () => {
     const { orders } = getOrders()
     const _crabAmt = BigNumber.from(auction.crabAmount || 0)
 
@@ -405,6 +391,62 @@ const AdminBidView: React.FC = () => {
     }
     await tx.wait()
     await submitTx(tx.hash, tx.timestamp || 0)
+  }
+
+  const executeBullAuction = async () => {
+    try {
+      const { orders } = getOrders()
+      const availableOsqth = orders.reduce((acc, o) => acc.add(o.quantity), BIG_ZERO)
+      const auctionSqth = BigNumber.from(auction.oSqthAmount)
+      const { oSQTHAuctionAmount: neededSqth, wethLimitPrice } = await getBullAuctionDetails()
+
+      let auctionOsqthAmount = neededSqth
+      if (availableOsqth.lt(auctionOsqthAmount)) {
+        auctionOsqthAmount = availableOsqth
+      }
+      if (auctionSqth.lt(auctionOsqthAmount)) {
+        auctionOsqthAmount = auctionSqth
+      }
+
+      const { crabAmount, wethTargetInEuler } = await getRebalanceDetails(
+        auctionOsqthAmount,
+        auction.isSelling,
+        BigNumber.from(clearingPrice),
+      )
+
+      console.log('Bull:', crabAmount.toString(), wethTargetInEuler.toString(), wethLimitPrice.toString())
+
+      // const gasLimit = await auctionBull.estimateGas.fullRebalance(
+      //   orders,
+      //   crabAmount,
+      //   clearingPrice,
+      //   wethTargetInEuler,
+      //   wethLimitPrice,
+      //   ETH_USDC_FEE,
+      //   auction.isSelling,
+      // )
+
+      const gasLimit = BigNumber.from(7000000)
+
+      const tx = await fullRebalance({
+        args: [orders, crabAmount, clearingPrice, wethTargetInEuler, wethLimitPrice, ETH_USDC_FEE, auction.isSelling],
+        overrides: {
+          gasLimit: gasLimit.mul(125).div(100),
+        },
+      })
+      try {
+        addRecentTransaction({
+          hash: tx.hash,
+          description: 'Full rebalance',
+        })
+      } catch (e) {
+        console.log(e)
+      }
+      await tx.wait()
+      await submitTx(tx.hash, tx.timestamp || 0)
+    } catch (e) {
+      console.log(e)
+    }
   }
 
   const submitTx = async (tx: string, timestamp: number, auctionQty?: BigNumber) => {
@@ -479,10 +521,13 @@ const AdminBidView: React.FC = () => {
     }
     if (auction.type === AuctionType.NETTING) {
       if (auction.isSelling) {
-        executeDepositAuction()
+        executeCrabDepositAuction()
       } else {
-        executeWithdrawAuction()
+        executeCrabWithdrawAuction()
       }
+    }
+    if (auction.type === AuctionType.CALM_BULL) {
+      executeBullAuction()
     }
   }
 

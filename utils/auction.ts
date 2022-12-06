@@ -1,6 +1,6 @@
 import { BigNumber, ethers } from 'ethers'
 import { doc, setDoc } from 'firebase/firestore'
-import { CRAB_STRATEGY_V2, WETH, OSQUEETH, CRAB_NETTING, AUCTION_BULL } from '../constants/address'
+import { CRAB_STRATEGY_V2, WETH, OSQUEETH, CRAB_NETTING, AUCTION_BULL, BULL_STRATEGY } from '../constants/address'
 import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
 import {
   Auction,
@@ -243,6 +243,14 @@ export const getAuctionDomain = (type: AuctionType) => {
   return emptyDomain
 }
 
+export const getAuctionContract = (type: AuctionType) => {
+  if (type === AuctionType.CRAB_HEDGE) return CRAB_STRATEGY_V2
+  if (type === AuctionType.NETTING) return CRAB_NETTING
+  if (type === AuctionType.CALM_BULL) return AUCTION_BULL
+
+  return ethers.constants.AddressZero
+}
+
 export const type = {
   Order: [
     { type: 'uint256', name: 'bidId' },
@@ -369,18 +377,12 @@ export const validateOrder = async (order: Order, auction: Auction, auctionType 
   if (order.isBuying) {
     const wethContract = new ethers.Contract(WETH, erc20Abi, provider) as ERC20
     const traderBalance = await wethContract.balanceOf(order.trader)
-    const traderAllowance = await wethContract.allowance(
-      order.trader,
-      auctionType === AuctionType.CRAB_HEDGE ? CRAB_STRATEGY_V2 : CRAB_NETTING,
-    )
+    const traderAllowance = await wethContract.allowance(order.trader, getAuctionContract(auctionType))
     return validateOrderWithBalance(order, auction, traderAllowance, traderBalance)
   } else {
     const squeethContract = new ethers.Contract(OSQUEETH, erc20Abi, provider)
     const traderBalance = await squeethContract.balanceOf(order.trader)
-    const traderAllowance = await squeethContract.allowance(
-      order.trader,
-      auctionType === AuctionType.CRAB_HEDGE ? CRAB_STRATEGY_V2 : CRAB_NETTING,
-    )
+    const traderAllowance = await squeethContract.allowance(order.trader, getAuctionContract(auctionType))
     return validateOrderWithBalance(order, auction, traderAllowance, traderBalance)
   }
 }
