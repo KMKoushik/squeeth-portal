@@ -148,8 +148,8 @@ describe('CalmBull: Full Rebalance', () => {
   const squeethInCrab = BIG_ONE.mul(5_000)
   const ethInCrab = BIG_ONE.mul(1000)
   const crabTotalSupply = BIG_ONE.mul(1000)
-  const targetCr = BigNumber.from('2') // 2
-  const feeRate = BigNumber.from(0) // minting fee
+  const targetCr = BIG_ONE.mul(2) // 2
+  const feeRate = BIG_ONE.mul(0) // minting fee
 
   function mockQuoterFunctions(ethPrice: BigNumber) {
     jest
@@ -172,7 +172,7 @@ describe('CalmBull: Full Rebalance', () => {
    * Squeeth down 20%
    */
   test('Full rebalance when ETH price go down', async () => {
-    const ethUsdPrice = BIG_ONE.mul(800).div(WETH_DECIMALS_DIFF)
+    const ethUsdPrice = BIG_ONE.mul(800)
     const squeethEthPrice = BIG_ONE.mul(BigNumber.from(8)).div(100)
     const crabUsdPrice = BIG_ONE.mul(480)
 
@@ -224,7 +224,7 @@ describe('CalmBull: Full Rebalance', () => {
    * Squeeth up 20%
    */
   test('Full rebalance when ETH price go up', async () => {
-    const ethUsdPrice = BIG_ONE.mul(1200).div(WETH_DECIMALS_DIFF)
+    const ethUsdPrice = BIG_ONE.mul(1200)
     const crabUsdPrice = BIG_ONE.mul(480)
     const squeethEthPrice = BIG_ONE.mul(BigNumber.from(8)).div(100)
 
@@ -246,8 +246,8 @@ describe('CalmBull: Full Rebalance', () => {
       feeRate,
     })
 
-    expect(crabToTrade.toString()).toBe('45833333331249999999')
-    expect(oSQTHAuctionAmount.toString()).toBe('229166666656249999995')
+    expect(crabToTrade.toString()).toBe('45833332916666666666')
+    expect(oSQTHAuctionAmount.toString()).toBe('229166664583333333330')
     expect(isDepositingIntoCrab).toBe(true)
 
     const clearingPrice = BIG_ONE.mul(BigNumber.from(8)).div(100)
@@ -267,7 +267,7 @@ describe('CalmBull: Full Rebalance', () => {
       clearingPrice,
       feeRate,
     })
-    expect(crabAmount.toString()).toBe('45833333331249999999')
-    expect(wethTargetInEuler.toString()).toBe('196666666666666666667')
+    expect(crabAmount.toString()).toBe('45833332916666666666')
+    expect(wethTargetInEuler.toString()).toBe('196666667000000000000')
   })
 })
