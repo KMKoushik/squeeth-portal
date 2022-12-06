@@ -26,7 +26,6 @@ export const useBullAuction = () => {
         crabToTrade: BIG_ZERO,
         oSQTHAuctionAmount: BIG_ZERO,
         isDepositingIntoCrab: false,
-        wethLimitPrice: BIG_ZERO,
       }
     console.log('Here')
 
@@ -39,16 +38,14 @@ export const useBullAuction = () => {
       squeethInCrab: vault?.shortAmount,
       ethInCrab: vault?.collateral,
       crabTotalSupply,
-      quoter,
       ethUsdPrice: ethPrice,
       targetCr: BIG_ONE.mul(2),
-      slippageTolerance: 10,
       feeRate: BIG_ZERO,
     })
   }
 
   async function getRebalanceDetails(oSqthAmount: BigNumber, isDepositingIntoCrab: boolean, clearingPrice: BigNumber) {
-    if (!vault || !isReady) return { crabAmount: BIG_ZERO, wethTargetInEuler: BIG_ZERO }
+    if (!vault || !isReady) return { crabAmount: BIG_ZERO, wethTargetInEuler: BIG_ZERO, wethLimitPrice: BIG_ZERO }
 
     return getFullRebalanceDetails({
       oSQTHAuctionAmount: oSqthAmount,
@@ -64,6 +61,8 @@ export const useBullAuction = () => {
       squeethEthPrice: oSqthPrice,
       clearingPrice,
       feeRate: BIG_ZERO,
+      quoter,
+      slippageTolerance: DEFAULT_SLIPPAGE,
     })
   }
 
