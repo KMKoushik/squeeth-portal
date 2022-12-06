@@ -1,7 +1,7 @@
 import { describe, expect, test } from '@jest/globals'
 import { BigNumber, Contract } from 'ethers'
-import { QUOTER } from '../../constants/address'
-import { BIG_ONE, DEFAULT_SLIPPAGE, WETH_DECIMALS_DIFF } from '../../constants/numbers'
+import { QUOTER, USDC, WETH } from '../../constants/address'
+import { BIG_ONE, BIG_ZERO, DEFAULT_SLIPPAGE, WETH_DECIMALS_DIFF } from '../../constants/numbers'
 import { Quoter } from '../../types/contracts'
 import quoterAbi from '../../abis/quoter.json'
 import { getAuctionDetails, getFullRebalanceDetails, getLeverageRebalanceDetails } from '../../utils/calmBull'
@@ -150,20 +150,32 @@ describe('CalmBull: Full Rebalance', () => {
   const crabTotalSupply = BIG_ONE.mul(1000)
   const targetCr = BIG_ONE.mul(2) // 2
   const feeRate = BIG_ONE.mul(0) // minting fee]
-  const slippageTolerance = BIG_ONE.mul()
+  // const slippageTolerance = BIG_ONE.mul()
 
   function mockQuoterFunctions(ethPrice: BigNumber) {
     jest
       .spyOn(quoterFns, 'quoteExactIn')
       .mockImplementation((quoter: Quoter, tokenIn: string, tokenOut: string, amountIn: BigNumber, poolFee: number) => {
-        return Promise.resolve(amountIn.wdiv(ethPrice))
+        if (tokenIn === USDC) {
+          return Promise.resolve(amountIn.wdiv(ethPrice))
+        } else if (tokenIn === WETH) {
+          return Promise.resolve(amountIn.wmul(ethPrice).div(WETH_DECIMALS_DIFF))
+        }
+
+        return Promise.resolve(BIG_ZERO)
       })
 
     jest
       .spyOn(quoterFns, 'quoteExactOut')
       .mockImplementation(
         (quoter: Quoter, tokenIn: string, tokenOut: string, amountOut: BigNumber, poolFee: number) => {
-          return Promise.resolve(amountOut.wdiv(ethPrice))
+          if (tokenOut === USDC) {
+            return Promise.resolve(amountOut.wdiv(ethPrice))
+          } else if (tokenOut === WETH) {
+            return Promise.resolve(amountOut.wmul(ethPrice).div(WETH_DECIMALS_DIFF))
+          }
+
+          return Promise.resolve(BIG_ZERO)
         },
       )
   }
@@ -231,7 +243,7 @@ describe('CalmBull: Full Rebalance', () => {
 
     mockQuoterFunctions(ethUsdPrice)
 
-    const { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab} = await getAuctionDetails({
+    const { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab } = await getAuctionDetails({
       crabUsdPrice,
       squeethEthPrice,
       loanCollat,
@@ -267,7 +279,6 @@ describe('CalmBull: Full Rebalance', () => {
       feeRate,
       quoter,
       slippageTolerance: DEFAULT_SLIPPAGE,
-
     })
     expect(crabAmount.toString()).toBe('45833332916666666666')
     expect(wethTargetInEuler.toString()).toBe('196666667000000000000')

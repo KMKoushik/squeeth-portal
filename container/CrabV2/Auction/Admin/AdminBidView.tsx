@@ -398,7 +398,7 @@ const AdminBidView: React.FC = () => {
       const { orders } = getOrders()
       const availableOsqth = orders.reduce((acc, o) => acc.add(o.quantity), BIG_ZERO)
       const auctionSqth = BigNumber.from(auction.oSqthAmount)
-      const { oSQTHAuctionAmount: neededSqth, wethLimitPrice } = await getBullAuctionDetails()
+      const { oSQTHAuctionAmount: neededSqth } = await getBullAuctionDetails()
 
       let auctionOsqthAmount = neededSqth
       if (availableOsqth.lt(auctionOsqthAmount)) {
@@ -408,7 +408,7 @@ const AdminBidView: React.FC = () => {
         auctionOsqthAmount = auctionSqth
       }
 
-      const { crabAmount, wethTargetInEuler } = await getRebalanceDetails(
+      const { crabAmount, wethTargetInEuler, wethLimitPrice } = await getRebalanceDetails(
         auctionOsqthAmount,
         auction.isSelling,
         BigNumber.from(clearingPrice),
@@ -416,17 +416,17 @@ const AdminBidView: React.FC = () => {
 
       console.log('Bull:', crabAmount.toString(), wethTargetInEuler.toString(), wethLimitPrice.toString())
 
-      // const gasLimit = await auctionBull.estimateGas.fullRebalance(
-      //   orders,
-      //   crabAmount,
-      //   clearingPrice,
-      //   wethTargetInEuler,
-      //   wethLimitPrice,
-      //   ETH_USDC_FEE,
-      //   auction.isSelling,
-      // )
+      const gasLimit = await auctionBull.estimateGas.fullRebalance(
+        orders,
+        crabAmount,
+        clearingPrice,
+        wethTargetInEuler,
+        wethLimitPrice,
+        ETH_USDC_FEE,
+        auction.isSelling,
+      )
 
-      const gasLimit = BigNumber.from(7000000)
+      //const gasLimit = BigNumber.from(7000000)
 
       const tx = await fullRebalance({
         args: [orders, crabAmount, clearingPrice, wethTargetInEuler, wethLimitPrice, ETH_USDC_FEE, auction.isSelling],

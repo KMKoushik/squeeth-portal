@@ -45,7 +45,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const [minSize, setMinSize] = React.useState(auction.minSize || 0)
   const [clearing, setClearing] = React.useState(false)
   const [auctionType, setAuctionType] = React.useState(auction.type || AuctionType.CRAB_HEDGE)
-  const [wethLimitPrice, setWethLimitPrice] = React.useState(auction.wethLimitPrice || '')
+  // const [wethLimitPrice, setWethLimitPrice] = React.useState(auction.wethLimitPrice || '')
 
   const { data: signer } = useSigner()
   const showMessageFromServer = useToaster()
@@ -107,7 +107,6 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
         type: auctionType,
         usdAmount: usdcDeposits.toString(),
         crabAmount: crabDeposits.toString(),
-        wethLimitPrice,
       }
 
       await updateAuction(signature!, updatedAuction)
@@ -128,7 +127,6 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
     usdcDeposits,
     crabDeposits,
     updateAuction,
-    wethLimitPrice,
   ])
 
   const clearBids = React.useCallback(async () => {
@@ -162,7 +160,6 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
       console.log(oSQTHAuctionAmount.toString(), isDepositingIntoCrab)
       setOsqthAmount(convertBigNumberStr(oSQTHAuctionAmount, 18))
       setIsSelling(isDepositingIntoCrab)
-      setWethLimitPrice(wethLimitPrice.toString())
     } else {
       setOsqthAmount(convertBigNumberStr(auction.oSqthAmount, 18))
     }
