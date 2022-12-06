@@ -67,9 +67,11 @@ export async function getAuctionDetails(params: getAuctionDetailsType) {
   const wethAmount = dollarProceeds.gt(0)
     ? await getWethAmountForUSDC(dollarProceeds.abs(), false, quoter, slippageTolerance)
     : await getWethAmountForUSDC(dollarProceeds.abs(), true, quoter, slippageTolerance)
+
   // Price for weth/usd trade including slippage
   const wethLimitPrice = dollarProceeds.abs().wdiv(wethAmount).mul(WETH_DECIMALS_DIFF)
 
+  console.log('ETH proceeds', wethAmount.toString(), dollarProceeds.toString(), wethLimitPrice.toString())
   return { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice }
 }
 
@@ -128,6 +130,8 @@ export async function getFullRebalanceDetails(params: getFullRebalanceType) {
   // New equity value
   const newEquityValue = oldEquityValue.add(auctionPnl)
   const wethTargetInEuler = newEquityValue.wdiv(ethUsdPrice)
+
+  // Order eth value + weth from crab - weth to pay?
 
   return { crabAmount, wethTargetInEuler }
 }

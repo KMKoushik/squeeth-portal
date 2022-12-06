@@ -42,7 +42,7 @@ export const useBullAuction = () => {
       quoter,
       ethUsdPrice: ethPrice,
       targetCr: BIG_ONE.mul(2),
-      slippageTolerance: DEFAULT_SLIPPAGE,
+      slippageTolerance: 10,
       feeRate: BIG_ZERO,
     })
   }
