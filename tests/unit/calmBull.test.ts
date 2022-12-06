@@ -149,7 +149,8 @@ describe('CalmBull: Full Rebalance', () => {
   const ethInCrab = BIG_ONE.mul(1000)
   const crabTotalSupply = BIG_ONE.mul(1000)
   const targetCr = BIG_ONE.mul(2) // 2
-  const feeRate = BIG_ONE.mul(0) // minting fee
+  const feeRate = BIG_ONE.mul(0) // minting fee]
+  const slippageTolerance = BIG_ONE.mul()
 
   function mockQuoterFunctions(ethPrice: BigNumber) {
     jest
@@ -178,7 +179,7 @@ describe('CalmBull: Full Rebalance', () => {
 
     mockQuoterFunctions(ethUsdPrice)
 
-    const { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice } = await getAuctionDetails({
+    const { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab } = await getAuctionDetails({
       crabUsdPrice,
       squeethEthPrice,
       loanCollat,
@@ -187,10 +188,8 @@ describe('CalmBull: Full Rebalance', () => {
       squeethInCrab,
       ethInCrab,
       crabTotalSupply,
-      quoter,
       ethUsdPrice,
       targetCr,
-      slippageTolerance: DEFAULT_SLIPPAGE,
       feeRate,
     })
 
@@ -214,6 +213,8 @@ describe('CalmBull: Full Rebalance', () => {
       squeethEthPrice,
       clearingPrice,
       feeRate,
+      quoter,
+      slippageTolerance: DEFAULT_SLIPPAGE,
     })
     expect(crabAmount.toString()).toBe('37500000000000000000')
     expect(wethTargetInEuler.toString()).toBe('195000000000000000000')
@@ -230,7 +231,7 @@ describe('CalmBull: Full Rebalance', () => {
 
     mockQuoterFunctions(ethUsdPrice)
 
-    const { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice } = await getAuctionDetails({
+    const { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab} = await getAuctionDetails({
       crabUsdPrice,
       squeethEthPrice,
       loanCollat,
@@ -239,10 +240,8 @@ describe('CalmBull: Full Rebalance', () => {
       squeethInCrab,
       ethInCrab,
       crabTotalSupply,
-      quoter,
       ethUsdPrice,
       targetCr,
-      slippageTolerance: DEFAULT_SLIPPAGE,
       feeRate,
     })
 
@@ -252,7 +251,7 @@ describe('CalmBull: Full Rebalance', () => {
 
     const clearingPrice = BIG_ONE.mul(BigNumber.from(8)).div(100)
 
-    const { crabAmount, wethTargetInEuler } = await getFullRebalanceDetails({
+    const { crabAmount, wethTargetInEuler, wethLimitPrice } = await getFullRebalanceDetails({
       oSQTHAuctionAmount,
       isDepositingIntoCrab,
       loanCollat,
@@ -266,6 +265,9 @@ describe('CalmBull: Full Rebalance', () => {
       squeethEthPrice,
       clearingPrice,
       feeRate,
+      quoter,
+      slippageTolerance: DEFAULT_SLIPPAGE,
+
     })
     expect(crabAmount.toString()).toBe('45833332916666666666')
     expect(wethTargetInEuler.toString()).toBe('196666667000000000000')
