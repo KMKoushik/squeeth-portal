@@ -155,7 +155,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
       updateOsqthAmountForNetting(price)
       setIsSelling(isUSDCHigher ? true : false)
     } else if (aucType === AuctionType.CALM_BULL) {
-      const { oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice } = await getBullAuctionDetails()
+      const { oSQTHAuctionAmount, isDepositingIntoCrab } = await getBullAuctionDetails()
       console.log(oSQTHAuctionAmount.toString(), isDepositingIntoCrab)
       setOsqthAmount(convertBigNumberStr(oSQTHAuctionAmount, 18))
       setIsSelling(isDepositingIntoCrab)
