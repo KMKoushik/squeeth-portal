@@ -1,11 +1,10 @@
 import { BigNumber } from 'ethers'
 import { USDC, WETH } from '../constants/address'
-import { ETH_USDC_FEE, WETH_DECIMALS_DIFF } from '../constants/numbers'
+import { ETH_USDC_FEE, WETH_DECIMALS_DIFF, BIG_ONE } from '../constants/numbers'
 import { Quoter } from '../types/contracts'
 import { quoteExactIn, quoteExactOut } from './quoter'
 
 type getAuctionDetailsType = {
-  quoter: Quoter
   crabUsdPrice: BigNumber
   squeethEthPrice: BigNumber
   loanCollat: BigNumber
@@ -16,7 +15,6 @@ type getAuctionDetailsType = {
   crabTotalSupply: BigNumber
   ethUsdPrice: BigNumber
   targetCr: BigNumber
-  slippageTolerance: number
   feeRate: BigNumber
 }
 
@@ -30,10 +28,8 @@ export async function getAuctionDetails(params: getAuctionDetailsType) {
     squeethInCrab,
     ethInCrab,
     crabTotalSupply,
-    quoter,
     ethUsdPrice,
     targetCr,
-    slippageTolerance,
     feeRate,
   } = params
 
@@ -73,15 +69,9 @@ export async function getAuctionDetails(params: getAuctionDetailsType) {
     ? crabToTrade.wmul(squeethInCrab).wdiv(crabTotalSupply).wmul(ethInCrab).wdiv(adjEthInCrab)
     : crabToTrade.wmul(squeethInCrab).wdiv(crabTotalSupply)
   console.log('oSQTHAuctionAmount', oSQTHAuctionAmount.toString())
-  const wethAmount = dollarProceeds.gt(0)
-    ? (await getWethAmountForUSDC(dollarProceeds.abs(), false, quoter, slippageTolerance)).mul(WETH_DECIMALS_DIFF)
-    : (await getWethAmountForUSDC(dollarProceeds.abs(), true, quoter, slippageTolerance)).mul(WETH_DECIMALS_DIFF)
-  console.log('wethAmount', wethAmount.toString()) 
-  // Price for weth/usd trade including slippage
-  const wethLimitPrice = dollarProceeds.abs().wdiv(wethAmount).mul(WETH_DECIMALS_DIFF)
-  console.log('wethLimitPrice', wethLimitPrice.toString())
-  console.log('ETH proceeds', wethAmount.toString(), dollarProceeds.toString(), wethLimitPrice.toString())
-  return { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice }
+  
+  
+  return { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab, newLoanCollat}
 }
 
 type getFullRebalanceType = {
@@ -98,6 +88,8 @@ type getFullRebalanceType = {
   squeethEthPrice: BigNumber
   clearingPrice: BigNumber
   feeRate: BigNumber
+  quoter: Quoter
+  slippageTolerance: number
 }
 
 export async function getFullRebalanceDetails(params: getFullRebalanceType) {
@@ -115,6 +107,8 @@ export async function getFullRebalanceDetails(params: getFullRebalanceType) {
     squeethEthPrice,
     clearingPrice,
     feeRate,
+    quoter,
+    slippageTolerance,
   } = params
 
   // Adjustented collateral for mint fee when depositing
@@ -145,7 +139,41 @@ export async function getFullRebalanceDetails(params: getFullRebalanceType) {
   console.log('wethTargetInEuler', wethTargetInEuler.toString())
   // Order eth value + weth from crab - weth to pay?
 
-  return { crabAmount, wethTargetInEuler }
+  var netWethToTrade = BigNumber.from(0)
+  if (isDepositingIntoCrab) {
+    // Deposit into crab
+    const wethToCrab = (ethInCrab.wdiv(squeethInCrab)).wmul(squeethInCrab.add(oSQTHAuctionAmount)).sub(ethInCrab)
+    const wethFromAuction = oSQTHAuctionAmount.wmul(clearingPrice)
+    netWethToTrade = wethTargetInEuler.sub(loanCollat.sub(wethToCrab).sub(wethFromAuction))
+    console.log('wethToCrab', wethToCrab.toString())
+    console.log('wethFromAuction', wethFromAuction.toString())
+    console.log('netWethToTrade', netWethToTrade.toString())
+  } else {
+    // Withdraw from crab
+    const wethFromCrab = crabAmount.wmul(ethInCrab).wdiv(crabTotalSupply)
+    const wethToAuction = oSQTHAuctionAmount.wmul(clearingPrice)
+    netWethToTrade = wethTargetInEuler.sub(loanCollat.add(wethFromCrab).sub(wethToAuction))
+    console.log('wethFromCrab', wethFromCrab.toString())
+    console.log('wethToAuction', wethToAuction.toString())
+    console.log('netWethToTrade', netWethToTrade.toString())
+  }
+  console.log('isDepositingIntoCrab', isDepositingIntoCrab.toString())
+
+  // USDC for net weth trade
+  // const usdcAmount = netWethToTrade.lt(0)
+  //   ? (await getUsdcAmountForWeth(netWethToTrade.abs(), true, quoter, slippageTolerance))
+  //   : (await getUsdcAmountForWeth(netWethToTrade.abs(), false, quoter, slippageTolerance))
+  // const usdcAmount = netWethToTrade.lt(0) 
+  //     ? netWethToTrade.wmul(ethUsdPrice).wmul(BIG_ONE.sub(BIG_ONE.mul(100 * slippageTolerance).div(100)))
+  //     : netWethToTrade.wmul(ethUsdPrice).wmul(BIG_ONE.add(BIG_ONE.mul(100 * slippageTolerance).div(100)))
+  
+  const wethLimitPrice =  netWethToTrade.lt(0) 
+      ? ethUsdPrice.wmul(BIG_ONE.sub(BIG_ONE.mul(100 * slippageTolerance).div(100)))
+      : ethUsdPrice.wmul(BIG_ONE.add(BIG_ONE.mul(100 * slippageTolerance).div(100)))
+
+  // const wethLimitPrice = usdcAmount.wdiv(netWethToTrade.abs()).mul(WETH_DECIMALS_DIFF)
+  console.log('wethLimitPrice', wethLimitPrice.toString())
+  return { crabAmount, wethTargetInEuler, wethLimitPrice }
 }
 
 type levRebalDetailsType = {
@@ -204,6 +232,15 @@ async function getWethAmountForUSDC(usdcAmount: BigNumber, isSelling: boolean, q
     return await quoteExactOut(quoter, WETH, USDC, usdcAmount, ETH_USDC_FEE, slippage)
   }
 }
+
+async function getUsdcAmountForWeth(wethAmount: BigNumber, isSelling: boolean, quoter: Quoter, slippage: number) {
+  if (isSelling) {
+    return await quoteExactIn(quoter, WETH, USDC, wethAmount, ETH_USDC_FEE, slippage)
+  } else {
+    return await quoteExactOut(quoter, USDC, WETH, wethAmount, ETH_USDC_FEE, slippage)
+  }
+}
+
 
 type getDeltaAndCollatType = {
   crabUsdPrice: BigNumber
