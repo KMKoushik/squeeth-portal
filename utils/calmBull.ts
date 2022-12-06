@@ -37,40 +37,49 @@ export async function getAuctionDetails(params: getAuctionDetailsType) {
     feeRate,
   } = params
 
-  // new collateral should be total equity value
-  const newEquityValue = crabBalance
+  // new collateral should be total equity value 
+  const newEquityValue = (crabBalance
     .wmul(crabUsdPrice)
-    .add(loanCollat.wmul(ethUsdPrice.mul(WETH_DECIMALS_DIFF)))
-    .sub(loanDebt.mul(WETH_DECIMALS_DIFF))
-    .div(WETH_DECIMALS_DIFF)
-  const newLoanCollat = newEquityValue.wdiv(ethUsdPrice)
+    .add(loanCollat.wmul(ethUsdPrice))
+    .sub(loanDebt.mul(WETH_DECIMALS_DIFF))).div(WETH_DECIMALS_DIFF)
+  console.log('newEquityValue', newEquityValue.toString())  
+  const newLoanCollat = newEquityValue.wdiv(ethUsdPrice).mul(WETH_DECIMALS_DIFF)
   // new loan debt to hit target cr
-  const newLoanDebt = newLoanCollat.wmul(ethUsdPrice).div(targetCr)
+  const newLoanDebt = newLoanCollat.wmul(ethUsdPrice).wdiv(targetCr).div(WETH_DECIMALS_DIFF)
+  console.log('newLoanCollat', newLoanCollat.toString())
+  console.log('ethUsdPrice', ethUsdPrice.toString())
+  console.log('targetCr', targetCr.toString())
+
+  console.log('newLoanDebt', newLoanDebt.toString())
+  console.log('ethUsdPrice', ethUsdPrice.toString())
   // dollar value of eth collateral change
-  const dollarProceeds = loanCollat.sub(newLoanCollat).wmul(ethUsdPrice)
+  const dollarProceeds = (loanCollat.sub(newLoanCollat)).wmul(ethUsdPrice).div(WETH_DECIMALS_DIFF)
+  console.log('dollarProceeds', dollarProceeds.toString())
   // $ to/from crab
   const needFromCrab = loanDebt.sub(newLoanDebt).sub(dollarProceeds)
+  console.log('needFromCrab', needFromCrab.toString())
   // deposit into crab if we have extra $ after changing loan composition
   const isDepositingIntoCrab = needFromCrab.gt(0) ? false : true
   // amount of crab to pay/recieve target dollar amount
   const crabToTrade = needFromCrab.mul(WETH_DECIMALS_DIFF).wdiv(crabUsdPrice).abs()
+  console.log('crabToTrade', crabToTrade.toString())
   // fee adjustment for deposit to crab case
   const feeAdjustment = squeethEthPrice.mul(feeRate).div(10000)
   // Adjustented collateral for mint fee when depositing
   const adjEthInCrab = ethInCrab.add(squeethInCrab.wmul(feeAdjustment))
-
+  console.log('adjEthInCrab', adjEthInCrab.toString())
   // Auction oSQTH amount will include provision for the fee if depositing
   const oSQTHAuctionAmount = isDepositingIntoCrab
     ? crabToTrade.wmul(squeethInCrab).wdiv(crabTotalSupply).wmul(ethInCrab).wdiv(adjEthInCrab)
     : crabToTrade.wmul(squeethInCrab).wdiv(crabTotalSupply)
-
+  console.log('oSQTHAuctionAmount', oSQTHAuctionAmount.toString())
   const wethAmount = dollarProceeds.gt(0)
-    ? await getWethAmountForUSDC(dollarProceeds.abs(), false, quoter, slippageTolerance)
-    : await getWethAmountForUSDC(dollarProceeds.abs(), true, quoter, slippageTolerance)
-
+    ? (await getWethAmountForUSDC(dollarProceeds.abs(), false, quoter, slippageTolerance)).mul(WETH_DECIMALS_DIFF)
+    : (await getWethAmountForUSDC(dollarProceeds.abs(), true, quoter, slippageTolerance)).mul(WETH_DECIMALS_DIFF)
+  console.log('wethAmount', wethAmount.toString()) 
   // Price for weth/usd trade including slippage
   const wethLimitPrice = dollarProceeds.abs().wdiv(wethAmount).mul(WETH_DECIMALS_DIFF)
-
+  console.log('wethLimitPrice', wethLimitPrice.toString())
   console.log('ETH proceeds', wethAmount.toString(), dollarProceeds.toString(), wethLimitPrice.toString())
   return { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab, wethLimitPrice }
 }
@@ -111,26 +120,29 @@ export async function getFullRebalanceDetails(params: getFullRebalanceType) {
   // Adjustented collateral for mint fee when depositing
   const feeAdjustment = squeethEthPrice.mul(feeRate).div(10000)
   const adjEthInCrab = ethInCrab.add(squeethInCrab.wmul(feeAdjustment))
-
+  console.log('adjEthInCrab', adjEthInCrab.toString())
   const crabAmount = isDepositingIntoCrab
-    ? oSQTHAuctionAmount.wmul(crabTotalSupply).wdiv(squeethInCrab).wmul(adjEthInCrab).wdiv(ethInCrab).abs()
-    : oSQTHAuctionAmount.wmul(crabTotalSupply).wdiv(squeethInCrab).abs()
+    ? (oSQTHAuctionAmount.wmul(crabTotalSupply).wdiv(squeethInCrab).wmul(adjEthInCrab).wdiv(ethInCrab)).abs()
+    : (oSQTHAuctionAmount.wmul(crabTotalSupply).wdiv(squeethInCrab)).abs()
 
-  // Starting equity value in USD
+  console.log('crabAmount', crabAmount.toString())
+    // Starting equity value in USD
   const oldEquityValue = crabBalance
     .wmul(crabUsdPrice)
-    .add(loanCollat.wmul(ethUsdPrice.mul(WETH_DECIMALS_DIFF)))
+    .add(loanCollat.wmul(ethUsdPrice))
     .sub(loanDebt.mul(WETH_DECIMALS_DIFF))
     .div(WETH_DECIMALS_DIFF)
+  console.log('oldEquityValue', oldEquityValue.toString())
   // Auction pnl from difference between squeeth price and clearing price
   const auctionPnl = isDepositingIntoCrab
-    ? oSQTHAuctionAmount.wmul(clearingPrice).sub(oSQTHAuctionAmount.wmul(squeethEthPrice)).wmul(ethUsdPrice)
-    : oSQTHAuctionAmount.wmul(squeethEthPrice).sub(oSQTHAuctionAmount.wmul(clearingPrice)).wmul(ethUsdPrice)
-
+    ? (oSQTHAuctionAmount.wmul(clearingPrice).sub(oSQTHAuctionAmount.wmul(squeethEthPrice))).wmul(ethUsdPrice)
+    : (oSQTHAuctionAmount.wmul(squeethEthPrice).sub(oSQTHAuctionAmount.wmul(clearingPrice))).wmul(ethUsdPrice)
+  console.log('auctionPnl', auctionPnl.toString())
   // New equity value
   const newEquityValue = oldEquityValue.add(auctionPnl)
-  const wethTargetInEuler = newEquityValue.wdiv(ethUsdPrice)
-
+  console.log('newEquityValue', newEquityValue.toString())
+  const wethTargetInEuler = newEquityValue.wdiv(ethUsdPrice).mul(WETH_DECIMALS_DIFF)
+  console.log('wethTargetInEuler', wethTargetInEuler.toString())
   // Order eth value + weth from crab - weth to pay?
 
   return { crabAmount, wethTargetInEuler }
