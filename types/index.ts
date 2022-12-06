@@ -69,6 +69,7 @@ export type Auction = {
   normFactor?: string
   executedTime?: number
   type: AuctionType
+  wethLimitPrice?: string
 }
 
 export enum BidStatus {

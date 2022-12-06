@@ -12,6 +12,7 @@ import { BIG_ZERO } from '../../../constants/numbers'
 import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import { AuctionType } from '../../../types'
+import { getAuctionContract } from '../../../utils/auction'
 import { formatBigNumber, toBigNumber } from '../../../utils/math'
 
 const Approvals: React.FC = () => {
@@ -21,7 +22,7 @@ const Approvals: React.FC = () => {
   const setWethApproval = useCrabV2Store(s => s.setWethApproval)
   const addRecentTransaction = useAddRecentTransaction()
 
-  const auctionContract = auction.type === AuctionType.CRAB_HEDGE ? CRAB_STRATEGY_V2 : CRAB_NETTING
+  const auctionContract = getAuctionContract(auction.type)
 
   const { data, isLoading, refetch } = useContractReads({
     contracts: [
