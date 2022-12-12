@@ -79,7 +79,7 @@ export const CRAB_OTC = getAddress({
 export const CRAB_NETTING = getAddress({
   1: '',
   3: '',
-  5: '0xf3e40abf4c06b9454440cb93d42e60de5e67db2a',
+  5: '0xf0fa0e43b3ab87e1d9e39ebb95ae1f894cb9f5d0',
 })
 
 export const QUOTER = getAddress({
