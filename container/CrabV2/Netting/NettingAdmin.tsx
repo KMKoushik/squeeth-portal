@@ -12,7 +12,7 @@ import useAccountStore from '../../../store/accountStore'
 import { useCrabNettingStore } from '../../../store/crabNettingStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import usePriceStore from '../../../store/priceStore'
-import { calculateCrabUSDCValue, convertBigNumber, formatBigNumber, toBigNumber, wdiv, wmul } from '../../../utils/math'
+import { calculateCrabUSDCValue, convertBigNumber, formatBigNumber, toBigNumber } from '../../../utils/math'
 import { HeaderInfo } from '../../HeaderInfo'
 
 export const NettingAdmin: React.FC = () => {
@@ -102,11 +102,14 @@ export const NettingAdmin: React.FC = () => {
         hash: tx.hash,
         description: 'Net at price',
       })
+
+      await tx.wait()
+      if (location) {
+        location.reload()
+      }
     } catch (e) {
       console.log(e)
     }
-
-    await tx.wait()
   }
 
   const isOwner = React.useMemo(

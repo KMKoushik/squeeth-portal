@@ -11,42 +11,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_usdc",
-        type: "address",
-      },
-      {
-        internalType: "address",
         name: "_crab",
         type: "address",
       },
       {
         internalType: "address",
-        name: "_weth",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_sqth",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_ethSqueethPool",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_ethUsdcPool",
-        type: "address",
-      },
-      {
-        internalType: "address",
         name: "_swapRouter",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_oracle",
         type: "address",
       },
     ],
@@ -57,13 +27,13 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
         name: "bidId",
         type: "uint256",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "trader",
         type: "address",
@@ -80,6 +50,12 @@ const _abi = [
         name: "price",
         type: "uint256",
       },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "isBuying",
+        type: "bool",
+      },
     ],
     name: "BidTraded",
     type: "event",
@@ -88,7 +64,7 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "withdrawer",
         type: "address",
@@ -113,7 +89,7 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "withdrawer",
         type: "address",
@@ -131,7 +107,7 @@ const _abi = [
         type: "uint256",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
         name: "receiptIndex",
         type: "uint256",
@@ -144,7 +120,7 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "withdrawer",
         type: "address",
@@ -162,13 +138,32 @@ const _abi = [
         type: "uint256",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
         name: "receiptIndex",
         type: "uint256",
       },
     ],
     name: "CrabWithdrawn",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "nonce",
+        type: "uint256",
+      },
+    ],
+    name: "NonceTrue",
     type: "event",
   },
   {
@@ -196,7 +191,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint32",
-        name: "_auctionTwapPeriod",
+        name: "previousTwap",
+        type: "uint32",
+      },
+      {
+        indexed: false,
+        internalType: "uint32",
+        name: "newTwap",
         type: "uint32",
       },
     ],
@@ -209,7 +210,52 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "otcPriceTolerance",
+        name: "newDepositsIndex",
+        type: "uint256",
+      },
+    ],
+    name: "SetDepositsIndex",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "SetMinCrab",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "SetMinUSDC",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "previousTolerance",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newOtcPriceTolerance",
         type: "uint256",
       },
     ],
@@ -221,6 +267,32 @@ const _abi = [
     inputs: [
       {
         indexed: false,
+        internalType: "uint256",
+        name: "newWithdrawsIndex",
+        type: "uint256",
+      },
+    ],
+    name: "SetWithdrawsIndex",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "isAuctionLive",
+        type: "bool",
+      },
+    ],
+    name: "ToggledAuctionLive",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
         internalType: "address",
         name: "depositor",
         type: "address",
@@ -245,7 +317,7 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "depositor",
         type: "address",
@@ -263,7 +335,7 @@ const _abi = [
         type: "uint256",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
         name: "receiptIndex",
         type: "uint256",
@@ -282,7 +354,7 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "depositor",
         type: "address",
@@ -300,13 +372,38 @@ const _abi = [
         type: "uint256",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
         name: "receiptIndex",
         type: "uint256",
       },
     ],
     name: "USDCQueued",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "withdrawer",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "crabAmount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "index",
+        type: "uint256",
+      },
+    ],
+    name: "WithdrawRejected",
     type: "event",
   },
   {
@@ -345,6 +442,71 @@ const _abi = [
         type: "uint32",
       },
     ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "bidId",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "trader",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "quantity",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "price",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "isBuying",
+            type: "bool",
+          },
+          {
+            internalType: "uint256",
+            name: "expiry",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "nonce",
+            type: "uint256",
+          },
+          {
+            internalType: "uint8",
+            name: "v",
+            type: "uint8",
+          },
+          {
+            internalType: "bytes32",
+            name: "r",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes32",
+            name: "s",
+            type: "bytes32",
+          },
+        ],
+        internalType: "struct Order",
+        name: "_order",
+        type: "tuple",
+      },
+    ],
+    name: "checkOrder",
+    outputs: [],
     stateMutability: "view",
     type: "function",
   },
@@ -468,7 +630,7 @@ const _abi = [
           },
           {
             internalType: "uint24",
-            name: "usdEthFee",
+            name: "ethUSDFee",
             type: "uint24",
           },
           {
@@ -520,6 +682,11 @@ const _abi = [
         name: "amount",
         type: "uint256",
       },
+      {
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256",
+      },
     ],
     stateMutability: "view",
     type: "function",
@@ -548,6 +715,24 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256",
+      },
+      {
+        internalType: "bool",
+        name: "_force",
+        type: "bool",
+      },
+    ],
+    name: "dequeueCrab",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -710,6 +895,19 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "i",
+        type: "uint256",
+      },
+    ],
+    name: "rejectWithdraw",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "renounceOwnership",
     outputs: [],
@@ -725,6 +923,19 @@ const _abi = [
       },
     ],
     name: "setAuctionTwapPeriod",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_newDepositsIndex",
+        type: "uint256",
+      },
+    ],
+    name: "setDepositsIndex",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -782,6 +993,19 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_newWithdrawsIndex",
+        type: "uint256",
+      },
+    ],
+    name: "setWithdrawsIndex",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "sqth",
     outputs: [
@@ -789,6 +1013,32 @@ const _abi = [
         internalType: "address",
         name: "",
         type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "sqthController",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "sqthTwapPeriod",
+    outputs: [
+      {
+        internalType: "uint32",
+        name: "",
+        type: "uint32",
       },
     ],
     stateMutability: "view",
@@ -1019,18 +1269,10 @@ const _abi = [
         name: "_amount",
         type: "uint256",
       },
-    ],
-    name: "withdrawCrab",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
       {
-        internalType: "uint256",
-        name: "_amount",
-        type: "uint256",
+        internalType: "bool",
+        name: "_force",
+        type: "bool",
       },
     ],
     name: "withdrawUSDC",
@@ -1056,6 +1298,11 @@ const _abi = [
       {
         internalType: "uint256",
         name: "amount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "timestamp",
         type: "uint256",
       },
     ],

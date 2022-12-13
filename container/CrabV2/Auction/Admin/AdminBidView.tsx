@@ -114,8 +114,6 @@ const AdminBidView: React.FC = () => {
 
   const nettingBalance = data ? data.value : BIG_ZERO
 
-  console.log('Queue: ', nettingBalance.toString())
-
   const { data: signer } = useSigner()
 
   const crabV2 = useContract<CrabStrategyV2>({
@@ -286,11 +284,11 @@ const AdminBidView: React.FC = () => {
         orders,
         clearingPrice,
         ethToFlashDeposit,
-        usdEthFee: ETH_USDC_FEE,
+        ethUSDFee: ETH_USDC_FEE,
         flashDepositFee: ETH_OSQTH_FEE,
       })
 
-      //const gasLimit = BigNumber.from(7000000)
+      // const gasLimit = BigNumber.from(7000000)
 
       console.log(
         totalUSDCToDeposit.toString(),
@@ -309,7 +307,7 @@ const AdminBidView: React.FC = () => {
             orders,
             clearingPrice,
             ethToFlashDeposit,
-            usdEthFee: ETH_USDC_FEE,
+            ethUSDFee: ETH_USDC_FEE,
             flashDepositFee: ETH_OSQTH_FEE,
           },
         ],
