@@ -288,7 +288,7 @@ const AdminBidView: React.FC = () => {
         flashDepositFee: ETH_OSQTH_FEE,
       })
 
-      // const gasLimit = BigNumber.from(7000000)
+      //const gasLimit = BigNumber.from(7000000)
 
       console.log(
         totalUSDCToDeposit.toString(),

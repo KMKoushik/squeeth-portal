@@ -21,7 +21,7 @@ import { Auction, AuctionType } from '../../../../types'
 import { getMinSize } from '../../../../utils/auction'
 import { getWsqueethFromCrabAmount } from '../../../../utils/crab'
 import { calculateTotalDeposit } from '../../../../utils/crabNetting'
-import { convertBigNumber, convertBigNumberStr, toBigNumber } from '../../../../utils/math'
+import { convertBigNumber, convertBigNumberStr, toBigNumber, wmul } from '../../../../utils/math'
 
 const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const { data: feeData } = useFeeData()
@@ -35,6 +35,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const isNettingAuctionLive = useCrabNettingStore(s => s.isAuctionLive)
   const setIsAuctionLive = useCrabNettingStore(s => s.setAuctionLive)
   const isNew = !auction.currentAuctionId
+  const crabUsdcPrice = useCrabV2Store(s => s.crabUsdcValue)
 
   const [oSqthAmount, setOsqthAmount] = React.useState(convertBigNumberStr(auction.oSqthAmount, 18))
   const [price, setPrice] = React.useState(convertBigNumberStr(auction.price, 18).toString())
@@ -143,7 +144,9 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
     setClearing(false)
   }, [auction, signer, updateAuction])
 
-  const isUSDCHigher = convertBigNumber(usdcDeposits, 6) > convertBigNumber(crabDeposits, 18)
+  const isUSDCHigher = convertBigNumber(usdcDeposits, 6) > convertBigNumber(wmul(crabDeposits, crabUsdcPrice), 18)
+
+  console.log(convertBigNumber(usdcDeposits, 6), convertBigNumber(wmul(crabDeposits, crabUsdcPrice), 18), 'prices')
 
   const updateAuctionType = async (aucType: AuctionType) => {
     setAuctionType(aucType)

@@ -263,7 +263,7 @@ const BidForm: React.FC = () => {
 
   const warning = useMemo(() => {
     const _estPrice = convertBigNumber(estClearingPrice, 18)
-    if ((auction.isSelling && Number(price) < _estPrice) || (!auction.isSelling && Number(price) > _estPrice)) {
+    if (_estPrice !== 0 && ((auction.isSelling && Number(price) < _estPrice) || (!auction.isSelling && Number(price) > _estPrice))) {
       return `You are quoting a worse price than the est. clearing price: ${_estPrice.toFixed(5)}`
     }
     if (auctionStatus === AuctionStatus.UPCOMING) {
