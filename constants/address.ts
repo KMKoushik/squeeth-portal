@@ -77,7 +77,7 @@ export const CRAB_OTC = getAddress({
 })
 
 export const CRAB_NETTING = getAddress({
-  1: '',
+  1: '0x6e536addb53d1b47d357cdca83bcf460194a395f',
   3: '',
   5: '0xe78bf6383bf78376ca0062a7984cfdcab39b9bf0',
 })
