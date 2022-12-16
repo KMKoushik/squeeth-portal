@@ -4,7 +4,7 @@ import { QUOTER, USDC, WETH } from '../../constants/address'
 import { BIG_ONE, BIG_ZERO, DEFAULT_SLIPPAGE, WETH_DECIMALS_DIFF } from '../../constants/numbers'
 import { Quoter } from '../../types/contracts'
 import quoterAbi from '../../abis/quoter.json'
-import { getAuctionDetails, getFullRebalanceDetails, getLeverageRebalanceDetails } from '../../utils/calmBull'
+import { getAuctionDetails, getFullRebalanceDetails, getLeverageRebalanceDetails, getAuctionOutcomes } from '../../utils/calmBull'
 import * as quoterFns from '../../utils/quoter'
 import '../../utils/math'
 
@@ -211,7 +211,7 @@ describe('CalmBull: Full Rebalance', () => {
 
     const clearingPrice = BIG_ONE.mul(BigNumber.from(8)).div(100)
 
-    const { crabAmount, wethTargetInEuler } = await getFullRebalanceDetails({
+    const { crabAmount, wethTargetInEuler, usdcTargetInEuler } = await getFullRebalanceDetails({
       oSQTHAuctionAmount,
       isDepositingIntoCrab,
       loanCollat,
@@ -283,4 +283,36 @@ describe('CalmBull: Full Rebalance', () => {
     expect(crabAmount.toString()).toBe('45833332916666666666')
     expect(wethTargetInEuler.toString()).toBe('196666667000000000000')
   })
+
+  test('Full rebalance when ETH price go up', async () => {
+    const ethUsdPrice = BIG_ONE.mul(1200)
+    const crabUsdPrice = BIG_ONE.mul(480)
+    const squeethEthPrice = BIG_ONE.mul(BigNumber.from(8)).div(100)
+
+    mockQuoterFunctions(ethUsdPrice)
+
+    const { isIncreaseWeth, isBorrowUsdc, isDepositingIntoCrab } = await getAuctionOutcomes({
+      crabUsdPrice,
+      squeethEthPrice,
+      loanCollat,
+      loanDebt,
+      crabBalance,
+      squeethInCrab,
+      ethInCrab,
+      crabTotalSupply,
+      ethUsdPrice,
+      targetCr,
+      feeRate,
+      quoter,
+      slippageTolerance: DEFAULT_SLIPPAGE
+    })
+
+    expect(isIncreaseWeth).toBe(false)
+    expect(isBorrowUsdc).toBe(false)
+    expect(isDepositingIntoCrab).toBe(true)
+    // console.log('isIncreaseWeth.toString()', isIncreaseWeth.toString())
+    // console.log('isBorrowUsdc.toString()', isBorrowUsdc.toString(),)
+    // console.log('isDepositingIntoCrab.toString()', isDepositingIntoCrab.toString())
+  })
+
 })
