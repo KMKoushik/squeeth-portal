@@ -15,7 +15,7 @@ import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import { AuctionStatus, Order, MessageWithTimeSignature } from '../../../types'
 import { getUserBids, signOrder, signMessageWithTime } from '../../../utils/auction'
-import { convertBigNumber, formatBigNumber, toBigNumber, wmul, calculateDollarValue, calculateIV } from '../../../utils/math'
+import { convertBigNumber, formatBigNumber, toBigNumber, wmul, calculateDollarValue, calculateIV, convertBigNumberStr } from '../../../utils/math'
 import Bids from './Bids'
 import FilledBids from './FilledBids'
 import usePriceStore from '../../../store/priceStore'
@@ -106,8 +106,8 @@ const BidForm: React.FC = () => {
 
   useEffect(() => {
     if (bidToEdit && isEditBid) {
-      setPrice(convertBigNumber(auction.bids[bidToEdit].order.price, 18).toString())
-      setQty(convertBigNumber(auction.bids[bidToEdit].order.quantity, 18).toString())
+      setPrice(convertBigNumberStr(auction.bids[bidToEdit].order.price, 18))
+      setQty(convertBigNumberStr(auction.bids[bidToEdit].order.quantity, 18))
     }
   }, [auction.bids, bidToEdit, isEditBid])
 
@@ -144,13 +144,13 @@ const BidForm: React.FC = () => {
       const order: Order = {
         bidId: auction.currentAuctionId!,
         trader: address!,
-        quantity: toBigNumber(Number(qty)).toString(),
-        price: toBigNumber(Number(price)).toString(),
+        quantity: toBigNumber(qty).toString(),
+        price: toBigNumber(price).toString(),
         isBuying: auction.isSelling,
         expiry: auction.auctionEnd + 30 * 60 * 1000,
         nonce: isEditBid ? auction.bids[bidToEdit!].order.nonce : Date.now(),
       }
-      const { signature } = await signOrder(signer, order)
+      const { signature } = await signOrder(signer, order, auction.type)
 
       const resp = await fetch('/api/auction/createOrEditBid?web=true', {
         method: 'POST',
@@ -168,22 +168,7 @@ const BidForm: React.FC = () => {
     }
 
     setLoading(false)
-  }, [
-    address,
-    auction.auctionEnd,
-    auction.bids,
-    auction.currentAuctionId,
-    auction.isSelling,
-    bidToEdit,
-    isEditBid,
-    price,
-    qty,
-    setBidToEdit,
-    showMessageFromServer,
-    setPrice,
-    setQty,
-    signer,
-  ])
+  }, [auction.currentAuctionId, auction.isSelling, auction.auctionEnd, auction.bids, auction.type, address, qty, price, isEditBid, bidToEdit, signer, setBidToEdit, showMessageFromServer])
 
   const cancelBid = React.useCallback(async () => {
     setDeleteLoading(true)
@@ -193,7 +178,7 @@ const BidForm: React.FC = () => {
         time: Date.now(),
       }
 
-      const signature = await signMessageWithTime(signer, mandate)
+      const signature = await signMessageWithTime(signer, mandate, auction.type)
 
       if (bidToEdit) {
         const resp = await fetch('/api/auction/deleteBid?web=true', {
@@ -207,7 +192,7 @@ const BidForm: React.FC = () => {
       console.log(e)
     }
     setDeleteLoading(false)
-  }, [bidToEdit, showMessageFromServer, signer])
+  }, [bidToEdit, showMessageFromServer, signer, auction])
 
   const totalWeth = Number(price) * Number(qty)
 
@@ -222,6 +207,7 @@ const BidForm: React.FC = () => {
   }, [auction.isSelling, auction.price, price])
 
   const quantityError = React.useMemo(() => {
+    console.log(auction.minSize > Number(qty), Number(qty), auction.minSize, auction.oSqthAmount)
     if (auction.minSize > Number(qty)) return `Qty should be more than min size: ${auction.minSize.toFixed(1)}`
     if (auction.oSqthAmount === '0') return
     const aucQty = convertBigNumber(auction.oSqthAmount, 18)
@@ -277,7 +263,7 @@ const BidForm: React.FC = () => {
 
   const warning = useMemo(() => {
     const _estPrice = convertBigNumber(estClearingPrice, 18)
-    if ((auction.isSelling && Number(price) < _estPrice) || (!auction.isSelling && Number(price) > _estPrice)) {
+    if (_estPrice !== 0 && ((auction.isSelling && Number(price) < _estPrice) || (!auction.isSelling && Number(price) > _estPrice))) {
       return `You are quoting a worse price than the est. clearing price: ${_estPrice.toFixed(5)}`
     }
     if (auctionStatus === AuctionStatus.UPCOMING) {
@@ -288,131 +274,132 @@ const BidForm: React.FC = () => {
 
   return (
     <section id="placeBid" style={{ paddingTop: '12px' }}>
-    <Box
-      boxShadow={1}
-      py={3}
-      px={3}
-      borderRadius={2}
-      bgcolor="background.overlayDark"
-      display="flex"
-      flexDirection="column"
-    >
-      <Typography align="center" color="primary">
-        {isEditBid ? `Edit ${action}` : `Place ${action}`}
-      </Typography>
-      <TextField
-        value={qty}
-        onChange={e => setQty(e.target.value)}
-        type="number"
-        id="quantity"
-        label="Quantity"
-        variant="outlined"
-        size="small"
-        sx={{ mt: 4 }}
-        onWheel={e => (e.target as any).blur()}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <Typography variant="caption" color="textSecondary" fontSize={12}>
-                oSQTH
-              </Typography>
-            </InputAdornment>
-          ),
-        }}
-      />
-      <TextField
-        value={price}
-        onChange={e => setPrice(e.target.value)}
-        type="number"
-        id="price"
-        label="Price"
-        variant="outlined"
-        size="small"
-        sx={{ mt: 3 }}
-        onWheel={e => (e.target as any).blur()}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <Typography variant="caption" color="textSecondary" fontSize={12}>
-                WETH
-              </Typography>
-            </InputAdornment>
-          ),
-        }}
-      />
       <Box
-        py={0.5}
-        px={1}
+        boxShadow={1}
+        py={3}
+        px={3}
         borderRadius={2}
-        bgcolor="background.overlayLight"
+        bgcolor="background.overlayDark"
         display="flex"
-        justifyContent="space-between"
-        onClick={setMaxBalance}
+        flexDirection="column"
       >
-        <Typography variant="body3">Balance</Typography>
-        <Typography variant="body3" color="textSecondary">
-          <Typography color="textSecondary" component="span">
-            {balance.toFixed(5)}
-          </Typography>{' '}
-          {balanceToken}
+        <Typography align="center" color="primary">
+          {isEditBid ? `Edit ${action}` : `Place ${action}`}
         </Typography>
-      </Box>
-      <Box display="flex" mt={2} justifyContent="space-between">
-        <Typography variant="body3">Total</Typography>
-        <Typography variant="body2" color="textSecondary">
-          <Typography color="textPrimary" component="span" variant="numeric">
-            {totalWeth.toFixed(5)}
-          </Typography>{' '}
-          WETH
+        <TextField
+          value={qty}
+          onChange={e => setQty(e.target.value)}
+          type="number"
+          id="quantity"
+          label="Quantity"
+          variant="outlined"
+          size="small"
+          sx={{ mt: 4 }}
+          onWheel={e => (e.target as any).blur()}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <Typography variant="caption" color="textSecondary" fontSize={12}>
+                  oSQTH
+                </Typography>
+                <Button sx={{ ml: 2 }} onClick={() => setQty(convertBigNumberStr(auction.oSqthAmount, 18))}>Max</Button>
+              </InputAdornment>
+            ),
+          }}
+        />
+        <TextField
+          value={price}
+          onChange={e => setPrice(e.target.value)}
+          type="number"
+          id="price"
+          label="Price"
+          variant="outlined"
+          size="small"
+          sx={{ mt: 3 }}
+          onWheel={e => (e.target as any).blur()}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <Typography variant="caption" color="textSecondary" fontSize={12}>
+                  WETH
+                </Typography>
+              </InputAdornment>
+            ),
+          }}
+        />
+        <Box
+          py={0.5}
+          px={1}
+          borderRadius={2}
+          bgcolor="background.overlayLight"
+          display="flex"
+          justifyContent="space-between"
+          onClick={setMaxBalance}
+        >
+          <Typography variant="body3">Balance</Typography>
+          <Typography variant="body3" color="textSecondary">
+            <Typography color="textSecondary" component="span">
+              {balance.toFixed(5)}
+            </Typography>{' '}
+            {balanceToken}
+          </Typography>
+        </Box>
+        <Box display="flex" mt={2} justifyContent="space-between">
+          <Typography variant="body3">Total</Typography>
+          <Typography variant="body2" color="textSecondary">
+            <Typography color="textPrimary" component="span" variant="numeric">
+              {totalWeth.toFixed(5)}
+            </Typography>{' '}
+            WETH
+          </Typography>
+        </Box>
+        {price ? (
+          <>
+            <Box display="flex" mt={1} justifyContent="space-between">
+              <Typography variant="body3">IV</Typography>
+              <Typography variant="body2" color="textSecondary">
+                <Typography color="textPrimary" component="span" variant="numeric">
+                  {(calculateIV(Number(price), nf, ethPrice) * 100).toFixed(2)}
+                </Typography>{' '}
+                %
+              </Typography>
+            </Box>
+          </>
+        ) : null}
+        <Box display="flex" mt={1} justifyContent="space-between">
+          <Typography variant="body3">Total spending across bids</Typography>
+          <Typography variant="body2" color="textSecondary">
+            <Typography color="textPrimary" component="span" variant="numeric">
+              {formatBigNumber(
+                totalToSpendAcrossBids.add(
+                  auction.isSelling ? wmul(toBigNumber(qty || 0), toBigNumber(price || 0)) : toBigNumber(qty || 0),
+                ),
+                18,
+              )}
+            </Typography>{' '}
+            {auction.isSelling ? 'WETH' : 'oSQTH'}
+          </Typography>
+        </Box>
+        <Typography align="center" mt={3} color="error.main" variant="body3">
+          {price && qty ? error : ''}
         </Typography>
-      </Box>
-      {price ? (
-        <>
-          <Box display="flex" mt={1} justifyContent="space-between">
-            <Typography variant="body3">IV</Typography>
-            <Typography variant="body2" color="textSecondary">
-              <Typography color="textPrimary" component="span" variant="numeric">
-                {(calculateIV(Number(price), nf, ethPrice) * 100).toFixed(2)}
-              </Typography>{' '}
-              %
-            </Typography>
-          </Box>
-        </>
-      ) : null}
-      <Box display="flex" mt={1} justifyContent="space-between">
-        <Typography variant="body3">Total spending across bids</Typography>
-        <Typography variant="body2" color="textSecondary">
-          <Typography color="textPrimary" component="span" variant="numeric">
-            {formatBigNumber(
-              totalToSpendAcrossBids.add(
-                auction.isSelling ? wmul(toBigNumber(qty || 0), toBigNumber(price || 0)) : toBigNumber(qty || 0),
-              ),
-              18,
-            )}
-          </Typography>{' '}
-          {auction.isSelling ? 'WETH' : 'oSQTH'}
+        <Typography align="center" mt={3} color="warning.main" variant="body3">
+          {price && qty ? warning : ''}
         </Typography>
+        <BoxLoadingButton disabled={!!error || !canPlaceBid} onClick={placeBid} sx={{ mt: 1 }} loading={isLoading}>
+          {isEditBid ? `Edit ${action}` : `Place ${action}`}
+        </BoxLoadingButton>
+        {isEditBid ? (
+          <>
+            <SecondaryButton onClick={() => setBidToEdit(null)} sx={{ mt: 2 }}>
+              Don&apos;t Edit
+            </SecondaryButton>
+            <DangerButton disabled={!canPlaceBid} loading={deleteLoading} onClick={cancelBid} sx={{ mt: 2 }}>
+              Cancel {action}
+            </DangerButton>
+          </>
+        ) : null}
       </Box>
-      <Typography align="center" mt={3} color="error.main" variant="body3">
-        {price && qty ? error : ''}
-      </Typography>
-      <Typography align="center" mt={3} color="warning.main" variant="body3">
-        {price && qty ? warning : ''}
-      </Typography>
-      <BoxLoadingButton disabled={!!error || !canPlaceBid} onClick={placeBid} sx={{ mt: 1 }} loading={isLoading}>
-        {isEditBid ? `Edit ${action}` : `Place ${action}`}
-      </BoxLoadingButton>
-      {isEditBid ? (
-        <>
-          <SecondaryButton onClick={() => setBidToEdit(null)} sx={{ mt: 2 }}>
-            Don&apos;t Edit
-          </SecondaryButton>
-          <DangerButton disabled={!canPlaceBid} loading={deleteLoading} onClick={cancelBid} sx={{ mt: 2 }}>
-            Cancel {action}
-          </DangerButton>
-        </>
-      ) : null}
-    </Box>
     </section>
   )
 }

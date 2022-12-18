@@ -165,6 +165,25 @@ const Home: NextPage = () => {
         </Grid>
       </Box>
       <SqueethProjects />
+      <Box flexGrow={1} px={4} pt={4} pb={12}>
+        <Grid container>
+          <Grid item xs={0} md={0} lg={2} />
+          <Grid item xs={12} md={12} lg={8}>
+            <Typography variant="h5" color="primary">
+              Admin links
+            </Typography>
+            <Box mt={2}>
+              <Typography color="primary" sx={{ textDecoration: 'underline' }}>
+                <Link href="/netting-admin">Netting Admin</Link>
+              </Typography>
+              <Typography color="primary" sx={{ textDecoration: 'underline' }}>
+                <Link href="/auction-admin">Auction admin</Link>
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={0} md={0} lg={2} />
+        </Grid>
+      </Box>
     </div>
   )
 }

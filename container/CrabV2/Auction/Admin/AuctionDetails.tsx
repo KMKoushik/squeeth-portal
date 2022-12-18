@@ -88,7 +88,7 @@ const AuctionDetails: React.FC = () => {
           oSQTH Price
         </Typography>
         <Typography textAlign="center" variant="numeric">
-          {formatBigNumber(oSqthPrice, 18, 6)} WETH
+          {formatBigNumber(oSqthPrice, 18, 5)} WETH
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />

@@ -18,11 +18,13 @@ import useInterval from '../hooks/useInterval'
 import useAccountStore from '../store/accountStore'
 import useCrabV2Store from '../store/crabV2Store'
 import { getAuctionStatus } from '../utils/auction'
+import { useInitCrabNetting } from '../hooks/init/useInitCrabNetting'
 
 const AuctionAdmin: NextPage = () => {
   useInitCrabV2()
   useInitAuction(true)
   useController()
+  useInitCrabNetting()
 
   const { isLoading, owner, auction, setAuctionStatus } = useCrabV2Store(
     s => ({ isLoading: s.isLoading, owner: s.owner, auction: s.auction, setAuctionStatus: s.setAuctionStatus }),

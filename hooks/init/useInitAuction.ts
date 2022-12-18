@@ -1,9 +1,13 @@
 import { doc, getDoc, onSnapshot } from 'firebase/firestore'
 import React from 'react'
 import useCrabV2Store from '../../store/crabV2Store'
-import { Auction } from '../../types'
-import { AUCTION_COLLECTION, getEstimatedClearingPrice, sortBids } from '../../utils/auction'
+import { Auction, AuctionType } from '../../types'
+import { getEstimatedClearingPrice, sortBids, AUCTION_COLLECTION } from '../../utils/auction'
 import { db } from '../../utils/firebase'
+
+function getAuction(auction: Auction) {
+  return { ...auction, type: auction.type || AuctionType.CRAB_HEDGE }
+}
 
 const useInitAuction = (isAdmin: boolean) => {
   const setAuction = useCrabV2Store(s => s.setAuction)
@@ -15,12 +19,12 @@ const useInitAuction = (isAdmin: boolean) => {
   React.useEffect(() => {
     const unSubscribe = onSnapshot(doc(db, AUCTION_COLLECTION, 'current'), d => {
       if (d.exists()) {
-        const auction = d.data() as Auction
+        const auction = getAuction(d.data() as Auction)
         if (auction.auctionEnd === 0 && !isAdmin) {
           const _previousDoc = doc(db, AUCTION_COLLECTION, `${auction.currentAuctionId - 1}`)
           getDoc(_previousDoc).then(pd => {
             if (pd.exists()) {
-              const _oldAuction = pd.data() as Auction
+              const _oldAuction = getAuction(pd.data() as Auction)
               setAuction(_oldAuction)
               setIsHistoricalView(true)
               setSortedBids(sortBids(_oldAuction))
