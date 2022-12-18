@@ -13,7 +13,6 @@ import {
   getQtyFromBids,
   getTxBidsAndClearingPrice,
   getUniqueTraders,
-  sortBids,
   sortBidsForBidArray,
   getBidsWithReasonMap,
   getBidStatus,
@@ -23,21 +22,15 @@ import { calculateIV, convertBigNumber, formatBigNumber, wmul } from '../../../.
 import { BigNumber, ethers } from 'ethers'
 import { Auction, AuctionType, Bid, BidStatus } from '../../../../types'
 import useApprovals from '../../../../hooks/useApprovals'
-import { CRAB_NETTING, CRAB_STRATEGY_V2, OSQUEETH, WETH } from '../../../../constants/address'
+import { CRAB_NETTING, OSQUEETH, WETH } from '../../../../constants/address'
 import { useBalances } from '../../../../hooks/useBalances'
 import { PrimaryLoadingButton } from '../../../../components/button/PrimaryButton'
 import { Button, Checkbox, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { SecondaryButton } from '../../../../components/button/SecondaryButton'
 import { useBalance, useContract, useContractWrite, useSigner, useWaitForTransaction } from 'wagmi'
-import {
-  AUCTION_BULL_CONTRACT,
-  BULL_CONTRACT,
-  CRAB_NETTING_CONTRACT,
-  CRAB_V2_CONTRACT,
-} from '../../../../constants/contracts'
-import { AuctionBull, BullStrategy, CrabNetting, CrabStrategyV2 } from '../../../../types/contracts'
-import { KING_CRAB } from '../../../../constants/message'
+import { AUCTION_BULL_CONTRACT, CRAB_NETTING_CONTRACT, CRAB_V2_CONTRACT } from '../../../../constants/contracts'
+import { AuctionBull, CrabNetting, CrabStrategyV2 } from '../../../../types/contracts'
 import useToaster from '../../../../hooks/useToaster'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
 import { BIG_ZERO, ETHERSCAN, ETH_OSQTH_FEE, ETH_USDC_FEE } from '../../../../constants/numbers'
@@ -50,7 +43,6 @@ import { HtmlTooltip } from '../../../../components/utilities/HtmlTooltip'
 import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined'
 import {
   calculateTotalDeposit,
-  convertUSDToEth,
   getActualDepositAmount,
   getFlashDepositAmount,
   getTotalWithdraws,
@@ -73,7 +65,7 @@ const AdminBidView: React.FC = () => {
   const { getBalances } = useBalances(uniqueTraders, auction.isSelling ? WETH : OSQUEETH)
   const showMessageFromServer = useToaster()
   const addRecentTransaction = useAddRecentTransaction()
-  const { getRebalanceDetails, getBullAuctionDetails } = useBullAuction()
+  const { getRebalanceDetails } = useBullAuction()
   const vault = useCrabV2Store(s => s.vault)
 
   const quoter = useQuoter()
@@ -602,7 +594,7 @@ const AdminBidView: React.FC = () => {
         </SecondaryButton>
         {filteredBids ? (
           <PrimaryLoadingButton
-            loading={isHedging || isDepositing || isWithdrawing}
+            loading={isHedging || isDepositing || isWithdrawing || isBullExecuting}
             onClick={executeAuction}
             sx={{ ml: 4 }}
           >

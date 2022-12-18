@@ -11,6 +11,7 @@ import { PrimaryLoadingButton } from '../../../../components/button/PrimaryButto
 import { CRAB_NETTING_CONTRACT } from '../../../../constants/contracts'
 import { KING_CRAB } from '../../../../constants/message'
 import { BIG_ZERO } from '../../../../constants/numbers'
+import { useBullAuction } from '../../../../hooks/useBullAuction'
 import useQuoter from '../../../../hooks/useQuoter'
 import useToaster from '../../../../hooks/useToaster'
 import useAccountStore from '../../../../store/accountStore'
