@@ -4,7 +4,6 @@ import { ETH_USDC_FEE, WETH_DECIMALS_DIFF, BIG_ONE, DEFAULT_SLIPPAGE } from '../
 import { Quoter } from '../types/contracts'
 import { quoteExactIn, quoteExactOut } from './quoter'
 
-
 type getAuctionOutcomesType = {
   crabUsdPrice: BigNumber
   squeethEthPrice: BigNumber
@@ -38,46 +37,43 @@ export async function getAuctionOutcomes(params: getAuctionOutcomesType) {
     slippageTolerance,
   } = params
 
+  const { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab } = await getAuctionDetails({
+    crabUsdPrice,
+    squeethEthPrice,
+    loanCollat,
+    loanDebt,
+    crabBalance,
+    squeethInCrab,
+    ethInCrab,
+    crabTotalSupply,
+    ethUsdPrice,
+    targetCr,
+    feeRate,
+  })
 
-const { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab } = await getAuctionDetails({
-  crabUsdPrice,
-  squeethEthPrice,
-  loanCollat,
-  loanDebt,
-  crabBalance,
-  squeethInCrab,
-  ethInCrab,
-  crabTotalSupply,
-  ethUsdPrice,
-  targetCr,
-  feeRate,
-})
+  const { crabAmount, wethTargetInEuler, usdcTargetInEuler } = await getFullRebalanceDetails({
+    oSQTHAuctionAmount,
+    isDepositingIntoCrab,
+    loanCollat,
+    loanDebt,
+    crabBalance,
+    squeethInCrab,
+    ethInCrab,
+    crabTotalSupply,
+    ethUsdPrice,
+    crabUsdPrice,
+    squeethEthPrice,
+    clearingPrice: squeethEthPrice,
+    feeRate,
+    quoter,
+    slippageTolerance: DEFAULT_SLIPPAGE,
+  })
 
-const { crabAmount, wethTargetInEuler, usdcTargetInEuler } = await getFullRebalanceDetails({
-  oSQTHAuctionAmount,
-  isDepositingIntoCrab,
-  loanCollat,
-  loanDebt,
-  crabBalance,
-  squeethInCrab,
-  ethInCrab,
-  crabTotalSupply,
-  ethUsdPrice,
-  crabUsdPrice,
-  squeethEthPrice,
-  clearingPrice: squeethEthPrice,
-  feeRate,
-  quoter,
-  slippageTolerance: DEFAULT_SLIPPAGE,
-})
+  const isIncreaseWeth = wethTargetInEuler.gt(loanCollat)
+  const isBorrowUsdc = usdcTargetInEuler.lt(loanDebt)
 
-const isIncreaseWeth = wethTargetInEuler.gt(loanCollat)
-const isBorrowUsdc = usdcTargetInEuler.lt(loanDebt)
-
-return {isIncreaseWeth, isBorrowUsdc, isDepositingIntoCrab}
-
+  return { isIncreaseWeth, isBorrowUsdc, isDepositingIntoCrab }
 }
-
 
 type getAuctionDetailsType = {
   crabUsdPrice: BigNumber
@@ -114,37 +110,26 @@ export async function getAuctionDetails(params: getAuctionDetailsType) {
     .add(loanCollat.wmul(ethUsdPrice))
     .sub(loanDebt.mul(WETH_DECIMALS_DIFF))
     .div(WETH_DECIMALS_DIFF)
-  console.log('newEquityValue', newEquityValue.toString())
   const newLoanCollat = newEquityValue.wdiv(ethUsdPrice).mul(WETH_DECIMALS_DIFF)
   // new loan debt to hit target cr
   const newLoanDebt = newLoanCollat.wmul(ethUsdPrice).wdiv(targetCr).div(WETH_DECIMALS_DIFF)
-  console.log('newLoanCollat', newLoanCollat.toString())
-  console.log('ethUsdPrice', ethUsdPrice.toString())
-  console.log('targetCr', targetCr.toString())
 
-  console.log('newLoanDebt', newLoanDebt.toString())
-  console.log('ethUsdPrice', ethUsdPrice.toString())
   // dollar value of eth collateral change
   const dollarProceeds = loanCollat.sub(newLoanCollat).wmul(ethUsdPrice).div(WETH_DECIMALS_DIFF)
-  console.log('dollarProceeds', dollarProceeds.toString())
   // $ to/from crab
   const needFromCrab = loanDebt.sub(newLoanDebt).sub(dollarProceeds)
-  console.log('needFromCrab', needFromCrab.toString())
   // deposit into crab if we have extra $ after changing loan composition
   const isDepositingIntoCrab = needFromCrab.gt(0) ? false : true
   // amount of crab to pay/recieve target dollar amount
   const crabToTrade = needFromCrab.mul(WETH_DECIMALS_DIFF).wdiv(crabUsdPrice).abs()
-  console.log('crabToTrade', crabToTrade.toString())
   // fee adjustment for deposit to crab case
   const feeAdjustment = squeethEthPrice.mul(feeRate).div(10000)
   // Adjustented collateral for mint fee when depositing
   const adjEthInCrab = ethInCrab.add(squeethInCrab.wmul(feeAdjustment))
-  console.log('adjEthInCrab', adjEthInCrab.toString())
   // Auction oSQTH amount will include provision for the fee if depositing
   const oSQTHAuctionAmount = isDepositingIntoCrab
     ? crabToTrade.wmul(squeethInCrab).wdiv(crabTotalSupply).wmul(ethInCrab).wdiv(adjEthInCrab)
     : crabToTrade.wmul(squeethInCrab).wdiv(crabTotalSupply)
-  console.log('oSQTHAuctionAmount', oSQTHAuctionAmount.toString())
 
   return { crabToTrade, oSQTHAuctionAmount, isDepositingIntoCrab, newLoanCollat }
 }
@@ -189,31 +174,25 @@ export async function getFullRebalanceDetails(params: getFullRebalanceType) {
   // Adjustented collateral for mint fee when depositing
   const feeAdjustment = squeethEthPrice.mul(feeRate).div(10000)
   const adjEthInCrab = ethInCrab.add(squeethInCrab.wmul(feeAdjustment))
-  console.log('adjEthInCrab', adjEthInCrab.toString())
   const crabAmount = isDepositingIntoCrab
     ? oSQTHAuctionAmount.wmul(crabTotalSupply).wdiv(squeethInCrab).wmul(adjEthInCrab).wdiv(ethInCrab).abs()
     : oSQTHAuctionAmount.wmul(crabTotalSupply).wdiv(squeethInCrab).abs()
 
-  console.log('crabAmount', crabAmount.toString())
   // Starting equity value in USD
   const oldEquityValue = crabBalance
     .wmul(crabUsdPrice)
     .add(loanCollat.wmul(ethUsdPrice))
     .sub(loanDebt.mul(WETH_DECIMALS_DIFF))
     .div(WETH_DECIMALS_DIFF)
-  console.log('oldEquityValue', oldEquityValue.toString())
   // Auction pnl from difference between squeeth price and clearing price
   const auctionPnl = (
     isDepositingIntoCrab
       ? oSQTHAuctionAmount.wmul(clearingPrice).sub(oSQTHAuctionAmount.wmul(squeethEthPrice)).wmul(ethUsdPrice)
       : oSQTHAuctionAmount.wmul(squeethEthPrice).sub(oSQTHAuctionAmount.wmul(clearingPrice)).wmul(ethUsdPrice)
   ).div(WETH_DECIMALS_DIFF)
-  console.log('auctionPnl', auctionPnl.toString())
   // New equity value
   const newEquityValue = oldEquityValue.add(auctionPnl)
-  console.log('newEquityValue', newEquityValue.toString())
   const wethTargetInEuler = newEquityValue.wdiv(ethUsdPrice).mul(WETH_DECIMALS_DIFF)
-  console.log('wethTargetInEuler', wethTargetInEuler.toString())
   // Order eth value + weth from crab - weth to pay?
 
   let netWethToTrade = BigNumber.from(0)
@@ -222,26 +201,18 @@ export async function getFullRebalanceDetails(params: getFullRebalanceType) {
     const wethToCrab = ethInCrab.wdiv(squeethInCrab).wmul(squeethInCrab.add(oSQTHAuctionAmount)).sub(ethInCrab)
     const wethFromAuction = oSQTHAuctionAmount.wmul(clearingPrice)
     netWethToTrade = wethTargetInEuler.sub(loanCollat.sub(wethToCrab).sub(wethFromAuction))
-    console.log('wethToCrab', wethToCrab.toString())
-    console.log('wethFromAuction', wethFromAuction.toString())
-    console.log('netWethToTrade', netWethToTrade.toString())
   } else {
     // Withdraw from crab
     const wethFromCrab = crabAmount.wmul(ethInCrab).wdiv(crabTotalSupply)
     const wethToAuction = oSQTHAuctionAmount.wmul(clearingPrice)
     netWethToTrade = wethTargetInEuler.sub(loanCollat.add(wethFromCrab).sub(wethToAuction))
-    console.log('wethFromCrab', wethFromCrab.toString())
-    console.log('wethToAuction', wethToAuction.toString())
-    console.log('netWethToTrade', netWethToTrade.toString())
   }
-  console.log('isDepositingIntoCrab', isDepositingIntoCrab.toString())
 
   const usdcAmount = netWethToTrade.lt(0)
     ? await getUsdcAmountForWeth(netWethToTrade.abs(), true, quoter, slippageTolerance)
     : await getUsdcAmountForWeth(netWethToTrade.abs(), false, quoter, slippageTolerance)
 
   const wethLimitPrice = usdcAmount.wdiv(netWethToTrade.abs()).mul(WETH_DECIMALS_DIFF)
-  console.log('wethLimitPrice', wethLimitPrice.toString())
   const usdcTargetInEuler = wethTargetInEuler.wmul(ethUsdPrice).div(2).div(WETH_DECIMALS_DIFF)
   return { crabAmount, wethTargetInEuler, usdcTargetInEuler, wethLimitPrice }
 }
@@ -321,8 +292,6 @@ type getDeltaAndCollatType = {
 
 export function getDeltaAndCollat(params: getDeltaAndCollatType) {
   const { crabUsdPrice, ethUsdPrice, loanCollat, loanDebt, crabBalance } = params
-
-  console.log(crabBalance.toString(), crabUsdPrice.toString())
 
   const delta = loanCollat
     .wmul(ethUsdPrice)

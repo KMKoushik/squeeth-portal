@@ -18,7 +18,6 @@ export async function quoteExactIn(
     fee: poolFee,
     sqrtPriceLimitX96: 0,
   })
-  console.log('Amount out', amountOut.toString())
 
   return amountOut.mul(100 * (100 - slippage)).div(10000) // Include slippage
 }

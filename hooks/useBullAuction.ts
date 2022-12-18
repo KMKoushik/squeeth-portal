@@ -27,7 +27,6 @@ export const useBullAuction = () => {
         oSQTHAuctionAmount: BIG_ZERO,
         isDepositingIntoCrab: false,
       }
-    console.log('Here')
 
     return getAuctionDetails({
       crabUsdPrice,

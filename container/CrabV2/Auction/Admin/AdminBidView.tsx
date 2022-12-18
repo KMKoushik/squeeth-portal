@@ -398,14 +398,10 @@ const AdminBidView: React.FC = () => {
       const { orders } = getOrders()
       const availableOsqth = orders.reduce((acc, o) => acc.add(o.quantity), BIG_ZERO)
       const auctionSqth = BigNumber.from(auction.oSqthAmount)
-      const { oSQTHAuctionAmount: neededSqth } = await getBullAuctionDetails()
 
-      let auctionOsqthAmount = neededSqth
+      let auctionOsqthAmount = auctionSqth
       if (availableOsqth.lt(auctionOsqthAmount)) {
         auctionOsqthAmount = availableOsqth
-      }
-      if (auctionSqth.lt(auctionOsqthAmount)) {
-        auctionOsqthAmount = auctionSqth
       }
 
       const { crabAmount, wethTargetInEuler, wethLimitPrice } = await getRebalanceDetails(
