@@ -19,12 +19,14 @@ import useAccountStore from '../store/accountStore'
 import useCrabV2Store from '../store/crabV2Store'
 import { getAuctionStatus } from '../utils/auction'
 import { useInitCrabNetting } from '../hooks/init/useInitCrabNetting'
+import { useInitBull } from '../hooks/init/useInitBull'
 
 const AuctionAdmin: NextPage = () => {
   useInitCrabV2()
   useInitAuction(true)
   useController()
   useInitCrabNetting()
+  useInitBull()
 
   const { isLoading, owner, auction, setAuctionStatus } = useCrabV2Store(
     s => ({ isLoading: s.isLoading, owner: s.owner, auction: s.auction, setAuctionStatus: s.setAuctionStatus }),

@@ -91,13 +91,13 @@ export const QUOTER = getAddress({
 export const BULL_STRATEGY = getAddress({
   1: '',
   3: '',
-  5: '0x95F6251D3A0e0Dc5a7E52a13ef74951C5fF6503a',
+  5: '0x36F59dF22A942a8c7D96b13b79c5b45C41f683d9',
 })
 
 export const AUCTION_BULL = getAddress({
   1: '',
   3: '',
-  5: '0x17f08f2994d411e77271161142363CdAcaD898FD',
+  5: '0x2b8A9986da413d1E1a1A02e5a257D96E46992B21',
 })
 
 export const WETH_E_TOKEN = getAddress({
@@ -132,6 +132,7 @@ const getCrabCouncilMembers = () => {
       '0xEa2efa0D31F56cE31af8C87D555ba357D4a4aa59',
       '0x56a847c21a4FA937c11258d94C8B1650cdbA21F7',
       '0x7A715777B6Aa892E83C46A11105663c9b9292C17',
+      '0x6b483A5EAe724305175A36Cf29F9A31648914f43',
     ]
   }
 }
