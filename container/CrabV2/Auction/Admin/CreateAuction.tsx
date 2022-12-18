@@ -11,6 +11,7 @@ import { PrimaryLoadingButton } from '../../../../components/button/PrimaryButto
 import { CRAB_NETTING_CONTRACT } from '../../../../constants/contracts'
 import { KING_CRAB } from '../../../../constants/message'
 import { BIG_ZERO } from '../../../../constants/numbers'
+import { useBullAuction } from '../../../../hooks/useBullAuction'
 import useQuoter from '../../../../hooks/useQuoter'
 import useToaster from '../../../../hooks/useToaster'
 import useAccountStore from '../../../../store/accountStore'
@@ -45,10 +46,12 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const [minSize, setMinSize] = React.useState(auction.minSize || 0)
   const [clearing, setClearing] = React.useState(false)
   const [auctionType, setAuctionType] = React.useState(auction.type || AuctionType.CRAB_HEDGE)
+  // const [wethLimitPrice, setWethLimitPrice] = React.useState(auction.wethLimitPrice || '')
 
   const { data: signer } = useSigner()
   const showMessageFromServer = useToaster()
   const addRecentTransaction = useAddRecentTransaction()
+  const { getBullAuctionDetails } = useBullAuction()
 
   const { data: toggleAuctionLiveTx, writeAsync: toggleAuction } = useContractWrite({
     ...CRAB_NETTING_CONTRACT,
@@ -153,6 +156,11 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
     if (aucType === AuctionType.NETTING) {
       updateOsqthAmountForNetting(price)
       setIsSelling(isUSDCHigher ? true : false)
+    } else if (aucType === AuctionType.CALM_BULL) {
+      const { oSQTHAuctionAmount, isDepositingIntoCrab } = await getBullAuctionDetails()
+      console.log(oSQTHAuctionAmount.toString(), isDepositingIntoCrab)
+      setOsqthAmount(convertBigNumberStr(oSQTHAuctionAmount, 18))
+      setIsSelling(isDepositingIntoCrab)
     } else {
       setOsqthAmount(convertBigNumberStr(auction.oSqthAmount, 18))
     }

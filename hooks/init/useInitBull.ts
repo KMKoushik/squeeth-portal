@@ -89,6 +89,7 @@ export const useInitBull = () => {
         setCR(data[7][1] as any as BigNumber)
       }
       setLoanDebt(data[8] as any as BigNumber)
+      console.log((data[9] as any as BigNumber).toString())
       setLoanCollat(data[9] as any as BigNumber)
 
       setIsReady(true)
