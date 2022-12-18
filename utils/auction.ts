@@ -400,3 +400,11 @@ export const getBidStatus = (status?: BidStatus) => {
 
   return '--'
 }
+
+export const getAuctionTypeText = (type: AuctionType) => {
+  if (type === AuctionType.CRAB_HEDGE) return 'Crab Hedge'
+  if (type === AuctionType.NETTING) return 'Netting'
+  if (type === AuctionType.CALM_BULL) return 'Zen Bull'
+
+  return ethers.constants.AddressZero
+}

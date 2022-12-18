@@ -10,11 +10,15 @@ import useController from '../hooks/useController'
 import { useInitCrabV2 } from '../hooks/useCrabV2'
 import useAccountStore from '../store/accountStore'
 import useCrabV2Store from '../store/crabV2Store'
+import { useInitBull } from '../hooks/init/useInitBull'
+import { useInitCrabNetting } from '../hooks/init/useInitCrabNetting'
 
 const AuctionPage: NextPage = () => {
   useInitCrabV2()
   useInitAuction(false)
   useController()
+  useInitBull()
+  useInitCrabNetting()
   const isLoading = useCrabV2Store(s => s.isLoading)
   const address = useAccountStore(s => s.address)
 
