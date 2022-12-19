@@ -27,6 +27,7 @@ import InfoIcon from '@mui/icons-material/InfoOutlined'
 import { HtmlTooltip } from '../../../components/utilities/HtmlTooltip'
 import { squeethRefVolDocLink } from '../../../utils/external'
 import { SQUEETH_REF_VOL_MESSAGE } from '../../../constants/message'
+import { useAuctionEstimate } from '../../../hooks/useAuctionEstimate'
 
 const renderer: CountdownRendererFn = ({ minutes, seconds }) => {
   // Render a countdown
@@ -50,16 +51,9 @@ const Auction: React.FC = () => {
     setAuctionStatus(getAuctionStatus(auction))
   }, [auction, setAuctionStatus])
 
-  const vault = useCrabV2Store(s => s.vault)
-  const oSqthPrice = usePriceStore(s => s.oSqthPrice)
   const isUpcoming = auctionStatus === AuctionStatus.UPCOMING
 
-  const { isSellingAuction, oSqthAmount: oSqthAmountEst } = useMemo(() => {
-    if (!isUpcoming || !vault || oSqthPrice.isZero())
-      return { isSellingAuction: true, oSqthAmount: BIG_ZERO, ethAmount: BIG_ZERO }
-
-    return estimateAuction(vault.shortAmount, vault.collateral, oSqthPrice)
-  }, [isUpcoming, oSqthPrice, vault])
+  const { osqthEstimate, isSelling: isSellingEst } = useAuctionEstimate()
 
   const [auctionInitialized, setAuctionInitialized] = useState(false)
 
@@ -68,10 +62,10 @@ const Auction: React.FC = () => {
 
     setAuction({
       ...auction,
-      isSelling: isSellingAuction,
+      isSelling: isSellingEst,
     })
     setAuctionInitialized(true)
-  }, [auction, auctionInitialized, isSellingAuction, setAuction])
+  }, [auction, auctionInitialized, isSellingEst, setAuction])
 
   useEffect(() => {
     updateStatus()
@@ -147,14 +141,10 @@ const Auction: React.FC = () => {
             <Box>
               <AuctionDetailsHeader
                 isAuctionLive={auctionStatus === AuctionStatus.LIVE}
-                isSelling={
-                  auctionStatus === AuctionStatus.UPCOMING && auction.oSqthAmount === '0'
-                    ? isSellingAuction
-                    : auction.isSelling
-                }
+                isSelling={auctionStatus === AuctionStatus.UPCOMING ? isSellingEst : auction.isSelling}
               />
               <AuctionHeaderBody
-                osqthEstimate={auctionStatus === AuctionStatus.UPCOMING ? oSqthAmountEst.toString() : undefined}
+                osqthEstimate={auctionStatus === AuctionStatus.UPCOMING ? osqthEstimate.toString() : undefined}
                 isUpcoming={isUpcoming}
               />
             </Box>
@@ -294,8 +284,6 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
     shallow,
   )
 
-  console.log(ethPriceBN.toString(), oSqthPriceBN.toString())
-
   const ethPrice = convertBigNumber(auction.ethPrice || ethPriceBN, 18)
   const oSqthPrice = convertBigNumber(auction.oSqthPrice || oSqthPriceBN, 18)
   const nf = convertBigNumber(auction.normFactor || nfBN, 18)
@@ -304,11 +292,10 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
     <Box borderTop="1px solid grey" p={2} px={5} display="flex" overflow="auto" alignItems="center">
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
-          {isUpcoming && auction.oSqthAmount === '0' ? 'Estimated' : ''} Size
+          {isUpcoming ? 'Estimated' : ''} Size
         </Typography>
         <Typography variant="numeric">
-          {formatBigNumber(isUpcoming && auction.oSqthAmount === '0' ? osqthEstimate! : auction.oSqthAmount, 18, 5)}{' '}
-          <small>oSQTH</small>
+          {formatBigNumber(isUpcoming ? osqthEstimate! : auction.oSqthAmount, 18, 5)} <small>oSQTH</small>
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={2} mr={2} />
