@@ -89,25 +89,25 @@ export const QUOTER = getAddress({
 })
 
 export const BULL_STRATEGY = getAddress({
-  1: '',
+  1: '0xb46Fb07b0c80DBC3F97cae3BFe168AcaD46dF507',
   3: '',
   5: '0x2a5AD7582a9e42944Ee32671436593D16999c70a',
 })
 
 export const AUCTION_BULL = getAddress({
-  1: '',
+  1: '0x6cd0890054d308264cD68B0b6ba38A36860593ec',
   3: '',
   5: '0xE5E4302933aef104Bb93181Ae9E8A664E42c8d9C',
 })
 
 export const WETH_E_TOKEN = getAddress({
-  1: '',
+  1: '0x1b808F49ADD4b8C6b5117d9681cF7312Fcf0dC1D',
   3: '',
   5: '0xef5e087d827194732bc1843351cca80982e154eb',
 })
 
 export const USDC_D_TOKEN = getAddress({
-  1: '',
+  1: '0x84721A3dB22EB852233AEAE74f9bC8477F8bcc42',
   3: '',
   5: '0x356079240635b276a63065478471d89340443c49',
 })
