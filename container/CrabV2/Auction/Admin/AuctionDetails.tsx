@@ -14,6 +14,9 @@ import { HtmlTooltip } from '../../../../components/utilities/HtmlTooltip'
 import { squeethRefVolDocLink } from '../../../../utils/external'
 import { SQUEETH_REF_VOL_MESSAGE } from '../../../../constants/message'
 import { useAuctionEstimate } from '../../../../hooks/useAuctionEstimate'
+import { AuctionType } from '../../../../types'
+import { useCalmBullStore } from '../../../../store/calmBullStore'
+import { bnComparator } from '../../../../utils'
 
 const AuctionDetails: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction, shallow)
@@ -29,7 +32,9 @@ const AuctionDetails: React.FC = () => {
   const oSqthPriceSN = convertBigNumber(oSqthPrice, 18)
   const nf = convertBigNumber(nfBN, 18)
 
-  const { osqthEstimate, isSelling } = useAuctionEstimate()
+  const { osqthEstimate, isSelling, delta } = useAuctionEstimate()
+
+  const cr = useCalmBullStore(s => s.cr, bnComparator)
 
   return (
     <Box display="flex" border="1px solid gray" borderRadius={2} p={2}>
@@ -48,15 +53,28 @@ const AuctionDetails: React.FC = () => {
           {getAuctionTypeText(auction.type)}
         </Typography>
       </Box>
-      {/* <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
+      <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
           Delta
         </Typography>
         <Typography textAlign="center" variant="numeric">
-          {formatBigNumber(delta, 18, 2)} ETH
+          {formatBigNumber(delta, 18, 2)} {auction.type === AuctionType.CRAB_HEDGE ? 'ETH' : ''}
         </Typography>
-      </Box> */}
+      </Box>
+      {auction.type === AuctionType.CALM_BULL ? (
+        <>
+          <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
+          <Box display="flex" flexDirection="column" justifyContent="center">
+            <Typography color="textSecondary" variant="caption">
+              CR
+            </Typography>
+            <Typography textAlign="center" variant="numeric">
+              {formatBigNumber(cr, 18, 2)}
+            </Typography>
+          </Box>
+        </>
+      ) : null}
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
