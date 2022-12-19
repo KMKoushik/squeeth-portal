@@ -6,16 +6,18 @@ import { BIG_ZERO } from '../../../../constants/numbers'
 import useControllerStore from '../../../../store/controllerStore'
 import useCrabV2Store from '../../../../store/crabV2Store'
 import usePriceStore from '../../../../store/priceStore'
-import { estimateAuction } from '../../../../utils/auction'
+import { estimateAuction, getAuctionTypeText } from '../../../../utils/auction'
 import { calculateIV, convertBigNumber, formatBigNumber } from '../../../../utils/math'
 import AuctionBadge from '../AuctionBadge'
 import InfoIcon from '@mui/icons-material/InfoOutlined'
 import { HtmlTooltip } from '../../../../components/utilities/HtmlTooltip'
 import { squeethRefVolDocLink } from '../../../../utils/external'
 import { SQUEETH_REF_VOL_MESSAGE } from '../../../../constants/message'
+import { useAuctionEstimate } from '../../../../hooks/useAuctionEstimate'
 
 const AuctionDetails: React.FC = () => {
-  const { vault, osqthRefVol } = useCrabV2Store(s => ({ vault: s.vault, osqthRefVol: s.oSqthRefVolIndex }), shallow)
+  const auction = useCrabV2Store(s => s.auction, shallow)
+  const osqthRefVol = useCrabV2Store(s => s.oSqthRefVolIndex, shallow)
   const { oSqthPrice, ethPrice } = usePriceStore(s => ({ oSqthPrice: s.oSqthPrice, ethPrice: s.ethPrice }), shallow)
 
   const { nfBN } = useControllerStore(
@@ -27,16 +29,7 @@ const AuctionDetails: React.FC = () => {
   const oSqthPriceSN = convertBigNumber(oSqthPrice, 18)
   const nf = convertBigNumber(nfBN, 18)
 
-  const {
-    isSellingAuction,
-    oSqthAmount: oSqthAmountEst,
-    delta,
-  } = useMemo(() => {
-    if (!vault || oSqthPrice.isZero())
-      return { isSellingAuction: true, oSqthAmount: BIG_ZERO, ethAmount: BIG_ZERO, delta: BIG_ZERO }
-
-    return estimateAuction(vault.shortAmount, vault.collateral, oSqthPrice)
-  }, [oSqthPrice, vault])
+  const { osqthEstimate, isSelling } = useAuctionEstimate()
 
   return (
     <Box display="flex" border="1px solid gray" borderRadius={2} p={2}>
@@ -49,19 +42,28 @@ const AuctionDetails: React.FC = () => {
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
+          Type
+        </Typography>
+        <Typography textAlign="center" variant="numeric">
+          {getAuctionTypeText(auction.type)}
+        </Typography>
+      </Box>
+      {/* <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
+      <Box display="flex" flexDirection="column" justifyContent="center">
+        <Typography color="textSecondary" variant="caption">
           Delta
         </Typography>
         <Typography textAlign="center" variant="numeric">
           {formatBigNumber(delta, 18, 2)} ETH
         </Typography>
-      </Box>
+      </Box> */}
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
       <Box display="flex" flexDirection="column" justifyContent="center">
         <Typography color="textSecondary" variant="caption">
           Is Selling
         </Typography>
         <Typography textAlign="center" variant="numeric">
-          {isSellingAuction ? 'Yes' : 'No'}
+          {isSelling ? 'Yes' : 'No'}
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />
@@ -70,7 +72,7 @@ const AuctionDetails: React.FC = () => {
           Est. oSQTH Amount
         </Typography>
         <Typography textAlign="center" variant="numeric">
-          {formatBigNumber(oSqthAmountEst, 18, 2)} oSQTH
+          {formatBigNumber(osqthEstimate, 18, 2)} oSQTH
         </Typography>
       </Box>
       <Box border=".2px solid grey" height="50px" ml={3} mr={3} />

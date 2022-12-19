@@ -21,7 +21,7 @@ export const useBullAuction = () => {
   const quoter = useQuoter()
 
   async function getBullAuctionDetails() {
-    if (!vault || !isReady)
+    if (!vault || !isReady || crabUsdPrice.isZero())
       return {
         crabToTrade: BIG_ZERO,
         oSQTHAuctionAmount: BIG_ZERO,
