@@ -2,6 +2,7 @@ import { BigNumber } from 'ethers'
 import { useCallback, useEffect, useState } from 'react'
 import shallow from 'zustand/shallow'
 import { BIG_ZERO } from '../constants/numbers'
+import { useCalmBullStore } from '../store/calmBullStore'
 import { useCrabNettingStore } from '../store/crabNettingStore'
 import useCrabV2Store from '../store/crabV2Store'
 import usePriceStore from '../store/priceStore'
@@ -23,9 +24,11 @@ export const useAuctionEstimate = () => {
   const crabUsdcPrice = useCrabV2Store(s => s.crabUsdcValue, bnComparator)
   const totalSupply = useCrabV2Store(s => s.totalSupply, bnComparator)
   const quoter = useQuoter()
+  const bullDelta = useCalmBullStore(s => s.delta, bnComparator)
 
   const [osqthEstimate, setOsqthEstimate] = useState(BIG_ZERO)
   const [isSelling, setIsSelling] = useState(false)
+  const [delta, setDelta] = useState(BIG_ZERO)
 
   const { getBullAuctionDetails } = useBullAuction()
 
@@ -36,10 +39,16 @@ export const useAuctionEstimate = () => {
 
     let _isSelling = false
     let _osqthEstimate = BIG_ZERO
+    let _delta = BIG_ZERO
     if (auction.type === AuctionType.CRAB_HEDGE) {
-      const { isSellingAuction, oSqthAmount } = estimateCrabAuction(vault?.shortAmount, vault?.collateral, oSqthPrice)
+      const { isSellingAuction, oSqthAmount, delta } = estimateCrabAuction(
+        vault?.shortAmount,
+        vault?.collateral,
+        oSqthPrice,
+      )
       _isSelling = isSellingAuction
       _osqthEstimate = oSqthAmount
+      _delta = delta
     } else if (auction.type === AuctionType.NETTING) {
       const isUSDCHigher = convertBigNumber(usdcDeposits, 6) > convertBigNumber(crabDeposits.wmul(crabUsdcPrice), 18)
       if (isUSDCHigher) {
@@ -54,15 +63,17 @@ export const useAuctionEstimate = () => {
       const { oSQTHAuctionAmount, isDepositingIntoCrab } = await getBullAuctionDetails()
       _osqthEstimate = oSQTHAuctionAmount
       _isSelling = isDepositingIntoCrab
+      _delta = bullDelta
     }
 
     setIsSelling(_isSelling)
     setOsqthEstimate(_osqthEstimate)
+    setDelta(_delta)
   }, [auction.type, crabDeposits, crabUsdcPrice, oSqthPrice, quoter, totalSupply, usdcDeposits, vault])
 
   useEffect(() => {
     estimateAuctions()
   }, [estimateAuctions])
 
-  return { osqthEstimate, isSelling }
+  return { osqthEstimate, isSelling, delta }
 }
