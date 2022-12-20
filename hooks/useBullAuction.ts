@@ -12,6 +12,8 @@ export const useBullAuction = () => {
   const loanDebt = useCalmBullStore(s => s.loanDebt, bnComparator)
   const crabBalance = useCalmBullStore(s => s.crabBalance, bnComparator)
   const isReady = useCalmBullStore(s => s.isReady)
+  const cr = useCalmBullStore(s => s.cr, bnComparator)
+  const delta = useCalmBullStore(s => s.delta, bnComparator)
 
   const crabUsdPrice = useCrabV2Store(s => s.crabUsdcValue, bnComparator)
   const vault = useCrabV2Store(s => s.vault)
@@ -44,9 +46,18 @@ export const useBullAuction = () => {
   }
 
   async function getRebalanceDetails(oSqthAmount: BigNumber, isDepositingIntoCrab: boolean, clearingPrice: BigNumber) {
-    if (!vault || !isReady) return { crabAmount: BIG_ZERO, wethTargetInEuler: BIG_ZERO, wethLimitPrice: BIG_ZERO }
+    if (!vault || !isReady)
+      return {
+        crabAmount: BIG_ZERO,
+        wethTargetInEuler: BIG_ZERO,
+        wethLimitPrice: BIG_ZERO,
+        cr,
+        delta,
+        crNew: BIG_ZERO,
+        deltaNew: BIG_ZERO,
+      }
 
-    return getFullRebalanceDetails({
+    const rebaldata = await getFullRebalanceDetails({
       oSQTHAuctionAmount: oSqthAmount,
       isDepositingIntoCrab,
       loanCollat,
@@ -63,6 +74,8 @@ export const useBullAuction = () => {
       quoter,
       slippageTolerance: DEFAULT_SLIPPAGE,
     })
+
+    return { ...rebaldata, cr, delta }
   }
 
   return {

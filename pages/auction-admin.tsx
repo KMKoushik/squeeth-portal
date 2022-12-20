@@ -20,6 +20,9 @@ import useCrabV2Store from '../store/crabV2Store'
 import { getAuctionStatus } from '../utils/auction'
 import { useInitCrabNetting } from '../hooks/init/useInitCrabNetting'
 import { useInitBull } from '../hooks/init/useInitBull'
+import { useCalmBullStore } from '../store/calmBullStore'
+import { AuctionType } from '../types'
+import NotBullAdmin from '../container/CalmBull/NotBullAdmin'
 
 const AuctionAdmin: NextPage = () => {
   useInitCrabV2()
@@ -32,11 +35,15 @@ const AuctionAdmin: NextPage = () => {
     s => ({ isLoading: s.isLoading, owner: s.owner, auction: s.auction, setAuctionStatus: s.setAuctionStatus }),
     shallow,
   )
+  const auctionManager = useCalmBullStore(s => s.auctionManager)
   const address = useAccountStore(s => s.address)
 
   const isOwner = React.useMemo(
-    () => address?.toLowerCase() === owner?.toLowerCase() || CRAB_COUNCIL_MEMBERS?.includes(address || ''),
-    [address, owner],
+    () =>
+      (auction.type === AuctionType.CALM_BULL
+        ? address?.toLowerCase() === auctionManager.toLowerCase()
+        : address?.toLowerCase() === owner?.toLowerCase()) || CRAB_COUNCIL_MEMBERS?.includes(address || ''),
+    [address, auction.type, auctionManager, owner],
   )
 
   const updateStatus = React.useCallback(() => {
@@ -76,6 +83,8 @@ const AuctionAdmin: NextPage = () => {
               <AdminBidView />
             </Grid>
           </>
+        ) : auction.type === AuctionType.CALM_BULL ? (
+          <NotBullAdmin />
         ) : (
           <NotOwner />
         )}
