@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { initializeApp, cert } from 'firebase-admin/app'
 import { apps, auth, firestore } from 'firebase-admin'
-import { Auction } from '../../types'
+import { Auction, BullRebalance } from '../../types'
 import { AUCTION_COLLECTION, emptyAuction } from '../../utils/auction'
 import { CHAIN_ID } from '../../constants/numbers'
 
@@ -56,4 +56,9 @@ export const getUserBids = async (userAddress: string) => {
     return item.order
   });
   return  orders
+}
+
+export const addBullRebalance = async (bullRebalance: BullRebalance) => {
+  const id = Date.now()
+  return dbAdmin.collection('bull-rebalance').doc(id.toString()).set({ ...bullRebalance, id })
 }

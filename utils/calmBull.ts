@@ -214,7 +214,16 @@ export async function getFullRebalanceDetails(params: getFullRebalanceType) {
 
   const wethLimitPrice = usdcAmount.wdiv(netWethToTrade.abs()).mul(WETH_DECIMALS_DIFF)
   const usdcTargetInEuler = wethTargetInEuler.wmul(ethUsdPrice).div(2).div(WETH_DECIMALS_DIFF)
-  return { crabAmount, wethTargetInEuler, usdcTargetInEuler, wethLimitPrice }
+
+  const { delta: deltaNew, cr: crNew } = getDeltaAndCollat({
+    crabUsdPrice,
+    crabBalance,
+    ethUsdPrice,
+    loanCollat: wethTargetInEuler,
+    loanDebt: usdcTargetInEuler,
+  })
+
+  return { crabAmount, wethTargetInEuler, usdcTargetInEuler, wethLimitPrice, deltaNew, crNew }
 }
 
 type levRebalDetailsType = {

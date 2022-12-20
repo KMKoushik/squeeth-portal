@@ -3,7 +3,7 @@ import { Box } from '@mui/system'
 import { NextPage } from 'next'
 import Head from 'next/head'
 import { Nav } from '../components/navbars/Nav'
-import { BullRebalance } from '../container/CalmBull/BullRebalance'
+import { BullRebalancePage } from '../container/CalmBull/BullRebalance'
 import { useInitBull } from '../hooks/init/useInitBull'
 import { useInitCrabV2 } from '../hooks/useCrabV2'
 
@@ -18,7 +18,7 @@ const CalmBullReBalancePage: NextPage = () => {
       </Head>
       <Nav />
       <Box px={30} py={5}>
-        <BullRebalance />
+        <BullRebalancePage />
       </Box>
     </div>
   )

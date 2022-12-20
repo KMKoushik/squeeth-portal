@@ -20,7 +20,7 @@ import {
 } from '../../../../utils/auction'
 import { calculateIV, convertBigNumber, formatBigNumber, wmul } from '../../../../utils/math'
 import { BigNumber, ethers } from 'ethers'
-import { Auction, AuctionType, Bid, BidStatus } from '../../../../types'
+import { Auction, AuctionType, Bid, BidStatus, BullRebalance, BullRebalanceType } from '../../../../types'
 import useApprovals from '../../../../hooks/useApprovals'
 import { CRAB_NETTING, OSQUEETH, WETH } from '../../../../constants/address'
 import { useBalances } from '../../../../hooks/useBalances'
@@ -50,6 +50,7 @@ import {
 import useQuoter from '../../../../hooks/useQuoter'
 import { getCrabFromSqueethAmount, getWsqueethFromCrabAmount } from '../../../../utils/crab'
 import { useBullAuction } from '../../../../hooks/useBullAuction'
+import { useCalmBullStore } from '../../../../store/calmBullStore'
 
 const AdminBidView: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
@@ -396,7 +397,7 @@ const AdminBidView: React.FC = () => {
         auctionOsqthAmount = availableOsqth
       }
 
-      const { crabAmount, wethTargetInEuler, wethLimitPrice } = await getRebalanceDetails(
+      const { crabAmount, wethTargetInEuler, wethLimitPrice, cr, delta, crNew, deltaNew } = await getRebalanceDetails(
         auctionOsqthAmount,
         auction.isSelling,
         BigNumber.from(clearingPrice),
@@ -431,6 +432,29 @@ const AdminBidView: React.FC = () => {
         console.log(e)
       }
       await tx.wait()
+      const rebalance: BullRebalance = {
+        id: 0,
+        type: BullRebalanceType.FULL,
+        safeTxHash: tx.hash,
+        cr: cr.toString(),
+        delta: delta.toString(),
+        estimatedCr: crNew.toString(),
+        estimatedDelta: deltaNew.toString(),
+        timestamp: tx.timestamp || Date.now(),
+        fullParams: {
+          auctionId: auction.currentAuctionId,
+          isSelling: auction.isSelling,
+          crabAmount: crabAmount.toString(),
+          wethTargetInEuler: wethTargetInEuler.toString(),
+          wethLimitPrice: wethLimitPrice.toString(),
+        },
+      }
+
+      await fetch('/api/bull/submitRebalance', {
+        method: 'POST',
+        body: JSON.stringify({ rebalance }),
+        headers: { 'Content-Type': 'application/json' },
+      })
       await submitTx(tx.hash, tx.timestamp || 0)
     } catch (e) {
       console.log(e)
