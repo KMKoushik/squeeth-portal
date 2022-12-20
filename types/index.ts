@@ -147,3 +147,31 @@ export type CrabOTCData = {
 export type CrabOTCWithData = CrabOTC & {
   data: CrabOTCData
 }
+
+export enum BullRebalanceType {
+  LEVERAGE = 1,
+  FULL,
+}
+
+export type BullRebalance = {
+  id: number
+  type: BullRebalanceType
+  safeTxHash: string
+  cr: string
+  delta: string
+  estimatedCr: string
+  estimatedDelta: string
+  timestamp: number
+  leverageParams?: {
+    isSellingUSDC: boolean
+    usdcToTrade: string
+    limitPrice: string
+  }
+  fullParams?: {
+    auctionId: number
+    isSelling: boolean
+    crabAmount: string
+    wethTargetInEuler: string
+    wethLimitPrice: string
+  }
+}

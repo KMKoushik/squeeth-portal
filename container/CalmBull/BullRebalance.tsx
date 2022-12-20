@@ -14,8 +14,13 @@ import { useContract, useContractWrite, useSigner, useWaitForTransaction } from 
 import { AUCTION_BULL_CONTRACT } from '../../constants/contracts'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
 import { AuctionBull } from '../../types/contracts/AuctionBull'
+import { BullRebalance, BullRebalanceType } from '../../types'
+import useToaster from '../../hooks/useToaster'
+import useAccountStore from '../../store/accountStore'
+import { CRAB_COUNCIL_MEMBERS } from '../../constants/address'
+import NotBullAdmin from './NotBullAdmin'
 
-export const BullRebalance: React.FC = () => {
+export const BullRebalancePage: React.FC = () => {
   const crabUsdcValue = useCrabV2Store(s => s.crabUsdcValue)
   const { ethPrice, oSqthPrice } = usePriceStore(s => ({ ethPrice: s.ethPrice, oSqthPrice: s.oSqthPrice }))
 
@@ -90,6 +95,8 @@ export const BullRebalance: React.FC = () => {
     signerOrProvider: signer,
   })
 
+  const showMessageFromServer = useToaster()
+
   React.useEffect(() => {
     if (isReady && crabUsdcValue.gt(0)) {
       fetchLeverageBalanceDetails(Number(slippage))
@@ -102,31 +109,66 @@ export const BullRebalance: React.FC = () => {
   }
 
   async function executeLeverageRebalance() {
-    const gasLimit = await auctionBull.estimateGas.leverageRebalance(
-      isSellingUSDC,
-      usdcToTrade,
-      limitPrice,
-      ETH_USDC_FEE,
-    )
-
-    const tx = await leverageRebalance({
-      args: [isSellingUSDC, usdcToTrade, limitPrice, ETH_USDC_FEE],
-      overrides: {
-        gasLimit: gasLimit.mul(125).div(100),
-      },
-    })
-
     try {
-      addRecentTransaction({
-        hash: tx.hash,
-        description: 'Leverage rebalance',
+      const gasLimit = await auctionBull.estimateGas.leverageRebalance(
+        isSellingUSDC,
+        usdcToTrade,
+        limitPrice,
+        ETH_USDC_FEE,
+      )
+
+      const tx = await leverageRebalance({
+        args: [isSellingUSDC, usdcToTrade, limitPrice, ETH_USDC_FEE],
+        overrides: {
+          gasLimit: gasLimit.mul(125).div(100),
+        },
       })
+
+      try {
+        addRecentTransaction({
+          hash: tx.hash,
+          description: 'Leverage rebalance',
+        })
+      } catch (e) {
+        console.log(e)
+      }
+
+      await tx.wait()
+      const rebalance: BullRebalance = {
+        id: 0,
+        type: BullRebalanceType.LEVERAGE,
+        safeTxHash: tx.hash,
+        cr: cr.toString(),
+        delta: delta.toString(),
+        estimatedCr: newCr.toString(),
+        estimatedDelta: newDelta.toString(),
+        timestamp: tx.timestamp || Date.now(),
+        leverageParams: {
+          isSellingUSDC,
+          usdcToTrade: usdcToTrade.toString(),
+          limitPrice: limitPrice.toString(),
+        },
+      }
+
+      const resp = await fetch('/api/bull/submitRebalance', {
+        method: 'POST',
+        body: JSON.stringify({ rebalance }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+      showMessageFromServer(resp)
     } catch (e) {
       console.log(e)
     }
-
-    await tx.wait()
   }
+
+  const address = useAccountStore(s => s.address)
+
+  const isOwner = React.useMemo(
+    () => address?.toLowerCase() === auctionManager?.toLowerCase() || CRAB_COUNCIL_MEMBERS?.includes(address || ''),
+    [address, auctionManager],
+  )
+
+  if (!isOwner) return <NotBullAdmin />
 
   return (
     <Box>
