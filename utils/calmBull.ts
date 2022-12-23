@@ -193,26 +193,50 @@ export async function getFullRebalanceDetails(params: getFullRebalanceType) {
   // New equity value
   const newEquityValue = oldEquityValue.add(auctionPnl)
   const wethTargetInEuler = newEquityValue.wdiv(ethUsdPrice).mul(WETH_DECIMALS_DIFF)
-  // Order eth value + weth from crab - weth to pay?
 
-  let netWethToTrade = BigNumber.from(0)
+  let usdcAmount = BigNumber.from(0)
+  let wethToTrade = BigNumber.from(0)
   if (isDepositingIntoCrab) {
     // Deposit into crab
-    const wethToCrab = ethInCrab.wdiv(squeethInCrab).wmul(squeethInCrab.add(oSQTHAuctionAmount)).sub(ethInCrab)
+    const totalEthNeededForCrab = (crabAmount.wdiv(crabTotalSupply)).wmul(ethInCrab)
     const wethFromAuction = oSQTHAuctionAmount.wmul(clearingPrice)
-    netWethToTrade = wethTargetInEuler.sub(loanCollat.sub(wethToCrab).sub(wethFromAuction))
+    const ethNeededForCrab = totalEthNeededForCrab.sub(wethFromAuction) 
+    if (wethTargetInEuler.gt(loanCollat)){
+      // Need more weth
+      const wethToGet = wethTargetInEuler.sub(loanCollat).add(ethNeededForCrab)
+      const usdcAmount = await getUsdcAmountForWeth(wethToGet, false, quoter, slippageTolerance)
+      const wethToTrade = wethToGet
+    } else {
+      const wethFromEuler = loanCollat.sub(wethTargetInEuler);
+
+      if(ethNeededForCrab.gte(wethFromEuler)) {
+        const wethToGet = ethNeededForCrab.sub(wethFromEuler)
+        const usdcAmount = await getUsdcAmountForWeth(wethToGet, false, quoter, slippageTolerance)
+        const wethToTrade = wethToGet
+      } else {
+        const wethToSell = wethFromEuler.sub(ethNeededForCrab)
+        const usdcAmount = await getUsdcAmountForWeth(wethToSell, true, quoter, slippageTolerance)
+        const wethToTrade = wethToSell
+      }
+    }
   } else {
     // Withdraw from crab
     const wethFromCrab = crabAmount.wmul(ethInCrab).wdiv(crabTotalSupply)
     const wethToAuction = oSQTHAuctionAmount.wmul(clearingPrice)
-    netWethToTrade = wethTargetInEuler.sub(loanCollat.add(wethFromCrab).sub(wethToAuction))
+    const netWethReceived = wethFromCrab.sub(wethToAuction)
+    if (wethTargetInEuler.gt(netWethReceived.add(loanCollat))){
+      const wethToBuy = wethTargetInEuler.sub(netWethReceived).add(loanCollat)
+      const usdcAmount = await getUsdcAmountForWeth(wethToBuy, false, quoter, slippageTolerance)
+      const wethToTrade = wethToBuy
+    } else {
+      const wethToSell = netWethReceived.add(loanCollat).sub(wethTargetInEuler)
+      const usdcAmount = await getUsdcAmountForWeth(wethToSell, true, quoter, slippageTolerance)
+      const wethToTrade = wethToSell
+    }
+
   }
 
-  const usdcAmount = netWethToTrade.lt(0)
-    ? await getUsdcAmountForWeth(netWethToTrade.abs(), true, quoter, slippageTolerance)
-    : await getUsdcAmountForWeth(netWethToTrade.abs(), false, quoter, slippageTolerance)
-
-  const wethLimitPrice = usdcAmount.wdiv(netWethToTrade.abs()).mul(WETH_DECIMALS_DIFF)
+  const wethLimitPrice = usdcAmount.wdiv(wethToTrade.abs()).mul(WETH_DECIMALS_DIFF)
   const usdcTargetInEuler = wethTargetInEuler.wmul(ethUsdPrice).div(2).div(WETH_DECIMALS_DIFF)
 
   const { delta: deltaNew, cr: crNew } = getDeltaAndCollat({
