@@ -204,19 +204,19 @@ export async function getFullRebalanceDetails(params: getFullRebalanceType) {
     if (wethTargetInEuler.gt(loanCollat)){
       // Need more weth
       const wethToGet = wethTargetInEuler.sub(loanCollat).add(ethNeededForCrab)
-      const usdcAmount = await getUsdcAmountForWeth(wethToGet, false, quoter, slippageTolerance)
-      const wethToTrade = wethToGet
+      usdcAmount = await getUsdcAmountForWeth(wethToGet, false, quoter, slippageTolerance)
+      wethToTrade = wethToGet
     } else {
       const wethFromEuler = loanCollat.sub(wethTargetInEuler);
 
       if(ethNeededForCrab.gte(wethFromEuler)) {
         const wethToGet = ethNeededForCrab.sub(wethFromEuler)
-        const usdcAmount = await getUsdcAmountForWeth(wethToGet, false, quoter, slippageTolerance)
-        const wethToTrade = wethToGet
+        usdcAmount = await getUsdcAmountForWeth(wethToGet, false, quoter, slippageTolerance)
+        wethToTrade = wethToGet
       } else {
         const wethToSell = wethFromEuler.sub(ethNeededForCrab)
-        const usdcAmount = await getUsdcAmountForWeth(wethToSell, true, quoter, slippageTolerance)
-        const wethToTrade = wethToSell
+        usdcAmount = await getUsdcAmountForWeth(wethToSell, true, quoter, slippageTolerance)
+        wethToTrade = wethToSell
       }
     }
   } else {
@@ -226,17 +226,18 @@ export async function getFullRebalanceDetails(params: getFullRebalanceType) {
     const netWethReceived = wethFromCrab.sub(wethToAuction)
     if (wethTargetInEuler.gt(netWethReceived.add(loanCollat))){
       const wethToBuy = wethTargetInEuler.sub(netWethReceived).add(loanCollat)
-      const usdcAmount = await getUsdcAmountForWeth(wethToBuy, false, quoter, slippageTolerance)
-      const wethToTrade = wethToBuy
+      usdcAmount = await getUsdcAmountForWeth(wethToBuy, false, quoter, slippageTolerance)
+      wethToTrade = wethToBuy
     } else {
       const wethToSell = netWethReceived.add(loanCollat).sub(wethTargetInEuler)
-      const usdcAmount = await getUsdcAmountForWeth(wethToSell, true, quoter, slippageTolerance)
-      const wethToTrade = wethToSell
+      usdcAmount = await getUsdcAmountForWeth(wethToSell, true, quoter, slippageTolerance)
+      wethToTrade = wethToSell
     }
 
   }
 
   const wethLimitPrice = usdcAmount.wdiv(wethToTrade.abs()).mul(WETH_DECIMALS_DIFF)
+
   const usdcTargetInEuler = wethTargetInEuler.wmul(ethUsdPrice).div(2).div(WETH_DECIMALS_DIFF)
 
   const { delta: deltaNew, cr: crNew } = getDeltaAndCollat({
