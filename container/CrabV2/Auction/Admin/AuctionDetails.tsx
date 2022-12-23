@@ -34,6 +34,8 @@ const AuctionDetails: React.FC = () => {
 
   const { osqthEstimate, isSelling, delta } = useAuctionEstimate()
 
+  const bullDelta = useCalmBullStore(s => s.delta, bnComparator)
+
   const cr = useCalmBullStore(s => s.cr, bnComparator)
 
   return (
@@ -59,7 +61,8 @@ const AuctionDetails: React.FC = () => {
           Delta
         </Typography>
         <Typography textAlign="center" variant="numeric">
-          {formatBigNumber(delta, 18, 2)} {auction.type === AuctionType.CRAB_HEDGE ? 'ETH' : ''}
+          {formatBigNumber(auction.type === AuctionType.CALM_BULL ? bullDelta : delta, 18, 2)}{' '}
+          {auction.type === AuctionType.CRAB_HEDGE ? 'ETH' : ''}
         </Typography>
       </Box>
       {auction.type === AuctionType.CALM_BULL ? (

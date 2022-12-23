@@ -405,17 +405,17 @@ const AdminBidView: React.FC = () => {
 
       console.log('Bull:', crabAmount.toString(), wethTargetInEuler.toString(), wethLimitPrice.toString())
 
-      const gasLimit = await auctionBull.estimateGas.fullRebalance(
-        orders,
-        crabAmount,
-        clearingPrice,
-        wethTargetInEuler,
-        wethLimitPrice,
-        ETH_USDC_FEE,
-        auction.isSelling,
-      )
+      // const gasLimit = await auctionBull.estimateGas.fullRebalance(
+      //   orders,
+      //   crabAmount,
+      //   clearingPrice,
+      //   wethTargetInEuler,
+      //   wethLimitPrice,
+      //   ETH_USDC_FEE,
+      //   auction.isSelling,
+      // )
 
-      //const gasLimit = BigNumber.from(7000000)
+      const gasLimit = BigNumber.from(7000000)
 
       const tx = await fullRebalance({
         args: [orders, crabAmount, clearingPrice, wethTargetInEuler, wethLimitPrice, ETH_USDC_FEE, auction.isSelling],

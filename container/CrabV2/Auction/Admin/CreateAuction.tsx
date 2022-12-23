@@ -149,8 +149,6 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
 
   const isUSDCHigher = convertBigNumber(usdcDeposits, 6) > convertBigNumber(wmul(crabDeposits, crabUsdcPrice), 18)
 
-  console.log(convertBigNumber(usdcDeposits, 6), convertBigNumber(wmul(crabDeposits, crabUsdcPrice), 18), 'prices')
-
   const updateAuctionType = async (aucType: AuctionType) => {
     setAuctionType(aucType)
     if (aucType === AuctionType.NETTING) {

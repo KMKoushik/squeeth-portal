@@ -118,6 +118,16 @@ export async function getAuctionDetails(params: getAuctionDetailsType) {
   const dollarProceeds = loanCollat.sub(newLoanCollat).wmul(ethUsdPrice).div(WETH_DECIMALS_DIFF)
   // $ to/from crab
   const needFromCrab = loanDebt.sub(newLoanDebt).sub(dollarProceeds)
+  console.log(
+    'newLoandebt',
+    newLoanDebt.toString(),
+    'loandebt',
+    loanDebt.toString(),
+    'dollarProceeds',
+    dollarProceeds.toString(),
+    'needFromCrab',
+    needFromCrab.toString(),
+  )
   // deposit into crab if we have extra $ after changing loan composition
   const isDepositingIntoCrab = needFromCrab.gt(0) ? false : true
   // amount of crab to pay/recieve target dollar amount
@@ -207,6 +217,8 @@ export async function getFullRebalanceDetails(params: getFullRebalanceType) {
     const wethToAuction = oSQTHAuctionAmount.wmul(clearingPrice)
     netWethToTrade = wethTargetInEuler.sub(loanCollat.add(wethFromCrab).sub(wethToAuction))
   }
+
+  console.log('netWethToTrade', netWethToTrade.toString())
 
   const usdcAmount = netWethToTrade.lt(0)
     ? await getUsdcAmountForWeth(netWethToTrade.abs(), true, quoter, slippageTolerance)

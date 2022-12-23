@@ -69,7 +69,18 @@ export const useAuctionEstimate = () => {
     setIsSelling(_isSelling)
     setOsqthEstimate(_osqthEstimate)
     setDelta(_delta)
-  }, [auction.type, crabDeposits, crabUsdcPrice, oSqthPrice, quoter, totalSupply, usdcDeposits, vault])
+  }, [
+    auction,
+    bullDelta,
+    crabDeposits,
+    crabUsdcPrice,
+    getBullAuctionDetails,
+    oSqthPrice,
+    quoter,
+    totalSupply,
+    usdcDeposits,
+    vault,
+  ])
 
   useEffect(() => {
     estimateAuctions()
