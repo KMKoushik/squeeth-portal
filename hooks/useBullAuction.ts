@@ -4,7 +4,7 @@ import { useCalmBullStore } from '../store/calmBullStore'
 import useCrabV2Store from '../store/crabV2Store'
 import usePriceStore from '../store/priceStore'
 import { bnComparator } from '../utils'
-import { getAuctionDetails, getFullRebalanceDetails } from '../utils/calmBull'
+import { getAuctionDetails, getAuctionOutcomes, getFullRebalanceDetails } from '../utils/calmBull'
 import useQuoter from './useQuoter'
 
 export const useBullAuction = () => {
@@ -29,6 +29,31 @@ export const useBullAuction = () => {
         oSQTHAuctionAmount: BIG_ZERO,
         isDepositingIntoCrab: false,
       }
+
+    const { isDepositingIntoCrab, isIncreaseWeth, isBorrowUsdc } = await getAuctionOutcomes({
+      crabUsdPrice,
+      squeethEthPrice: oSqthPrice,
+      loanCollat,
+      loanDebt,
+      crabBalance,
+      squeethInCrab: vault?.shortAmount,
+      ethInCrab: vault?.collateral,
+      crabTotalSupply,
+      ethUsdPrice: ethPrice,
+      targetCr: BIG_ONE.mul(2),
+      feeRate: BIG_ZERO,
+      quoter,
+      slippageTolerance: 0,
+    })
+
+    console.log(
+      'isDepositingIntoCrab',
+      isDepositingIntoCrab,
+      'isIncreaseWeth',
+      isIncreaseWeth,
+      'isBorrowUsdc',
+      isBorrowUsdc,
+    )
 
     return getAuctionDetails({
       crabUsdPrice,
