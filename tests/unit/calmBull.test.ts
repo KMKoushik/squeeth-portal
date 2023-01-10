@@ -284,14 +284,13 @@ describe('CalmBull: Full Rebalance', () => {
     expect(wethTargetInEuler.toString()).toBe('196666667000000000000')
   })
 
-  //1
+  //4
   test('testFullRebalanceDepositCrabDecreaseEthBorrowUsdc', async () => {
-    const ethUsdPrice = BIG_ONE.mul(800)
-    const squeethEthPrice = BIG_ONE.mul(BigNumber.from(8)).div(480)
-    const crabUsdPrice = BIG_ONE.mul(480);
+    const ethUsdPrice = BIG_ONE.mul(1200)
+    const squeethEthPrice = BIG_ONE.mul(BigNumber.from(10)).div(100)
+    const crabUsdPrice = BIG_ONE.mul(500);
 
     const loanCollat = BIG_ONE.mul(200)
-    // const ethInCrab = BIG_ONE.mul(1200)
 
     mockQuoterFunctions(ethUsdPrice)
 
@@ -310,23 +309,23 @@ describe('CalmBull: Full Rebalance', () => {
       quoter,
       slippageTolerance: DEFAULT_SLIPPAGE
     })
+    // console.log('isDepositingIntoCrab', isDepositingIntoCrab.toString())
+    // console.log('isIncreaseWeth', isIncreaseWeth.toString())
+    // console.log('isBorrowUsdc', isBorrowUsdc.toString())
 
+    expect(isDepositingIntoCrab).toBe(true)
     expect(isIncreaseWeth).toBe(false)
     expect(isBorrowUsdc).toBe(true)
-    expect(isDepositingIntoCrab).toBe(false)
-  //   console.log('isIncreaseWeth.toString()', isIncreaseWeth.toString())
-  //   console.log('isBorrowUsdc.toString()', isBorrowUsdc.toString(),)
-  //   console.log('isDepositingIntoCrab.toString()', isDepositingIntoCrab.toString())
+
    })
 
-   //2
-   test('testFullRebalanceWithdrawCrabIncreaseEthBorrowUsdc', async () => {
+   //6
+   test('testFullFullRebalanceWithdrawCrabIncreaseEthRepayUsdc', async () => {
     const ethUsdPrice = BIG_ONE.mul(800)
     const squeethEthPrice = BIG_ONE.mul(BigNumber.from(8)).div(480)
     const crabUsdPrice = BIG_ONE.mul(520);
 
     const loanCollat = BIG_ONE.mul(200)
-    // const ethInCrab = BIG_ONE.mul(1200)
 
     mockQuoterFunctions(ethUsdPrice)
 
@@ -346,59 +345,19 @@ describe('CalmBull: Full Rebalance', () => {
       slippageTolerance: DEFAULT_SLIPPAGE
     })
 
-    expect(isIncreaseWeth).toBe(true)
-    expect(isBorrowUsdc).toBe(true)
     expect(isDepositingIntoCrab).toBe(false)
-  //   console.log('isIncreaseWeth.toString()', isIncreaseWeth.toString())
-  //   console.log('isBorrowUsdc.toString()', isBorrowUsdc.toString(),)
-  //   console.log('isDepositingIntoCrab.toString()', isDepositingIntoCrab.toString())
+    expect(isIncreaseWeth).toBe(true)
+    expect(isBorrowUsdc).toBe(false)
    })
 
 
   //3
-  test('testFullRebalanceWithdrawCrabDecreaseEthBorrowUsdc', async () => {
-        const ethUsdPrice = BIG_ONE.mul(800)
-        const squeethEthPrice = BIG_ONE.mul(BigNumber.from(12)).div(480)
-        const crabUsdPrice = BIG_ONE.mul(480);
-    
-        const loanCollat = BIG_ONE.mul(200)
-        // const ethInCrab = BIG_ONE.mul(1200)
-    
-        mockQuoterFunctions(ethUsdPrice)
-    
-        const { isIncreaseWeth, isBorrowUsdc, isDepositingIntoCrab } = await getAuctionOutcomes({
-          crabUsdPrice,
-          squeethEthPrice,
-          loanCollat ,
-          loanDebt,
-          crabBalance,
-          squeethInCrab,
-          ethInCrab,
-          crabTotalSupply,
-          ethUsdPrice,
-          targetCr,
-          feeRate,
-          quoter,
-          slippageTolerance: DEFAULT_SLIPPAGE
-        })
-    
-        expect(isIncreaseWeth).toBe(false)
-        expect(isBorrowUsdc).toBe(true)
-        expect(isDepositingIntoCrab).toBe(false)
-      //   console.log('isIncreaseWeth.toString()', isIncreaseWeth.toString())
-      //   console.log('isBorrowUsdc.toString()', isBorrowUsdc.toString(),)
-      //   console.log('isDepositingIntoCrab.toString()', isDepositingIntoCrab.toString())
-       })
-
-
-  //4
-  test('testFullRebalanceDepositCrabDecreaseEthRepayUsdc', async () => {
-    const ethUsdPrice = BIG_ONE.mul(1200)
-    const squeethEthPrice = BIG_ONE.mul(BigNumber.from(8)).div(480)
+  test('testFullRebalanceWithdrawCrabDecreaseEthRepayUsdc', async () => {
+    const ethUsdPrice = BIG_ONE.mul(800)
+    const squeethEthPrice = BIG_ONE.mul(BigNumber.from(8)).div(100)
     const crabUsdPrice = BIG_ONE.mul(480);
 
     const loanCollat = BIG_ONE.mul(200)
-    // const ethInCrab = BIG_ONE.mul(1200)
 
     mockQuoterFunctions(ethUsdPrice)
 
@@ -418,56 +377,56 @@ describe('CalmBull: Full Rebalance', () => {
       slippageTolerance: DEFAULT_SLIPPAGE
     })
 
+    console.log('isDepositingIntoCrab', isDepositingIntoCrab.toString())
+    console.log('isIncreaseWeth', isIncreaseWeth.toString())
+    console.log('isBorrowUsdc', isBorrowUsdc.toString())
+
+    expect(isDepositingIntoCrab).toBe(false)
     expect(isIncreaseWeth).toBe(false)
     expect(isBorrowUsdc).toBe(false)
-    expect(isDepositingIntoCrab).toBe(true)
-  //   console.log('isIncreaseWeth.toString()', isIncreaseWeth.toString())
-  //   console.log('isBorrowUsdc.toString()', isBorrowUsdc.toString(),)
-  //   console.log('isDepositingIntoCrab.toString()', isDepositingIntoCrab.toString())
-   })
 
-   test('testFullRebalanceDepositCrabIncreaseEthRepayUsdc', async () => {
-    const ethUsdPrice = BIG_ONE.mul(1200)
-    const squeethEthPrice = BIG_ONE.mul(BigNumber.from(8)).div(480)
-    const crabUsdPrice = BIG_ONE.mul(520);
-
-    const loanCollat = BIG_ONE.mul(200)
-    // const ethInCrab = BIG_ONE.mul(1200)
-
-    mockQuoterFunctions(ethUsdPrice)
-
-    const { isIncreaseWeth, isBorrowUsdc, isDepositingIntoCrab } = await getAuctionOutcomes({
-      crabUsdPrice,
-      squeethEthPrice,
-      loanCollat ,
-      loanDebt,
-      crabBalance,
-      squeethInCrab,
-      ethInCrab,
-      crabTotalSupply,
-      ethUsdPrice,
-      targetCr,
-      feeRate,
-      quoter,
-      slippageTolerance: DEFAULT_SLIPPAGE
-    })
-
-    expect(isIncreaseWeth).toBe(true)
-    expect(isBorrowUsdc).toBe(false)
-    expect(isDepositingIntoCrab).toBe(true)
-  //   console.log('isIncreaseWeth.toString()', isIncreaseWeth.toString())
-  //   console.log('isBorrowUsdc.toString()', isBorrowUsdc.toString(),)
-  //   console.log('isDepositingIntoCrab.toString()', isDepositingIntoCrab.toString())
    })
 
    //5
-   test('testFullRebalanceDepositCrabDecreaseEthBorrowUsdc', async () => {
+   test('testFullRebalanceDepositCrabIncreaseEthBorrowUsdc', async () => {
+    const ethUsdPrice = BIG_ONE.mul(1200)
+    const squeethEthPrice = BIG_ONE.mul(BigNumber.from(8)).div(480)
+    const crabUsdPrice = BIG_ONE.mul(520);
+
+    const loanCollat = BIG_ONE.mul(200)
+    // const ethInCrab = BIG_ONE.mul(1200)
+
+    mockQuoterFunctions(ethUsdPrice)
+
+    const { isIncreaseWeth, isBorrowUsdc, isDepositingIntoCrab } = await getAuctionOutcomes({
+      crabUsdPrice,
+      squeethEthPrice,
+      loanCollat ,
+      loanDebt,
+      crabBalance,
+      squeethInCrab,
+      ethInCrab,
+      crabTotalSupply,
+      ethUsdPrice,
+      targetCr,
+      feeRate,
+      quoter,
+      slippageTolerance: DEFAULT_SLIPPAGE
+    })
+
+    expect(isDepositingIntoCrab).toBe(true)
+    expect(isIncreaseWeth).toBe(true)
+    expect(isBorrowUsdc).toBe(true)
+
+   })
+
+   //1
+   test('testFullRebalanceDepositCrabDecreaseEthRepayUsdc', async () => {
     const ethUsdPrice = BIG_ONE.mul(800)
     const squeethEthPrice = BIG_ONE.mul(BigNumber.from(8)).div(480)
     const crabUsdPrice = BIG_ONE.mul(480);
 
     const loanCollat = BIG_ONE.mul(250)
-    // const ethInCrab = BIG_ONE.mul(1200)
 
     mockQuoterFunctions(ethUsdPrice)
 
@@ -487,22 +446,18 @@ describe('CalmBull: Full Rebalance', () => {
       slippageTolerance: DEFAULT_SLIPPAGE
     })
 
-    expect(isIncreaseWeth).toBe(false)
-    expect(isBorrowUsdc).toBe(true)
     expect(isDepositingIntoCrab).toBe(true)
-  //   console.log('isIncreaseWeth.toString()', isIncreaseWeth.toString())
-  //   console.log('isBorrowUsdc.toString()', isBorrowUsdc.toString(),)
-  //   console.log('isDepositingIntoCrab.toString()', isDepositingIntoCrab.toString())
+    expect(isIncreaseWeth).toBe(false)
+    expect(isBorrowUsdc).toBe(false)
    })
 
-   //6
-   test('testFullRebalanceWithdrawCrabIncreaseEthRepayUsdc', async () => {
+   //2
+   test('testFullRebalanceWithdrawCrabIncreaseEthBorrrowUsdc', async () => {
     const ethUsdPrice = BIG_ONE.mul(800)
     const squeethEthPrice = BIG_ONE.mul(BigNumber.from(8)).div(480)
     const crabUsdPrice = BIG_ONE.mul(520);
 
     const loanCollat = BIG_ONE.mul(250)
-    // const ethInCrab = BIG_ONE.mul(1200)
 
     mockQuoterFunctions(ethUsdPrice)
 
@@ -522,12 +477,9 @@ describe('CalmBull: Full Rebalance', () => {
       slippageTolerance: DEFAULT_SLIPPAGE
     })
 
-    expect(isIncreaseWeth).toBe(true)
-    expect(isBorrowUsdc).toBe(false)
     expect(isDepositingIntoCrab).toBe(false)
-  //   console.log('isIncreaseWeth.toString()', isIncreaseWeth.toString())
-  //   console.log('isBorrowUsdc.toString()', isBorrowUsdc.toString(),)
-  //   console.log('isDepositingIntoCrab.toString()', isDepositingIntoCrab.toString())
+    expect(isIncreaseWeth).toBe(true)
+    expect(isBorrowUsdc).toBe(true)
    })
 
 })
