@@ -70,7 +70,10 @@ export async function getAuctionOutcomes(params: getAuctionOutcomesType) {
   })
 
   const isIncreaseWeth = wethTargetInEuler.gt(loanCollat)
-  const isBorrowUsdc = usdcTargetInEuler.lt(loanDebt)
+  console.log('usdcTargetInEuler', usdcTargetInEuler.toString())
+  console.log('loanDebt', loanDebt.toString())
+
+  const isBorrowUsdc = usdcTargetInEuler.gt(loanDebt)
 
   return { isIncreaseWeth, isBorrowUsdc, isDepositingIntoCrab }
 }
