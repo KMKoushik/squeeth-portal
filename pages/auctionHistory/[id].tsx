@@ -13,6 +13,7 @@ import useCrabV2Store from '../../store/crabV2Store'
 import { Auction } from '../../types'
 import { AUCTION_COLLECTION, sortBids } from '../../utils/auction'
 import { db } from '../../utils/firebase'
+import { getTxFromSafeTxHash } from '../../utils/safeUtil'
 
 const AuctionHistory: NextPage = () => {
   useInitCrabV2()
@@ -33,7 +34,11 @@ const AuctionHistory: NextPage = () => {
         setAuctionLoading(false)
         if (d.exists()) {
           const data = d.data() as Auction
-          setAuction(data)
+          if (data.tx) {
+            getTxFromSafeTxHash(data.tx).then(tx => setAuction({ ...data, tx: tx ?? data.tx }))
+          } else {
+            setAuction(data)
+          }
           setSortedBids(sortBids(data))
         }
       })
