@@ -74,9 +74,6 @@ const AuctionHistory: React.FC = () => {
           </Box>
           <Box>
             <Button href={`/auctionHistory/${a.currentAuctionId}`}>View</Button>
-            <Button href={`${ETHERSCAN.url}/tx/${a.tx}`} target="_blank" rel="noreferrer">
-              tx
-            </Button>
           </Box>
         </Box>
       ))}
