@@ -82,6 +82,8 @@ const AdminBidView: React.FC = () => {
   const [manualTx, setManualTx] = React.useState('')
   const [manualTimestamp, setManualTimestamp] = React.useState(0)
 
+  const [auctionLoading, setAuctionLoading] = React.useState(false)
+
   const { ethPriceBN, oSqthPriceBN } = usePriceStore(
     s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
     shallow,
@@ -469,9 +471,9 @@ const AdminBidView: React.FC = () => {
       bids: getBidsWithReasonMap(
         manualBids.length
           ? bids.map(b => ({
-            ...b,
-            status: !!manualBidMap[`${b.bidder}-${b.order.nonce}`] ? BidStatus.INCLUDED : BidStatus.ALREADY_FILLED,
-          }))
+              ...b,
+              status: !!manualBidMap[`${b.bidder}-${b.order.nonce}`] ? BidStatus.INCLUDED : BidStatus.ALREADY_FILLED,
+            }))
           : filteredBids!,
       ),
       tx,
@@ -527,20 +529,26 @@ const AdminBidView: React.FC = () => {
     [auction.bids, auction.isSelling, auction.oSqthAmount, filterBids, manualBidMap],
   )
 
-  const executeAuction = () => {
-    if (auction.type === AuctionType.CRAB_HEDGE) {
-      hedgeCB()
-    }
-    if (auction.type === AuctionType.NETTING) {
-      if (auction.isSelling) {
-        executeCrabDepositAuction()
-      } else {
-        executeCrabWithdrawAuction()
+  const executeAuction = async () => {
+    setAuctionLoading(true)
+    try {
+      if (auction.type === AuctionType.CRAB_HEDGE) {
+        await hedgeCB()
       }
+      if (auction.type === AuctionType.NETTING) {
+        if (auction.isSelling) {
+          await executeCrabDepositAuction()
+        } else {
+          executeCrabWithdrawAuction()
+        }
+      }
+      if (auction.type === AuctionType.CALM_BULL) {
+        await executeBullAuction()
+      }
+    } catch (e) {
+      console.log(e)
     }
-    if (auction.type === AuctionType.CALM_BULL) {
-      executeBullAuction()
-    }
+    setAuctionLoading(false)
   }
 
   return (
@@ -618,7 +626,7 @@ const AdminBidView: React.FC = () => {
         </SecondaryButton>
         {filteredBids ? (
           <PrimaryLoadingButton
-            loading={isHedging || isDepositing || isWithdrawing || isBullExecuting}
+            loading={isHedging || isDepositing || isWithdrawing || isBullExecuting || auctionLoading}
             onClick={executeAuction}
             sx={{ ml: 4 }}
           >
