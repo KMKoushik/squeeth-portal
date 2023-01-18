@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { initializeApp, cert } from 'firebase-admin/app'
 import { apps, auth, firestore } from 'firebase-admin'
-import { Auction, BullRebalance } from '../../types'
+import { Auction, AuctionType, BullRebalance } from '../../types'
 import { AUCTION_COLLECTION, emptyAuction } from '../../utils/auction'
 import { CHAIN_ID } from '../../constants/numbers'
 
@@ -61,4 +61,9 @@ export const getUserBids = async (userAddress: string) => {
 export const addBullRebalance = async (bullRebalance: BullRebalance) => {
   const id = Date.now()
   return dbAdmin.collection('bull-rebalance').doc(id.toString()).set({ ...bullRebalance, id })
+}
+
+export const getLastAuctionForType = async (type: AuctionType, currentId: number) => {
+  const auctions =  await dbAdmin.collection(AUCTION_COLLECTION).where('type', '==', type).where('currentAuctionId', '!=', currentId).orderBy('currentAuctionId', 'desc').limit(1).get()
+  return auctions.docs[0].data() as Auction
 }
