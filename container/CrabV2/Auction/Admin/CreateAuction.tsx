@@ -37,6 +37,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const setIsAuctionLive = useCrabNettingStore(s => s.setAuctionLive)
   const isNew = !auction.currentAuctionId
   const crabUsdcPrice = useCrabV2Store(s => s.crabUsdcValue)
+  const oSqthPrice = usePriceStore(s => s.oSqthPrice)
 
   const [oSqthAmount, setOsqthAmount] = React.useState(convertBigNumberStr(auction.oSqthAmount, 18))
   const [price, setPrice] = React.useState(convertBigNumberStr(auction.price, 18).toString())
@@ -199,6 +200,18 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
     setIsAuctionLive(!isNettingAuctionLive)
   }
 
+  const error = React.useMemo(() => {
+    const _osqthPrice = convertBigNumber(oSqthPrice, 18)
+    const _price = Number(price)
+    if (Number(oSqthAmount) === 0) return
+
+    if (isSelling && _osqthPrice < _price) {
+      return 'Min price is higher than oSqth price'
+    } else if (!isSelling && _osqthPrice > _price) {
+      return 'Max price is lower than oSqth price'
+    }
+  }, [isSelling, oSqthPrice, price, oSqthAmount])
+
   return (
     <Box width={300} display="flex" flexDirection="column" justifyContent="center" pb={5}>
       <Typography variant="h6" color="primary">
@@ -227,7 +240,6 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
         />
       </Box>
       <TextField
-        disabled={auctionType === AuctionType.NETTING}
         type="number"
         variant="outlined"
         sx={{ mt: 2 }}
@@ -255,7 +267,17 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
         <Typography color="textSecondary">Min size: </Typography>
         <Typography>{minSize} oSQTH</Typography>
       </Box>
-      <PrimaryLoadingButton sx={{ m: 'auto', mt: 2 }} onClick={createOrUpdate} loading={loading}>
+      {error ? (
+        <Typography mt={2} color="error">
+          {error}
+        </Typography>
+      ) : null}
+      <PrimaryLoadingButton
+        sx={{ m: 'auto', mt: 2 }}
+        onClick={createOrUpdate}
+        loading={loading}
+        disabled={(auctionType === AuctionType.NETTING && !isNettingAuctionLive && Number(oSqthAmount) != 0) || !!error}
+      >
         {isNew ? 'Create' : 'update'}
       </PrimaryLoadingButton>
       <DangerButton sx={{ m: 'auto', mt: 2, width: 200 }} onClick={clearBids} loading={clearing}>
