@@ -384,7 +384,7 @@ const AuctionHeaderBody: React.FC<{ osqthEstimate?: string; isUpcoming: boolean 
             <InfoIcon fontSize="inherit" color="inherit" sx={{ verticalAlign: 'middle', ml: 0.5 }} />
           </HtmlTooltip>
         </Typography>
-        <Typography variant="numeric">{auction.osqthRefVol || osqthRefVol.toFixed(2)}%</Typography>
+        <Typography variant="numeric">{auction.osqthRefVol?.toFixed(2) || osqthRefVol.toFixed(2)}%</Typography>
       </Box>
     </Box>
   )
