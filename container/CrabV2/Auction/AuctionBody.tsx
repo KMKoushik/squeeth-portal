@@ -109,7 +109,8 @@ const BidForm: React.FC = () => {
       setPrice(convertBigNumberStr(auction.bids[bidToEdit].order.price, 18))
       setQty(convertBigNumberStr(auction.bids[bidToEdit].order.quantity, 18))
     }
-  }, [auction.bids, bidToEdit, isEditBid])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bidToEdit, isEditBid])
 
   const userBids = useMemo(() => {
     return getUserBids(Object.values(auction.bids), address!)
