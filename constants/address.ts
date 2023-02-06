@@ -112,6 +112,12 @@ export const USDC_D_TOKEN = getAddress({
   5: '0x356079240635b276a63065478471d89340443c49',
 })
 
+export const ZEN_BULL_NETTING = getAddress({
+  1: '',
+  3: '',
+  5: '0x30ba683c45c8b14601ec32759134b7662cef7d93',
+})
+
 const getCrabCouncilMembers = () => {
   if (CHAIN_ID === NETWORK.MAINNET) {
     return [

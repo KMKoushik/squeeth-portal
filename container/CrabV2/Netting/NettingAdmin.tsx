@@ -106,7 +106,7 @@ export const NettingAdmin: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h6">Netting admin</Typography>
+      <Typography variant="h6">Crab Netting admin</Typography>
       <Box mt={2} mb={2}>
         <HeaderInfo
           items={[

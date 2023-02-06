@@ -173,14 +173,17 @@ const Home: NextPage = () => {
               Admin links
             </Typography>
             <Box mt={2}>
-              <Typography color="primary" sx={{ textDecoration: 'underline' }}>
+              <Typography color="primary">
                 <Link href="/netting-admin">Netting Admin</Link>
               </Typography>
-              <Typography color="primary" sx={{ textDecoration: 'underline' }}>
+              <Typography color="primary">
                 <Link href="/auction-admin">Auction admin</Link>
               </Typography>
-              <Typography color="primary" sx={{ textDecoration: 'underline' }}>
-                <Link href="/calm-bull-rebalance">Cal bull rebalance</Link>
+              <Typography color="primary">
+                <Link href="/calm-bull-rebalance">Zen bull rebalance</Link>
+              </Typography>
+              <Typography color="primary">
+                <Link href="/zen-bull-netting">Zen bull netting</Link>
               </Typography>
             </Box>
           </Grid>
