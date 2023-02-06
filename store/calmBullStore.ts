@@ -15,6 +15,11 @@ interface CalmBullStore {
   deltaLower: BigNumber
   crUpper: BigNumber
   crLower: BigNumber
+  bullEthValue: BigNumber
+  bullDepositQueued: BigNumber
+  bullWithdrawQueued: BigNumber
+  isAuctionLive: boolean
+  nettingOwner: string
   actions: {
     setAuctionManager: (owner: string) => void
     setCrabBalance: (crabBalance: BigNumber) => void
@@ -28,6 +33,11 @@ interface CalmBullStore {
     setCrUpper: (crUpper: BigNumber) => void
     setCrLower: (crLower: BigNumber) => void
     setIsReady: (isReady: boolean) => void
+    setBullEthValue: (bullUsdcValue: BigNumber) => void
+    setBullDepositQueued: (bullDepositQueued: BigNumber) => void
+    setBullWithdrawQueued: (bullWithdrawQueued: BigNumber) => void
+    setIsAuctionLive: (isAuctionLive: boolean) => void
+    setNettingOwner: (nettingOwner: string) => void
   }
 }
 
@@ -44,6 +54,11 @@ export const useCalmBullStore = create<CalmBullStore>(set => ({
   deltaLower: BIG_ZERO,
   crUpper: BIG_ZERO,
   crLower: BIG_ZERO,
+  bullEthValue: BIG_ZERO,
+  bullDepositQueued: BIG_ZERO,
+  bullWithdrawQueued: BIG_ZERO,
+  isAuctionLive: false,
+  nettingOwner: '',
   actions: {
     setAuctionManager: auctionManager => set({ auctionManager }),
     setCrabBalance: crabBalance => set({ crabBalance }),
@@ -57,6 +72,11 @@ export const useCalmBullStore = create<CalmBullStore>(set => ({
     setCrUpper: crUpper => set({ crUpper }),
     setCrLower: crLower => set({ crLower }),
     setIsReady: isReady => set({ isReady }),
+    setBullEthValue: bullEthValue => set({ bullEthValue }),
+    setBullDepositQueued: bullDepositQueued => set({ bullDepositQueued }),
+    setBullWithdrawQueued: bullWithdrawQueued => set({ bullWithdrawQueued }),
+    setIsAuctionLive: isAuctionLive => set({ isAuctionLive }),
+    setNettingOwner: nettingOwner => set({ nettingOwner }),
   },
 }))
 

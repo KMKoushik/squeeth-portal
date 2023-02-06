@@ -9,6 +9,7 @@ import {
   AUCTION_BULL,
   USDC_D_TOKEN,
   WETH_E_TOKEN,
+  ZEN_BULL_NETTING,
 } from './address'
 import crabAbi from '../abis/crabStrategyV2.json'
 import crabOtcAbi from '../abis/crabOtc.json'
@@ -19,6 +20,7 @@ import bullStrategyAbi from '../abis/bullStrategy.json'
 import auctionBullAbi from '../abis/auctionBull.json'
 import eulerDTokenAbi from '../abis/eulerDToken.json'
 import eulerETokenAbi from '../abis/eulerEToken.json'
+import bullNettingAbi from '../abis/bullNetting.json'
 
 // Need to implement for other contracts as well
 
@@ -70,4 +72,9 @@ export const USDC_D_TOKEN_CONTRACT = {
 export const WETH_E_TOKEN_CONTRACT = {
   addressOrName: WETH_E_TOKEN,
   contractInterface: eulerETokenAbi,
+}
+
+export const ZEN_BULL_NETTING_CONTRACT = {
+  addressOrName: ZEN_BULL_NETTING,
+  contractInterface: bullNettingAbi,
 }
