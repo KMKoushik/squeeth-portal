@@ -17,7 +17,7 @@ import { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import { Listener, Provider } from "@ethersproject/providers";
 import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 
-export declare namespace AuctionBull {
+export declare namespace ZenAuction {
   export type OrderStruct = {
     bidId: BigNumberish;
     trader: string;
@@ -67,6 +67,7 @@ export interface AuctionBullInterface extends utils.Interface {
     "crUpper()": FunctionFragment;
     "deltaLower()": FunctionFragment;
     "deltaUpper()": FunctionFragment;
+    "farm(address,address)": FunctionFragment;
     "fullRebalance((uint256,address,uint256,uint256,bool,uint256,uint256,uint8,bytes32,bytes32)[],uint256,uint256,uint256,uint256,uint24,bool)": FunctionFragment;
     "fullRebalanceClearingPriceTolerance()": FunctionFragment;
     "getCurrentDeltaAndCollatRatio()": FunctionFragment;
@@ -112,9 +113,13 @@ export interface AuctionBullInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "farm",
+    values: [string, string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "fullRebalance",
     values: [
-      AuctionBull.OrderStruct[],
+      ZenAuction.OrderStruct[],
       BigNumberish,
       BigNumberish,
       BigNumberish,
@@ -201,6 +206,7 @@ export interface AuctionBullInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "crUpper", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deltaLower", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deltaUpper", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "farm", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "fullRebalance",
     data: BytesLike
@@ -258,6 +264,7 @@ export interface AuctionBullInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "useNonce", data: BytesLike): Result;
 
   events: {
+    "Farm(address,address)": EventFragment;
     "FullRebalance(uint256,uint256,bool,uint256,uint256)": EventFragment;
     "LeverageRebalance(bool,uint256,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
@@ -268,6 +275,7 @@ export interface AuctionBullInterface extends utils.Interface {
     "SetRebalanceWethLimitPriceTolerance(uint256,uint256)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "Farm"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "FullRebalance"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LeverageRebalance"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
@@ -281,6 +289,13 @@ export interface AuctionBullInterface extends utils.Interface {
     nameOrSignatureOrTopic: "SetRebalanceWethLimitPriceTolerance"
   ): EventFragment;
 }
+
+export type FarmEvent = TypedEvent<
+  [string, string],
+  { asset: string; receiver: string }
+>;
+
+export type FarmEventFilter = TypedEventFilter<FarmEvent>;
 
 export type FullRebalanceEvent = TypedEvent<
   [BigNumber, BigNumber, boolean, BigNumber, BigNumber],
@@ -313,7 +328,7 @@ export type OwnershipTransferredEventFilter =
 
 export type SetAuctionManagerEvent = TypedEvent<
   [string, string],
-  { newAuctionManager: string; oldAuctionManager: string }
+  { oldAuctionManager: string; newAuctionManager: string }
 >;
 
 export type SetAuctionManagerEventFilter =
@@ -347,7 +362,7 @@ export type SetDeltaUpperAndLowerEventFilter =
 
 export type SetFullRebalanceClearingPriceToleranceEvent = TypedEvent<
   [BigNumber, BigNumber],
-  { _oldPriceTolerance: BigNumber; _newPriceTolerance: BigNumber }
+  { oldPriceTolerance: BigNumber; newPriceTolerance: BigNumber }
 >;
 
 export type SetFullRebalanceClearingPriceToleranceEventFilter =
@@ -356,8 +371,8 @@ export type SetFullRebalanceClearingPriceToleranceEventFilter =
 export type SetRebalanceWethLimitPriceToleranceEvent = TypedEvent<
   [BigNumber, BigNumber],
   {
-    _oldWethLimitPriceTolerance: BigNumber;
-    _newWethLimitPriceTolerance: BigNumber;
+    oldWethLimitPriceTolerance: BigNumber;
+    newWethLimitPriceTolerance: BigNumber;
   }
 >;
 
@@ -412,8 +427,14 @@ export interface AuctionBull extends BaseContract {
 
     deltaUpper(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    farm(
+      _asset: string,
+      _receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     fullRebalance(
-      _orders: AuctionBull.OrderStruct[],
+      _orders: ZenAuction.OrderStruct[],
       _crabAmount: BigNumberish,
       _clearingPrice: BigNumberish,
       _wethTargetInEuler: BigNumberish,
@@ -520,8 +541,14 @@ export interface AuctionBull extends BaseContract {
 
   deltaUpper(overrides?: CallOverrides): Promise<BigNumber>;
 
+  farm(
+    _asset: string,
+    _receiver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   fullRebalance(
-    _orders: AuctionBull.OrderStruct[],
+    _orders: ZenAuction.OrderStruct[],
     _crabAmount: BigNumberish,
     _clearingPrice: BigNumberish,
     _wethTargetInEuler: BigNumberish,
@@ -628,8 +655,14 @@ export interface AuctionBull extends BaseContract {
 
     deltaUpper(overrides?: CallOverrides): Promise<BigNumber>;
 
+    farm(
+      _asset: string,
+      _receiver: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     fullRebalance(
-      _orders: AuctionBull.OrderStruct[],
+      _orders: ZenAuction.OrderStruct[],
       _crabAmount: BigNumberish,
       _clearingPrice: BigNumberish,
       _wethTargetInEuler: BigNumberish,
@@ -712,6 +745,12 @@ export interface AuctionBull extends BaseContract {
   };
 
   filters: {
+    "Farm(address,address)"(
+      asset?: string | null,
+      receiver?: string | null
+    ): FarmEventFilter;
+    Farm(asset?: string | null, receiver?: string | null): FarmEventFilter;
+
     "FullRebalance(uint256,uint256,bool,uint256,uint256)"(
       crabAmount?: null,
       clearingPrice?: null,
@@ -748,12 +787,12 @@ export interface AuctionBull extends BaseContract {
     ): OwnershipTransferredEventFilter;
 
     "SetAuctionManager(address,address)"(
-      newAuctionManager?: null,
-      oldAuctionManager?: null
+      oldAuctionManager?: null,
+      newAuctionManager?: null
     ): SetAuctionManagerEventFilter;
     SetAuctionManager(
-      newAuctionManager?: null,
-      oldAuctionManager?: null
+      oldAuctionManager?: null,
+      newAuctionManager?: null
     ): SetAuctionManagerEventFilter;
 
     "SetCrUpperAndLower(uint256,uint256,uint256,uint256)"(
@@ -783,21 +822,21 @@ export interface AuctionBull extends BaseContract {
     ): SetDeltaUpperAndLowerEventFilter;
 
     "SetFullRebalanceClearingPriceTolerance(uint256,uint256)"(
-      _oldPriceTolerance?: null,
-      _newPriceTolerance?: null
+      oldPriceTolerance?: null,
+      newPriceTolerance?: null
     ): SetFullRebalanceClearingPriceToleranceEventFilter;
     SetFullRebalanceClearingPriceTolerance(
-      _oldPriceTolerance?: null,
-      _newPriceTolerance?: null
+      oldPriceTolerance?: null,
+      newPriceTolerance?: null
     ): SetFullRebalanceClearingPriceToleranceEventFilter;
 
     "SetRebalanceWethLimitPriceTolerance(uint256,uint256)"(
-      _oldWethLimitPriceTolerance?: null,
-      _newWethLimitPriceTolerance?: null
+      oldWethLimitPriceTolerance?: null,
+      newWethLimitPriceTolerance?: null
     ): SetRebalanceWethLimitPriceToleranceEventFilter;
     SetRebalanceWethLimitPriceTolerance(
-      _oldWethLimitPriceTolerance?: null,
-      _newWethLimitPriceTolerance?: null
+      oldWethLimitPriceTolerance?: null,
+      newWethLimitPriceTolerance?: null
     ): SetRebalanceWethLimitPriceToleranceEventFilter;
   };
 
@@ -822,8 +861,14 @@ export interface AuctionBull extends BaseContract {
 
     deltaUpper(overrides?: CallOverrides): Promise<BigNumber>;
 
+    farm(
+      _asset: string,
+      _receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     fullRebalance(
-      _orders: AuctionBull.OrderStruct[],
+      _orders: ZenAuction.OrderStruct[],
       _crabAmount: BigNumberish,
       _clearingPrice: BigNumberish,
       _wethTargetInEuler: BigNumberish,
@@ -931,8 +976,14 @@ export interface AuctionBull extends BaseContract {
 
     deltaUpper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    farm(
+      _asset: string,
+      _receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     fullRebalance(
-      _orders: AuctionBull.OrderStruct[],
+      _orders: ZenAuction.OrderStruct[],
       _crabAmount: BigNumberish,
       _clearingPrice: BigNumberish,
       _wethTargetInEuler: BigNumberish,

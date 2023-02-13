@@ -47,7 +47,7 @@ export const WETH = getAddress({
 })
 
 export const WETH_USDC_POOL = getAddress({
-  1: '0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8',
+  1: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
   3: '0x8356AbC730a218c24446C2c85708F373f354F0D8',
   5: '0x5d3EfE9157003f05be0d4031F00D43F952d6F6b7',
 })
@@ -115,8 +115,10 @@ export const USDC_D_TOKEN = getAddress({
 export const ZEN_BULL_NETTING = getAddress({
   1: '',
   3: '',
-  5: '0x30ba683c45c8b14601ec32759134b7662cef7d93',
+  5: '0x9b6e3F5aeed72eC7C42097BC324DF43baac08645',
 })
+
+// nettinglib = 0x1bE45552938bd67EFfD3cAb9f645D510DB5CFdb6
 
 const getCrabCouncilMembers = () => {
   if (CHAIN_ID === NETWORK.MAINNET) {

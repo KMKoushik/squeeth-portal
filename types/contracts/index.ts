@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { AuctionBull } from "./AuctionBull";
+export type { BullNetting } from "./BullNetting";
 export type { BullStrategy } from "./BullStrategy";
 export type { Controller } from "./Controller";
 export type { CrabNetting } from "./CrabNetting";
@@ -15,6 +16,7 @@ export type { Oracle } from "./Oracle";
 export type { Quoter } from "./Quoter";
 
 export { AuctionBull__factory } from "./factories/AuctionBull__factory";
+export { BullNetting__factory } from "./factories/BullNetting__factory";
 export { BullStrategy__factory } from "./factories/BullStrategy__factory";
 export { Controller__factory } from "./factories/Controller__factory";
 export { CrabNetting__factory } from "./factories/CrabNetting__factory";

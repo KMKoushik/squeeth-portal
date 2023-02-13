@@ -23,6 +23,7 @@ import { getMinSize } from '../../../../utils/auction'
 import { getWsqueethFromCrabAmount } from '../../../../utils/crab'
 import { calculateTotalDeposit } from '../../../../utils/crabNetting'
 import { convertBigNumber, convertBigNumberStr, toBigNumber, wmul } from '../../../../utils/math'
+import { useCalmBullStore } from '../../../../store/calmBullStore'
 
 const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const { data: feeData } = useFeeData()
@@ -33,6 +34,8 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const quoter = useQuoter()
   const usdcDeposits = useCrabNettingStore(s => s.depositQueued)
   const crabDeposits = useCrabNettingStore(s => s.withdrawQueued)
+  const bullEthDeposits = useCalmBullStore(s => s.bullDepositQueued)
+  const bullWithdraws = useCalmBullStore(s => s.bullWithdrawQueued)
   const isNettingAuctionLive = useCrabNettingStore(s => s.isAuctionLive)
   const setIsAuctionLive = useCrabNettingStore(s => s.setAuctionLive)
   const isNew = !auction.currentAuctionId
@@ -52,7 +55,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const { data: signer } = useSigner()
   const showMessageFromServer = useToaster()
   const addRecentTransaction = useAddRecentTransaction()
-  const { getBullAuctionDetails } = useBullAuction()
+  const { getBullAuctionDetails, getNettingDepositAuction } = useBullAuction()
 
   const { data: toggleAuctionLiveTx, writeAsync: toggleAuction } = useContractWrite({
     ...CRAB_NETTING_CONTRACT,
@@ -150,24 +153,40 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
 
   const isUSDCHigher = convertBigNumber(usdcDeposits, 6) > convertBigNumber(wmul(crabDeposits, crabUsdcPrice), 18)
 
-  console.log(convertBigNumber(usdcDeposits, 6), convertBigNumber(wmul(crabDeposits, crabUsdcPrice), 18), 'prices')
-
   const updateAuctionType = async (aucType: AuctionType) => {
     setAuctionType(aucType)
     if (aucType === AuctionType.NETTING) {
-      updateOsqthAmountForNetting(price)
+      updateOsqthAmountForCrabNetting(price)
       setIsSelling(isUSDCHigher ? true : false)
     } else if (aucType === AuctionType.CALM_BULL) {
       const { oSQTHAuctionAmount, isDepositingIntoCrab } = await getBullAuctionDetails()
       console.log(oSQTHAuctionAmount.toString(), isDepositingIntoCrab)
       setOsqthAmount(convertBigNumberStr(oSQTHAuctionAmount, 18))
       setIsSelling(isDepositingIntoCrab)
+    } else if (auctionType === AuctionType.BULL_NETTING) {
+      updateOsqthAmountForBullNetting(price)
     } else {
       setOsqthAmount(convertBigNumberStr(auction.oSqthAmount, 18))
     }
   }
 
-  const updateOsqthAmountForNetting = async (_price: string) => {
+  const updateOsqthAmountForBullNetting = async (_price: string) => {
+    if (!vault || auctionType !== AuctionType.BULL_NETTING) return null
+    console.log('updateOsqthAmountForBullNetting', _price)
+
+    // if (isUSDCHigher) {
+    //   const { sqthToMint } = await calculateTotalDeposit(quoter, usdcDeposits, toBigNumber(_price, 18), vault)
+    //   console.log(sqthToMint.toString())
+    //   setOsqthAmount(convertBigNumberStr(sqthToMint, 18))
+    // } else {
+    //   const osqthToBuy = getWsqueethFromCrabAmount(crabDeposits, vault, totalSupply)
+    //   setOsqthAmount(convertBigNumberStr(osqthToBuy, 18))
+    // }
+    const { osqthAmount } = await getNettingDepositAuction(bullEthDeposits, toBigNumber(_price, 18))
+    setOsqthAmount(convertBigNumberStr(osqthAmount, 18))
+  }
+
+  const updateOsqthAmountForCrabNetting = async (_price: string) => {
     if (!vault || auctionType !== AuctionType.NETTING) return null
 
     if (isUSDCHigher) {
@@ -182,7 +201,8 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
 
   const updateLimitPrice = (limitPrice: string) => {
     updateMinAmount(limitPrice)
-    updateOsqthAmountForNetting(limitPrice)
+    updateOsqthAmountForCrabNetting(limitPrice)
+    updateOsqthAmountForBullNetting(limitPrice)
   }
 
   const onToggle = async () => {
@@ -227,8 +247,9 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
           onChange={e => updateAuctionType(e.target.value as AuctionType)}
         >
           <MenuItem value={AuctionType.CRAB_HEDGE}>Crab Hedge</MenuItem>
-          <MenuItem value={AuctionType.NETTING}>Netting</MenuItem>
+          <MenuItem value={AuctionType.NETTING}>Crab Netting</MenuItem>
           <MenuItem value={AuctionType.CALM_BULL}>Bull</MenuItem>
+          <MenuItem value={AuctionType.BULL_NETTING}>Bull Netting</MenuItem>
         </Select>
       </FormControl>
       <Box mt={2} display="flex" alignItems="center" justifyContent="space-between">

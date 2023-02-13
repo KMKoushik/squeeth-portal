@@ -5,6 +5,7 @@ import useCrabV2Store from '../store/crabV2Store'
 import usePriceStore from '../store/priceStore'
 import { bnComparator } from '../utils'
 import { getAuctionDetails, getFullRebalanceDetails } from '../utils/calmBull'
+import * as bullNetting from '../utils/bullNetting'
 import useQuoter from './useQuoter'
 
 export const useBullAuction = () => {
@@ -14,6 +15,8 @@ export const useBullAuction = () => {
   const isReady = useCalmBullStore(s => s.isReady)
   const cr = useCalmBullStore(s => s.cr, bnComparator)
   const delta = useCalmBullStore(s => s.delta, bnComparator)
+  const bullSupply = useCalmBullStore(s => s.bullSupply, bnComparator)
+  const crabSupply = useCrabV2Store(s => s.totalSupply, bnComparator)
 
   const crabUsdPrice = useCrabV2Store(s => s.crabUsdcValue, bnComparator)
   const vault = useCrabV2Store(s => s.vault)
@@ -78,8 +81,29 @@ export const useBullAuction = () => {
     return { ...rebaldata, cr, delta }
   }
 
+  async function getNettingDepositAuction(depositAmount: BigNumber, sqthPrice: BigNumber) {
+    if (!vault || !isReady)
+      return { osqthAmount: BIG_ZERO, crabAmount: BIG_ZERO, bullToMint: BIG_ZERO, ethToCrab: BIG_ZERO }
+    console.log('getNettingDepositAuction', depositAmount.toString(), sqthPrice.toString())
+
+    const nettingDepositDetails = await bullNetting.calculateTotalDeposit({
+      amount: depositAmount,
+      ethPrice: ethPrice,
+      oSqthPrice: sqthPrice,
+      bullSupply,
+      vault,
+      bullCrabBalance: crabBalance,
+      eulerEth: loanCollat,
+      eulerUSD: loanDebt,
+      crabSupply,
+    })
+
+    return nettingDepositDetails
+  }
+
   return {
     getBullAuctionDetails,
     getRebalanceDetails,
+    getNettingDepositAuction,
   }
 }

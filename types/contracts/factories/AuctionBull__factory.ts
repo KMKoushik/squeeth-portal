@@ -47,6 +47,25 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: "address",
+        name: "asset",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+    ],
+    name: "Farm",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: false,
         internalType: "uint256",
         name: "crabAmount",
@@ -130,13 +149,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
-        name: "newAuctionManager",
+        name: "oldAuctionManager",
         type: "address",
       },
       {
         indexed: false,
         internalType: "address",
-        name: "oldAuctionManager",
+        name: "newAuctionManager",
         type: "address",
       },
     ],
@@ -211,13 +230,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "_oldPriceTolerance",
+        name: "oldPriceTolerance",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "_newPriceTolerance",
+        name: "newPriceTolerance",
         type: "uint256",
       },
     ],
@@ -230,13 +249,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "_oldWethLimitPriceTolerance",
+        name: "oldWethLimitPriceTolerance",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "_newWethLimitPriceTolerance",
+        name: "newWethLimitPriceTolerance",
         type: "uint256",
       },
     ],
@@ -350,6 +369,24 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "_asset",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_receiver",
+        type: "address",
+      },
+    ],
+    name: "farm",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         components: [
           {
             internalType: "uint256",
@@ -402,7 +439,7 @@ const _abi = [
             type: "bytes32",
           },
         ],
-        internalType: "struct AuctionBull.Order[]",
+        internalType: "struct ZenAuction.Order[]",
         name: "_orders",
         type: "tuple[]",
       },

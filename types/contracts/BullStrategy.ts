@@ -25,6 +25,7 @@ export interface BullStrategyInterface extends utils.Interface {
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "auction()": FunctionFragment;
+    "auctionDepositAndRepayFromLeverage(uint256,uint256)": FunctionFragment;
     "auctionRepayAndWithdrawFromLeverage(uint256,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "calcLeverageEthUsdc(uint256,uint256,uint256,uint256,uint256)": FunctionFragment;
@@ -71,6 +72,10 @@ export interface BullStrategyInterface extends utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "auction", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "auctionDepositAndRepayFromLeverage",
+    values: [BigNumberish, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "auctionRepayAndWithdrawFromLeverage",
     values: [BigNumberish, BigNumberish]
@@ -198,6 +203,10 @@ export interface BullStrategyInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "auction", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "auctionDepositAndRepayFromLeverage",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "auctionRepayAndWithdrawFromLeverage",
     data: BytesLike
   ): Result;
@@ -302,6 +311,7 @@ export interface BullStrategyInterface extends utils.Interface {
     "Approval(address,address,uint256)": EventFragment;
     "AuctionRepayAndWithdrawFromLeverage(address,uint256,uint256)": EventFragment;
     "Deposit(address,uint256,uint256,uint256)": EventFragment;
+    "DepositAndRepayFromLeverage(address,uint256,uint256)": EventFragment;
     "DepositEthIntoCrab(uint256)": EventFragment;
     "Farm(address,address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
@@ -320,6 +330,9 @@ export interface BullStrategyInterface extends utils.Interface {
     nameOrSignatureOrTopic: "AuctionRepayAndWithdrawFromLeverage"
   ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "DepositAndRepayFromLeverage"
+  ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "DepositEthIntoCrab"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Farm"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
@@ -359,6 +372,14 @@ export type DepositEvent = TypedEvent<
 >;
 
 export type DepositEventFilter = TypedEventFilter<DepositEvent>;
+
+export type DepositAndRepayFromLeverageEvent = TypedEvent<
+  [string, BigNumber, BigNumber],
+  { from: string; wethDeposited: BigNumber; usdcRepaid: BigNumber }
+>;
+
+export type DepositAndRepayFromLeverageEventFilter =
+  TypedEventFilter<DepositAndRepayFromLeverageEvent>;
 
 export type DepositEthIntoCrabEvent = TypedEvent<
   [BigNumber],
@@ -411,7 +432,7 @@ export type SetCapEventFilter = TypedEventFilter<SetCapEvent>;
 
 export type SetShutdownContractEvent = TypedEvent<
   [string, string],
-  { newShutdownContract: string; oldShutdownContract: string }
+  { oldShutdownContract: string; newShutdownContract: string }
 >;
 
 export type SetShutdownContractEventFilter =
@@ -501,6 +522,12 @@ export interface BullStrategy extends BaseContract {
     ): Promise<ContractTransaction>;
 
     auction(overrides?: CallOverrides): Promise<[string]>;
+
+    auctionDepositAndRepayFromLeverage(
+      _wethToDeposit: BigNumberish,
+      _usdcToRepay: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     auctionRepayAndWithdrawFromLeverage(
       _usdcToRepay: BigNumberish,
@@ -665,6 +692,12 @@ export interface BullStrategy extends BaseContract {
 
   auction(overrides?: CallOverrides): Promise<string>;
 
+  auctionDepositAndRepayFromLeverage(
+    _wethToDeposit: BigNumberish,
+    _usdcToRepay: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   auctionRepayAndWithdrawFromLeverage(
     _usdcToRepay: BigNumberish,
     _wethToWithdraw: BigNumberish,
@@ -828,6 +861,12 @@ export interface BullStrategy extends BaseContract {
 
     auction(overrides?: CallOverrides): Promise<string>;
 
+    auctionDepositAndRepayFromLeverage(
+      _wethToDeposit: BigNumberish,
+      _usdcToRepay: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     auctionRepayAndWithdrawFromLeverage(
       _usdcToRepay: BigNumberish,
       _wethToWithdraw: BigNumberish,
@@ -911,7 +950,7 @@ export interface BullStrategy extends BaseContract {
       _crabToRedeem: BigNumberish,
       _wPowerPerpToRedeem: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
@@ -980,12 +1019,12 @@ export interface BullStrategy extends BaseContract {
     ): ApprovalEventFilter;
 
     "AuctionRepayAndWithdrawFromLeverage(address,uint256,uint256)"(
-      from?: null,
+      from?: string | null,
       usdcToRepay?: null,
       wethToWithdraw?: null
     ): AuctionRepayAndWithdrawFromLeverageEventFilter;
     AuctionRepayAndWithdrawFromLeverage(
-      from?: null,
+      from?: string | null,
       usdcToRepay?: null,
       wethToWithdraw?: null
     ): AuctionRepayAndWithdrawFromLeverageEventFilter;
@@ -1002,6 +1041,17 @@ export interface BullStrategy extends BaseContract {
       wethLent?: null,
       usdcBorrowed?: null
     ): DepositEventFilter;
+
+    "DepositAndRepayFromLeverage(address,uint256,uint256)"(
+      from?: string | null,
+      wethDeposited?: null,
+      usdcRepaid?: null
+    ): DepositAndRepayFromLeverageEventFilter;
+    DepositAndRepayFromLeverage(
+      from?: string | null,
+      wethDeposited?: null,
+      usdcRepaid?: null
+    ): DepositAndRepayFromLeverageEventFilter;
 
     "DepositEthIntoCrab(uint256)"(
       ethToDeposit?: null
@@ -1044,12 +1094,12 @@ export interface BullStrategy extends BaseContract {
     SetCap(oldCap?: null, newCap?: null): SetCapEventFilter;
 
     "SetShutdownContract(address,address)"(
-      newShutdownContract?: null,
-      oldShutdownContract?: null
+      oldShutdownContract?: null,
+      newShutdownContract?: null
     ): SetShutdownContractEventFilter;
     SetShutdownContract(
-      newShutdownContract?: null,
-      oldShutdownContract?: null
+      oldShutdownContract?: null,
+      newShutdownContract?: null
     ): SetShutdownContractEventFilter;
 
     "ShutdownRepayAndWithdraw(uint256,uint256,uint256)"(
@@ -1119,6 +1169,12 @@ export interface BullStrategy extends BaseContract {
     ): Promise<BigNumber>;
 
     auction(overrides?: CallOverrides): Promise<BigNumber>;
+
+    auctionDepositAndRepayFromLeverage(
+      _wethToDeposit: BigNumberish,
+      _usdcToRepay: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     auctionRepayAndWithdrawFromLeverage(
       _usdcToRepay: BigNumberish,
@@ -1281,6 +1337,12 @@ export interface BullStrategy extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     auction(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    auctionDepositAndRepayFromLeverage(
+      _wethToDeposit: BigNumberish,
+      _usdcToRepay: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     auctionRepayAndWithdrawFromLeverage(
       _usdcToRepay: BigNumberish,

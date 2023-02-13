@@ -85,7 +85,7 @@ export const useInitBull = () => {
   })
 
   React.useEffect(() => {
-    if (isSuccess && data && crabV2Vault) {
+    if (isSuccess && data && crabV2Vault && !ethPrice.isZero()) {
       const _crabBalance = data[0] as any as BigNumber
       const _eulerWeth = data[9] as any as BigNumber
       const _eulerUsdc = data[8] as any as BigNumber
@@ -105,14 +105,6 @@ export const useInitBull = () => {
       setLoanDebt(_eulerUsdc)
       setLoanCollat(_eulerWeth)
 
-      console.log(
-        'crab balance',
-        _crabBalance.toString(),
-        _bullSupply.toString(),
-        _eulerWeth.toString(),
-        _eulerUsdc.toString(),
-        ethPrice.toString(),
-      )
       const _crabCollat = _crabBalance.mul(crabV2Vault.collateral).div(crabTotalSupply)
       const _crabDebt = _crabBalance.mul(crabV2Vault.shortAmount).div(crabTotalSupply).wmul(oSqthPrice)
       const _crabComponent = _crabCollat.sub(_crabDebt).wdiv(_bullSupply)

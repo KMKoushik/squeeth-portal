@@ -27,6 +27,7 @@ export enum AuctionType {
   CRAB_HEDGE,
   NETTING,
   CALM_BULL,
+  BULL_NETTING,
 }
 
 export type Order = {

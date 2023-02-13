@@ -9,6 +9,7 @@ import {
   CallOverrides,
   ContractTransaction,
   Overrides,
+  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -17,147 +18,144 @@ import { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import { Listener, Provider } from "@ethersproject/providers";
 import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 
-export type OrderStruct = {
-  bidId: BigNumberish;
-  trader: string;
-  quantity: BigNumberish;
-  price: BigNumberish;
-  isBuying: boolean;
-  expiry: BigNumberish;
-  nonce: BigNumberish;
-  v: BigNumberish;
-  r: BytesLike;
-  s: BytesLike;
-};
+export declare namespace ZenBullNetting {
+  export type OrderStruct = {
+    bidId: BigNumberish;
+    trader: string;
+    quantity: BigNumberish;
+    price: BigNumberish;
+    isBuying: boolean;
+    expiry: BigNumberish;
+    nonce: BigNumberish;
+    v: BigNumberish;
+    r: BytesLike;
+    s: BytesLike;
+  };
 
-export type OrderStructOutput = [
-  BigNumber,
-  string,
-  BigNumber,
-  BigNumber,
-  boolean,
-  BigNumber,
-  BigNumber,
-  number,
-  string,
-  string
-] & {
-  bidId: BigNumber;
-  trader: string;
-  quantity: BigNumber;
-  price: BigNumber;
-  isBuying: boolean;
-  expiry: BigNumber;
-  nonce: BigNumber;
-  v: number;
-  r: string;
-  s: string;
-};
+  export type OrderStructOutput = [
+    BigNumber,
+    string,
+    BigNumber,
+    BigNumber,
+    boolean,
+    BigNumber,
+    BigNumber,
+    number,
+    string,
+    string
+  ] & {
+    bidId: BigNumber;
+    trader: string;
+    quantity: BigNumber;
+    price: BigNumber;
+    isBuying: boolean;
+    expiry: BigNumber;
+    nonce: BigNumber;
+    v: number;
+    r: string;
+    s: string;
+  };
 
-export type DepositAuctionParamsStruct = {
-  depositsQueued: BigNumberish;
-  minEth: BigNumberish;
-  totalDeposit: BigNumberish;
-  orders: OrderStruct[];
-  clearingPrice: BigNumberish;
-  ethToFlashDeposit: BigNumberish;
-  ethUSDFee: BigNumberish;
-  flashDepositFee: BigNumberish;
-};
+  export type DepositAuctionParamsStruct = {
+    depositsToProcess: BigNumberish;
+    crabAmount: BigNumberish;
+    orders: ZenBullNetting.OrderStruct[];
+    clearingPrice: BigNumberish;
+    flashDepositEthToCrab: BigNumberish;
+    flashDepositMinEthFromSqth: BigNumberish;
+    flashDepositMinEthFromUsdc: BigNumberish;
+    flashDepositWPowerPerpPoolFee: BigNumberish;
+    wethUsdcPoolFee: BigNumberish;
+  };
 
-export type DepositAuctionParamsStructOutput = [
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  OrderStructOutput[],
-  BigNumber,
-  BigNumber,
-  number,
-  number
-] & {
-  depositsQueued: BigNumber;
-  minEth: BigNumber;
-  totalDeposit: BigNumber;
-  orders: OrderStructOutput[];
-  clearingPrice: BigNumber;
-  ethToFlashDeposit: BigNumber;
-  ethUSDFee: number;
-  flashDepositFee: number;
-};
+  export type DepositAuctionParamsStructOutput = [
+    BigNumber,
+    BigNumber,
+    ZenBullNetting.OrderStructOutput[],
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    number,
+    number
+  ] & {
+    depositsToProcess: BigNumber;
+    crabAmount: BigNumber;
+    orders: ZenBullNetting.OrderStructOutput[];
+    clearingPrice: BigNumber;
+    flashDepositEthToCrab: BigNumber;
+    flashDepositMinEthFromSqth: BigNumber;
+    flashDepositMinEthFromUsdc: BigNumber;
+    flashDepositWPowerPerpPoolFee: number;
+    wethUsdcPoolFee: number;
+  };
 
-export type WithdrawAuctionParamsStruct = {
-  crabToWithdraw: BigNumberish;
-  orders: OrderStruct[];
-  clearingPrice: BigNumberish;
-  minUSDC: BigNumberish;
-  ethUSDFee: BigNumberish;
-};
+  export type WithdrawAuctionParamsStruct = {
+    withdrawsToProcess: BigNumberish;
+    orders: ZenBullNetting.OrderStruct[];
+    clearingPrice: BigNumberish;
+    maxWethForUsdc: BigNumberish;
+    wethUsdcPoolFee: BigNumberish;
+  };
 
-export type WithdrawAuctionParamsStructOutput = [
-  BigNumber,
-  OrderStructOutput[],
-  BigNumber,
-  BigNumber,
-  number
-] & {
-  crabToWithdraw: BigNumber;
-  orders: OrderStructOutput[];
-  clearingPrice: BigNumber;
-  minUSDC: BigNumber;
-  ethUSDFee: number;
-};
+  export type WithdrawAuctionParamsStructOutput = [
+    BigNumber,
+    ZenBullNetting.OrderStructOutput[],
+    BigNumber,
+    BigNumber,
+    number
+  ] & {
+    withdrawsToProcess: BigNumber;
+    orders: ZenBullNetting.OrderStructOutput[];
+    clearingPrice: BigNumber;
+    maxWethForUsdc: BigNumber;
+    wethUsdcPoolFee: number;
+  };
+}
 
-export interface CrabNettingInterface extends utils.Interface {
-  contractName: "CrabNetting";
+export interface BullNettingInterface extends utils.Interface {
+  contractName: "BullNetting";
   functions: {
     "DOMAIN_SEPARATOR()": FunctionFragment;
     "MAX_OTC_PRICE_TOLERANCE()": FunctionFragment;
+    "MIN_AUCTION_TWAP()": FunctionFragment;
     "auctionTwapPeriod()": FunctionFragment;
     "checkOrder((uint256,address,uint256,uint256,bool,uint256,uint256,uint8,bytes32,bytes32))": FunctionFragment;
-    "crab()": FunctionFragment;
-    "crabBalance(address)": FunctionFragment;
-    "depositAuction((uint256,uint256,uint256,(uint256,address,uint256,uint256,bool,uint256,uint256,uint8,bytes32,bytes32)[],uint256,uint256,uint24,uint24))": FunctionFragment;
-    "depositUSDC(uint256)": FunctionFragment;
+    "depositAuction((uint256,uint256,(uint256,address,uint256,uint256,bool,uint256,uint256,uint8,bytes32,bytes32)[],uint256,uint256,uint256,uint256,uint24,uint24))": FunctionFragment;
     "deposits(uint256)": FunctionFragment;
     "depositsIndex()": FunctionFragment;
     "depositsQueued()": FunctionFragment;
-    "dequeueCrab(uint256,bool)": FunctionFragment;
-    "ethSqueethPool()": FunctionFragment;
-    "ethUsdcPool()": FunctionFragment;
+    "dequeueEth(uint256,bool)": FunctionFragment;
+    "dequeueZenBull(uint256,bool)": FunctionFragment;
+    "ethBalance(address)": FunctionFragment;
+    "getDepositReceipt(uint256)": FunctionFragment;
+    "getWithdrawReceipt(uint256)": FunctionFragment;
     "isAuctionLive()": FunctionFragment;
-    "minCrabAmount()": FunctionFragment;
-    "minUSDCAmount()": FunctionFragment;
+    "minEthAmount()": FunctionFragment;
+    "minZenBullAmount()": FunctionFragment;
     "netAtPrice(uint256,uint256)": FunctionFragment;
     "nonces(address,uint256)": FunctionFragment;
-    "oracle()": FunctionFragment;
     "otcPriceTolerance()": FunctionFragment;
     "owner()": FunctionFragment;
-    "queueCrabForWithdrawal(uint256)": FunctionFragment;
-    "rejectWithdraw(uint256)": FunctionFragment;
+    "queueEth()": FunctionFragment;
+    "queueZenBull(uint256)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setAuctionTwapPeriod(uint32)": FunctionFragment;
     "setDepositsIndex(uint256)": FunctionFragment;
-    "setMinCrab(uint256)": FunctionFragment;
-    "setMinUSDC(uint256)": FunctionFragment;
-    "setNonceTrue(uint256)": FunctionFragment;
+    "setMinEthAmount(uint256)": FunctionFragment;
+    "setMinZenBullAmount(uint256)": FunctionFragment;
     "setOTCPriceTolerance(uint256)": FunctionFragment;
     "setWithdrawsIndex(uint256)": FunctionFragment;
-    "sqth()": FunctionFragment;
-    "sqthController()": FunctionFragment;
-    "sqthTwapPeriod()": FunctionFragment;
-    "swapRouter()": FunctionFragment;
     "toggleAuctionLive()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
-    "usdBalance(address)": FunctionFragment;
-    "usdc()": FunctionFragment;
+    "uniswapV3SwapCallback(int256,int256,bytes)": FunctionFragment;
     "userDepositsIndex(address,uint256)": FunctionFragment;
     "userWithdrawsIndex(address,uint256)": FunctionFragment;
-    "weth()": FunctionFragment;
     "withdrawAuction((uint256,(uint256,address,uint256,uint256,bool,uint256,uint256,uint8,bytes32,bytes32)[],uint256,uint256,uint24))": FunctionFragment;
-    "withdrawUSDC(uint256,bool)": FunctionFragment;
     "withdraws(uint256)": FunctionFragment;
     "withdrawsIndex()": FunctionFragment;
     "withdrawsQueued()": FunctionFragment;
+    "zenBullBalance(address)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -169,22 +167,20 @@ export interface CrabNettingInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "MIN_AUCTION_TWAP",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "auctionTwapPeriod",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "checkOrder",
-    values: [OrderStruct]
+    values: [ZenBullNetting.OrderStruct]
   ): string;
-  encodeFunctionData(functionFragment: "crab", values?: undefined): string;
-  encodeFunctionData(functionFragment: "crabBalance", values: [string]): string;
   encodeFunctionData(
     functionFragment: "depositAuction",
-    values: [DepositAuctionParamsStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "depositUSDC",
-    values: [BigNumberish]
+    values: [ZenBullNetting.DepositAuctionParamsStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "deposits",
@@ -199,27 +195,32 @@ export interface CrabNettingInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "dequeueCrab",
+    functionFragment: "dequeueEth",
     values: [BigNumberish, boolean]
   ): string;
   encodeFunctionData(
-    functionFragment: "ethSqueethPool",
-    values?: undefined
+    functionFragment: "dequeueZenBull",
+    values: [BigNumberish, boolean]
+  ): string;
+  encodeFunctionData(functionFragment: "ethBalance", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "getDepositReceipt",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "ethUsdcPool",
-    values?: undefined
+    functionFragment: "getWithdrawReceipt",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "isAuctionLive",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "minCrabAmount",
+    functionFragment: "minEthAmount",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "minUSDCAmount",
+    functionFragment: "minZenBullAmount",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -230,18 +231,14 @@ export interface CrabNettingInterface extends utils.Interface {
     functionFragment: "nonces",
     values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "oracle", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "otcPriceTolerance",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(functionFragment: "queueEth", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "queueCrabForWithdrawal",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "rejectWithdraw",
+    functionFragment: "queueZenBull",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -257,15 +254,11 @@ export interface CrabNettingInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "setMinCrab",
+    functionFragment: "setMinEthAmount",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "setMinUSDC",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setNonceTrue",
+    functionFragment: "setMinZenBullAmount",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -276,19 +269,6 @@ export interface CrabNettingInterface extends utils.Interface {
     functionFragment: "setWithdrawsIndex",
     values: [BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "sqth", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "sqthController",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "sqthTwapPeriod",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "swapRouter",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "toggleAuctionLive",
     values?: undefined
@@ -297,8 +277,10 @@ export interface CrabNettingInterface extends utils.Interface {
     functionFragment: "transferOwnership",
     values: [string]
   ): string;
-  encodeFunctionData(functionFragment: "usdBalance", values: [string]): string;
-  encodeFunctionData(functionFragment: "usdc", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "uniswapV3SwapCallback",
+    values: [BigNumberish, BigNumberish, BytesLike]
+  ): string;
   encodeFunctionData(
     functionFragment: "userDepositsIndex",
     values: [string, BigNumberish]
@@ -307,14 +289,9 @@ export interface CrabNettingInterface extends utils.Interface {
     functionFragment: "userWithdrawsIndex",
     values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "weth", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "withdrawAuction",
-    values: [WithdrawAuctionParamsStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "withdrawUSDC",
-    values: [BigNumberish, boolean]
+    values: [ZenBullNetting.WithdrawAuctionParamsStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "withdraws",
@@ -328,6 +305,10 @@ export interface CrabNettingInterface extends utils.Interface {
     functionFragment: "withdrawsQueued",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "zenBullBalance",
+    values: [string]
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "DOMAIN_SEPARATOR",
@@ -338,21 +319,16 @@ export interface CrabNettingInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "MIN_AUCTION_TWAP",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "auctionTwapPeriod",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "checkOrder", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "crab", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "crabBalance",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "depositAuction",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "depositUSDC",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "deposits", data: BytesLike): Result;
@@ -364,16 +340,18 @@ export interface CrabNettingInterface extends utils.Interface {
     functionFragment: "depositsQueued",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "dequeueEth", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "dequeueCrab",
+    functionFragment: "dequeueZenBull",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "ethBalance", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getDepositReceipt",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "ethSqueethPool",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "ethUsdcPool",
+    functionFragment: "getWithdrawReceipt",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -381,27 +359,23 @@ export interface CrabNettingInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "minCrabAmount",
+    functionFragment: "minEthAmount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "minUSDCAmount",
+    functionFragment: "minZenBullAmount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "netAtPrice", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "oracle", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "otcPriceTolerance",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "queueEth", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "queueCrabForWithdrawal",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "rejectWithdraw",
+    functionFragment: "queueZenBull",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -416,10 +390,12 @@ export interface CrabNettingInterface extends utils.Interface {
     functionFragment: "setDepositsIndex",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "setMinCrab", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "setMinUSDC", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "setNonceTrue",
+    functionFragment: "setMinEthAmount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setMinZenBullAmount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -430,16 +406,6 @@ export interface CrabNettingInterface extends utils.Interface {
     functionFragment: "setWithdrawsIndex",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "sqth", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "sqthController",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "sqthTwapPeriod",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "swapRouter", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "toggleAuctionLive",
     data: BytesLike
@@ -448,8 +414,10 @@ export interface CrabNettingInterface extends utils.Interface {
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "usdBalance", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "usdc", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "uniswapV3SwapCallback",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "userDepositsIndex",
     data: BytesLike
@@ -458,13 +426,8 @@ export interface CrabNettingInterface extends utils.Interface {
     functionFragment: "userWithdrawsIndex",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "weth", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAuction",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawUSDC",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "withdraws", data: BytesLike): Result;
@@ -476,67 +439,118 @@ export interface CrabNettingInterface extends utils.Interface {
     functionFragment: "withdrawsQueued",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "zenBullBalance",
+    data: BytesLike
+  ): Result;
 
   events: {
-    "BidTraded(uint256,address,uint256,uint256,bool)": EventFragment;
-    "CrabDeQueued(address,uint256,uint256)": EventFragment;
-    "CrabQueued(address,uint256,uint256,uint256)": EventFragment;
-    "CrabWithdrawn(address,uint256,uint256,uint256)": EventFragment;
-    "NonceTrue(address,uint256)": EventFragment;
+    "DepositAuction(address,uint256,uint256,uint256)": EventFragment;
+    "DequeueEth(address,uint256,uint256)": EventFragment;
+    "DequeueZenBull(address,uint256,uint256)": EventFragment;
+    "EthDeposited(address,uint256,uint256,uint256,uint256)": EventFragment;
+    "NetAtPrice(bool,address,uint256,uint256,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
+    "QueueEth(address,uint256,uint256,uint256)": EventFragment;
+    "QueueZenBull(address,uint256,uint256,uint256)": EventFragment;
     "SetAuctionTwapPeriod(uint32,uint32)": EventFragment;
-    "SetDepositsIndex(uint256)": EventFragment;
-    "SetMinCrab(uint256)": EventFragment;
-    "SetMinUSDC(uint256)": EventFragment;
+    "SetDepositsIndex(uint256,uint256)": EventFragment;
+    "SetMinEthAmount(uint256,uint256)": EventFragment;
+    "SetMinZenBullAmount(uint256,uint256)": EventFragment;
     "SetOTCPriceTolerance(uint256,uint256)": EventFragment;
-    "SetWithdrawsIndex(uint256)": EventFragment;
+    "SetWithdrawsIndex(uint256,uint256)": EventFragment;
     "ToggledAuctionLive(bool)": EventFragment;
-    "USDCDeQueued(address,uint256,uint256)": EventFragment;
-    "USDCDeposited(address,uint256,uint256,uint256,uint256)": EventFragment;
-    "USDCQueued(address,uint256,uint256,uint256)": EventFragment;
-    "WithdrawRejected(address,uint256,uint256)": EventFragment;
+    "WithdrawAuction(address,uint256,uint256,uint256)": EventFragment;
+    "ZenBullWithdrawn(address,uint256,uint256,uint256)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "BidTraded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "CrabDeQueued"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "CrabQueued"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "CrabWithdrawn"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NonceTrue"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "DepositAuction"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "DequeueEth"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "DequeueZenBull"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "EthDeposited"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NetAtPrice"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "QueueEth"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "QueueZenBull"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SetAuctionTwapPeriod"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SetDepositsIndex"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetMinCrab"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetMinUSDC"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetMinEthAmount"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetMinZenBullAmount"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SetOTCPriceTolerance"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SetWithdrawsIndex"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ToggledAuctionLive"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "USDCDeQueued"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "USDCDeposited"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "USDCQueued"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "WithdrawRejected"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "WithdrawAuction"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ZenBullWithdrawn"): EventFragment;
 }
 
-export type BidTradedEvent = TypedEvent<
-  [BigNumber, string, BigNumber, BigNumber, boolean],
-  {
-    bidId: BigNumber;
-    trader: string;
-    quantity: BigNumber;
-    price: BigNumber;
-    isBuying: boolean;
-  }
+export type DepositAuctionEvent = TypedEvent<
+  [string, BigNumber, BigNumber, BigNumber],
+  { trader: string; bidId: BigNumber; quantity: BigNumber; price: BigNumber }
 >;
 
-export type BidTradedEventFilter = TypedEventFilter<BidTradedEvent>;
+export type DepositAuctionEventFilter = TypedEventFilter<DepositAuctionEvent>;
 
-export type CrabDeQueuedEvent = TypedEvent<
+export type DequeueEthEvent = TypedEvent<
+  [string, BigNumber, BigNumber],
+  { depositor: string; amount: BigNumber; depositorsBalance: BigNumber }
+>;
+
+export type DequeueEthEventFilter = TypedEventFilter<DequeueEthEvent>;
+
+export type DequeueZenBullEvent = TypedEvent<
   [string, BigNumber, BigNumber],
   { withdrawer: string; amount: BigNumber; withdrawersBalance: BigNumber }
 >;
 
-export type CrabDeQueuedEventFilter = TypedEventFilter<CrabDeQueuedEvent>;
+export type DequeueZenBullEventFilter = TypedEventFilter<DequeueZenBullEvent>;
 
-export type CrabQueuedEvent = TypedEvent<
+export type EthDepositedEvent = TypedEvent<
+  [string, BigNumber, BigNumber, BigNumber, BigNumber],
+  {
+    depositor: string;
+    ethAmount: BigNumber;
+    zenBullAmount: BigNumber;
+    receiptIndex: BigNumber;
+    refundedETH: BigNumber;
+  }
+>;
+
+export type EthDepositedEventFilter = TypedEventFilter<EthDepositedEvent>;
+
+export type NetAtPriceEvent = TypedEvent<
+  [boolean, string, BigNumber, BigNumber, BigNumber],
+  {
+    isDeposit: boolean;
+    receiver: string;
+    amountQueuedProcessed: BigNumber;
+    amountReceived: BigNumber;
+    index: BigNumber;
+  }
+>;
+
+export type NetAtPriceEventFilter = TypedEventFilter<NetAtPriceEvent>;
+
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string],
+  { previousOwner: string; newOwner: string }
+>;
+
+export type OwnershipTransferredEventFilter =
+  TypedEventFilter<OwnershipTransferredEvent>;
+
+export type QueueEthEvent = TypedEvent<
+  [string, BigNumber, BigNumber, BigNumber],
+  {
+    depositor: string;
+    amount: BigNumber;
+    depositorsBalance: BigNumber;
+    receiptIndex: BigNumber;
+  }
+>;
+
+export type QueueEthEventFilter = TypedEventFilter<QueueEthEvent>;
+
+export type QueueZenBullEvent = TypedEvent<
   [string, BigNumber, BigNumber, BigNumber],
   {
     withdrawer: string;
@@ -546,34 +560,7 @@ export type CrabQueuedEvent = TypedEvent<
   }
 >;
 
-export type CrabQueuedEventFilter = TypedEventFilter<CrabQueuedEvent>;
-
-export type CrabWithdrawnEvent = TypedEvent<
-  [string, BigNumber, BigNumber, BigNumber],
-  {
-    withdrawer: string;
-    crabAmount: BigNumber;
-    usdcAmount: BigNumber;
-    receiptIndex: BigNumber;
-  }
->;
-
-export type CrabWithdrawnEventFilter = TypedEventFilter<CrabWithdrawnEvent>;
-
-export type NonceTrueEvent = TypedEvent<
-  [string, BigNumber],
-  { sender: string; nonce: BigNumber }
->;
-
-export type NonceTrueEventFilter = TypedEventFilter<NonceTrueEvent>;
-
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  { previousOwner: string; newOwner: string }
->;
-
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
+export type QueueZenBullEventFilter = TypedEventFilter<QueueZenBullEvent>;
 
 export type SetAuctionTwapPeriodEvent = TypedEvent<
   [number, number],
@@ -584,20 +571,27 @@ export type SetAuctionTwapPeriodEventFilter =
   TypedEventFilter<SetAuctionTwapPeriodEvent>;
 
 export type SetDepositsIndexEvent = TypedEvent<
-  [BigNumber],
-  { newDepositsIndex: BigNumber }
+  [BigNumber, BigNumber],
+  { oldDepositsIndex: BigNumber; newDepositsIndex: BigNumber }
 >;
 
 export type SetDepositsIndexEventFilter =
   TypedEventFilter<SetDepositsIndexEvent>;
 
-export type SetMinCrabEvent = TypedEvent<[BigNumber], { amount: BigNumber }>;
+export type SetMinEthAmountEvent = TypedEvent<
+  [BigNumber, BigNumber],
+  { oldAmount: BigNumber; newAmount: BigNumber }
+>;
 
-export type SetMinCrabEventFilter = TypedEventFilter<SetMinCrabEvent>;
+export type SetMinEthAmountEventFilter = TypedEventFilter<SetMinEthAmountEvent>;
 
-export type SetMinUSDCEvent = TypedEvent<[BigNumber], { amount: BigNumber }>;
+export type SetMinZenBullAmountEvent = TypedEvent<
+  [BigNumber, BigNumber],
+  { oldAmount: BigNumber; newAmount: BigNumber }
+>;
 
-export type SetMinUSDCEventFilter = TypedEventFilter<SetMinUSDCEvent>;
+export type SetMinZenBullAmountEventFilter =
+  TypedEventFilter<SetMinZenBullAmountEvent>;
 
 export type SetOTCPriceToleranceEvent = TypedEvent<
   [BigNumber, BigNumber],
@@ -608,8 +602,8 @@ export type SetOTCPriceToleranceEventFilter =
   TypedEventFilter<SetOTCPriceToleranceEvent>;
 
 export type SetWithdrawsIndexEvent = TypedEvent<
-  [BigNumber],
-  { newWithdrawsIndex: BigNumber }
+  [BigNumber, BigNumber],
+  { oldWithdrawsIndex: BigNumber; newWithdrawsIndex: BigNumber }
 >;
 
 export type SetWithdrawsIndexEventFilter =
@@ -623,53 +617,33 @@ export type ToggledAuctionLiveEvent = TypedEvent<
 export type ToggledAuctionLiveEventFilter =
   TypedEventFilter<ToggledAuctionLiveEvent>;
 
-export type USDCDeQueuedEvent = TypedEvent<
-  [string, BigNumber, BigNumber],
-  { depositor: string; amount: BigNumber; depositorsBalance: BigNumber }
+export type WithdrawAuctionEvent = TypedEvent<
+  [string, BigNumber, BigNumber, BigNumber],
+  { trader: string; bidId: BigNumber; quantity: BigNumber; price: BigNumber }
 >;
 
-export type USDCDeQueuedEventFilter = TypedEventFilter<USDCDeQueuedEvent>;
+export type WithdrawAuctionEventFilter = TypedEventFilter<WithdrawAuctionEvent>;
 
-export type USDCDepositedEvent = TypedEvent<
-  [string, BigNumber, BigNumber, BigNumber, BigNumber],
-  {
-    depositor: string;
-    usdcAmount: BigNumber;
-    crabAmount: BigNumber;
-    receiptIndex: BigNumber;
-    refundedETH: BigNumber;
-  }
->;
-
-export type USDCDepositedEventFilter = TypedEventFilter<USDCDepositedEvent>;
-
-export type USDCQueuedEvent = TypedEvent<
+export type ZenBullWithdrawnEvent = TypedEvent<
   [string, BigNumber, BigNumber, BigNumber],
   {
-    depositor: string;
-    amount: BigNumber;
-    depositorsBalance: BigNumber;
+    withdrawer: string;
+    zenBullAmount: BigNumber;
+    ethAmount: BigNumber;
     receiptIndex: BigNumber;
   }
 >;
 
-export type USDCQueuedEventFilter = TypedEventFilter<USDCQueuedEvent>;
+export type ZenBullWithdrawnEventFilter =
+  TypedEventFilter<ZenBullWithdrawnEvent>;
 
-export type WithdrawRejectedEvent = TypedEvent<
-  [string, BigNumber, BigNumber],
-  { withdrawer: string; crabAmount: BigNumber; index: BigNumber }
->;
-
-export type WithdrawRejectedEventFilter =
-  TypedEventFilter<WithdrawRejectedEvent>;
-
-export interface CrabNetting extends BaseContract {
-  contractName: "CrabNetting";
+export interface BullNetting extends BaseContract {
+  contractName: "BullNetting";
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: CrabNettingInterface;
+  interface: BullNettingInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -695,21 +669,17 @@ export interface CrabNetting extends BaseContract {
 
     MAX_OTC_PRICE_TOLERANCE(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    MIN_AUCTION_TWAP(overrides?: CallOverrides): Promise<[number]>;
+
     auctionTwapPeriod(overrides?: CallOverrides): Promise<[number]>;
 
-    checkOrder(_order: OrderStruct, overrides?: CallOverrides): Promise<[void]>;
-
-    crab(overrides?: CallOverrides): Promise<[string]>;
-
-    crabBalance(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+    checkOrder(
+      _order: ZenBullNetting.OrderStruct,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     depositAuction(
-      _p: DepositAuctionParamsStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    depositUSDC(
-      _amount: BigNumberish,
+      _params: ZenBullNetting.DepositAuctionParamsStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -728,21 +698,35 @@ export interface CrabNetting extends BaseContract {
 
     depositsQueued(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    dequeueCrab(
+    dequeueEth(
       _amount: BigNumberish,
       _force: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    ethSqueethPool(overrides?: CallOverrides): Promise<[string]>;
+    dequeueZenBull(
+      _amount: BigNumberish,
+      _force: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
-    ethUsdcPool(overrides?: CallOverrides): Promise<[string]>;
+    ethBalance(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getDepositReceipt(
+      _index: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string, BigNumber, BigNumber]>;
+
+    getWithdrawReceipt(
+      _index: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string, BigNumber, BigNumber]>;
 
     isAuctionLive(overrides?: CallOverrides): Promise<[boolean]>;
 
-    minCrabAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
+    minEthAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    minUSDCAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
+    minZenBullAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     netAtPrice(
       _price: BigNumberish,
@@ -756,19 +740,16 @@ export interface CrabNetting extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    oracle(overrides?: CallOverrides): Promise<[string]>;
-
     otcPriceTolerance(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
-    queueCrabForWithdrawal(
-      _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    queueEth(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    rejectWithdraw(
-      i: BigNumberish,
+    queueZenBull(
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -786,18 +767,13 @@ export interface CrabNetting extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setMinCrab(
+    setMinEthAmount(
       _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setMinUSDC(
+    setMinZenBullAmount(
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setNonceTrue(
-      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -811,14 +787,6 @@ export interface CrabNetting extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    sqth(overrides?: CallOverrides): Promise<[string]>;
-
-    sqthController(overrides?: CallOverrides): Promise<[string]>;
-
-    sqthTwapPeriod(overrides?: CallOverrides): Promise<[number]>;
-
-    swapRouter(overrides?: CallOverrides): Promise<[string]>;
-
     toggleAuctionLive(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -828,9 +796,12 @@ export interface CrabNetting extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    usdBalance(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    usdc(overrides?: CallOverrides): Promise<[string]>;
+    uniswapV3SwapCallback(
+      amount0Delta: BigNumberish,
+      amount1Delta: BigNumberish,
+      _data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     userDepositsIndex(
       arg0: string,
@@ -844,16 +815,8 @@ export interface CrabNetting extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    weth(overrides?: CallOverrides): Promise<[string]>;
-
     withdrawAuction(
-      _p: WithdrawAuctionParamsStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    withdrawUSDC(
-      _amount: BigNumberish,
-      _force: boolean,
+      _params: ZenBullNetting.WithdrawAuctionParamsStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -871,27 +834,28 @@ export interface CrabNetting extends BaseContract {
     withdrawsIndex(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     withdrawsQueued(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    zenBullBalance(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
   };
 
   DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
 
   MAX_OTC_PRICE_TOLERANCE(overrides?: CallOverrides): Promise<BigNumber>;
 
+  MIN_AUCTION_TWAP(overrides?: CallOverrides): Promise<number>;
+
   auctionTwapPeriod(overrides?: CallOverrides): Promise<number>;
 
-  checkOrder(_order: OrderStruct, overrides?: CallOverrides): Promise<void>;
-
-  crab(overrides?: CallOverrides): Promise<string>;
-
-  crabBalance(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+  checkOrder(
+    _order: ZenBullNetting.OrderStruct,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   depositAuction(
-    _p: DepositAuctionParamsStruct,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  depositUSDC(
-    _amount: BigNumberish,
+    _params: ZenBullNetting.DepositAuctionParamsStruct,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -910,21 +874,35 @@ export interface CrabNetting extends BaseContract {
 
   depositsQueued(overrides?: CallOverrides): Promise<BigNumber>;
 
-  dequeueCrab(
+  dequeueEth(
     _amount: BigNumberish,
     _force: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  ethSqueethPool(overrides?: CallOverrides): Promise<string>;
+  dequeueZenBull(
+    _amount: BigNumberish,
+    _force: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
-  ethUsdcPool(overrides?: CallOverrides): Promise<string>;
+  ethBalance(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  getDepositReceipt(
+    _index: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<[string, BigNumber, BigNumber]>;
+
+  getWithdrawReceipt(
+    _index: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<[string, BigNumber, BigNumber]>;
 
   isAuctionLive(overrides?: CallOverrides): Promise<boolean>;
 
-  minCrabAmount(overrides?: CallOverrides): Promise<BigNumber>;
+  minEthAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  minUSDCAmount(overrides?: CallOverrides): Promise<BigNumber>;
+  minZenBullAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
   netAtPrice(
     _price: BigNumberish,
@@ -938,19 +916,16 @@ export interface CrabNetting extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  oracle(overrides?: CallOverrides): Promise<string>;
-
   otcPriceTolerance(overrides?: CallOverrides): Promise<BigNumber>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
-  queueCrabForWithdrawal(
-    _amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+  queueEth(
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  rejectWithdraw(
-    i: BigNumberish,
+  queueZenBull(
+    _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -968,18 +943,13 @@ export interface CrabNetting extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setMinCrab(
+  setMinEthAmount(
     _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setMinUSDC(
+  setMinZenBullAmount(
     _amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setNonceTrue(
-    _nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -993,14 +963,6 @@ export interface CrabNetting extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  sqth(overrides?: CallOverrides): Promise<string>;
-
-  sqthController(overrides?: CallOverrides): Promise<string>;
-
-  sqthTwapPeriod(overrides?: CallOverrides): Promise<number>;
-
-  swapRouter(overrides?: CallOverrides): Promise<string>;
-
   toggleAuctionLive(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -1010,9 +972,12 @@ export interface CrabNetting extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  usdBalance(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  usdc(overrides?: CallOverrides): Promise<string>;
+  uniswapV3SwapCallback(
+    amount0Delta: BigNumberish,
+    amount1Delta: BigNumberish,
+    _data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   userDepositsIndex(
     arg0: string,
@@ -1026,16 +991,8 @@ export interface CrabNetting extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  weth(overrides?: CallOverrides): Promise<string>;
-
   withdrawAuction(
-    _p: WithdrawAuctionParamsStruct,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawUSDC(
-    _amount: BigNumberish,
-    _force: boolean,
+    _params: ZenBullNetting.WithdrawAuctionParamsStruct,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1054,26 +1011,24 @@ export interface CrabNetting extends BaseContract {
 
   withdrawsQueued(overrides?: CallOverrides): Promise<BigNumber>;
 
+  zenBullBalance(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
   callStatic: {
     DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
 
     MAX_OTC_PRICE_TOLERANCE(overrides?: CallOverrides): Promise<BigNumber>;
 
+    MIN_AUCTION_TWAP(overrides?: CallOverrides): Promise<number>;
+
     auctionTwapPeriod(overrides?: CallOverrides): Promise<number>;
 
-    checkOrder(_order: OrderStruct, overrides?: CallOverrides): Promise<void>;
-
-    crab(overrides?: CallOverrides): Promise<string>;
-
-    crabBalance(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    checkOrder(
+      _order: ZenBullNetting.OrderStruct,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     depositAuction(
-      _p: DepositAuctionParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    depositUSDC(
-      _amount: BigNumberish,
+      _params: ZenBullNetting.DepositAuctionParamsStruct,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1092,21 +1047,35 @@ export interface CrabNetting extends BaseContract {
 
     depositsQueued(overrides?: CallOverrides): Promise<BigNumber>;
 
-    dequeueCrab(
+    dequeueEth(
       _amount: BigNumberish,
       _force: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    ethSqueethPool(overrides?: CallOverrides): Promise<string>;
+    dequeueZenBull(
+      _amount: BigNumberish,
+      _force: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    ethUsdcPool(overrides?: CallOverrides): Promise<string>;
+    ethBalance(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    getDepositReceipt(
+      _index: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string, BigNumber, BigNumber]>;
+
+    getWithdrawReceipt(
+      _index: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string, BigNumber, BigNumber]>;
 
     isAuctionLive(overrides?: CallOverrides): Promise<boolean>;
 
-    minCrabAmount(overrides?: CallOverrides): Promise<BigNumber>;
+    minEthAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    minUSDCAmount(overrides?: CallOverrides): Promise<BigNumber>;
+    minZenBullAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
     netAtPrice(
       _price: BigNumberish,
@@ -1120,18 +1089,16 @@ export interface CrabNetting extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    oracle(overrides?: CallOverrides): Promise<string>;
-
     otcPriceTolerance(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
-    queueCrabForWithdrawal(
+    queueEth(overrides?: CallOverrides): Promise<void>;
+
+    queueZenBull(
       _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    rejectWithdraw(i: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
@@ -1145,12 +1112,13 @@ export interface CrabNetting extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setMinCrab(_amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
+    setMinEthAmount(
+      _amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    setMinUSDC(_amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
-    setNonceTrue(
-      _nonce: BigNumberish,
+    setMinZenBullAmount(
+      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1164,14 +1132,6 @@ export interface CrabNetting extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    sqth(overrides?: CallOverrides): Promise<string>;
-
-    sqthController(overrides?: CallOverrides): Promise<string>;
-
-    sqthTwapPeriod(overrides?: CallOverrides): Promise<number>;
-
-    swapRouter(overrides?: CallOverrides): Promise<string>;
-
     toggleAuctionLive(overrides?: CallOverrides): Promise<void>;
 
     transferOwnership(
@@ -1179,9 +1139,12 @@ export interface CrabNetting extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    usdBalance(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    usdc(overrides?: CallOverrides): Promise<string>;
+    uniswapV3SwapCallback(
+      amount0Delta: BigNumberish,
+      amount1Delta: BigNumberish,
+      _data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     userDepositsIndex(
       arg0: string,
@@ -1195,16 +1158,8 @@ export interface CrabNetting extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    weth(overrides?: CallOverrides): Promise<string>;
-
     withdrawAuction(
-      _p: WithdrawAuctionParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    withdrawUSDC(
-      _amount: BigNumberish,
-      _force: boolean,
+      _params: ZenBullNetting.WithdrawAuctionParamsStruct,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1222,66 +1177,75 @@ export interface CrabNetting extends BaseContract {
     withdrawsIndex(overrides?: CallOverrides): Promise<BigNumber>;
 
     withdrawsQueued(overrides?: CallOverrides): Promise<BigNumber>;
+
+    zenBullBalance(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {
-    "BidTraded(uint256,address,uint256,uint256,bool)"(
-      bidId?: BigNumberish | null,
+    "DepositAuction(address,uint256,uint256,uint256)"(
       trader?: string | null,
-      quantity?: null,
-      price?: null,
-      isBuying?: null
-    ): BidTradedEventFilter;
-    BidTraded(
       bidId?: BigNumberish | null,
-      trader?: string | null,
       quantity?: null,
-      price?: null,
-      isBuying?: null
-    ): BidTradedEventFilter;
+      price?: null
+    ): DepositAuctionEventFilter;
+    DepositAuction(
+      trader?: string | null,
+      bidId?: BigNumberish | null,
+      quantity?: null,
+      price?: null
+    ): DepositAuctionEventFilter;
 
-    "CrabDeQueued(address,uint256,uint256)"(
+    "DequeueEth(address,uint256,uint256)"(
+      depositor?: string | null,
+      amount?: null,
+      depositorsBalance?: null
+    ): DequeueEthEventFilter;
+    DequeueEth(
+      depositor?: string | null,
+      amount?: null,
+      depositorsBalance?: null
+    ): DequeueEthEventFilter;
+
+    "DequeueZenBull(address,uint256,uint256)"(
       withdrawer?: string | null,
       amount?: null,
       withdrawersBalance?: null
-    ): CrabDeQueuedEventFilter;
-    CrabDeQueued(
+    ): DequeueZenBullEventFilter;
+    DequeueZenBull(
       withdrawer?: string | null,
       amount?: null,
       withdrawersBalance?: null
-    ): CrabDeQueuedEventFilter;
+    ): DequeueZenBullEventFilter;
 
-    "CrabQueued(address,uint256,uint256,uint256)"(
-      withdrawer?: string | null,
-      amount?: null,
-      withdrawersBalance?: null,
-      receiptIndex?: BigNumberish | null
-    ): CrabQueuedEventFilter;
-    CrabQueued(
-      withdrawer?: string | null,
-      amount?: null,
-      withdrawersBalance?: null,
-      receiptIndex?: BigNumberish | null
-    ): CrabQueuedEventFilter;
+    "EthDeposited(address,uint256,uint256,uint256,uint256)"(
+      depositor?: string | null,
+      ethAmount?: null,
+      zenBullAmount?: null,
+      receiptIndex?: BigNumberish | null,
+      refundedETH?: null
+    ): EthDepositedEventFilter;
+    EthDeposited(
+      depositor?: string | null,
+      ethAmount?: null,
+      zenBullAmount?: null,
+      receiptIndex?: BigNumberish | null,
+      refundedETH?: null
+    ): EthDepositedEventFilter;
 
-    "CrabWithdrawn(address,uint256,uint256,uint256)"(
-      withdrawer?: string | null,
-      crabAmount?: null,
-      usdcAmount?: null,
-      receiptIndex?: BigNumberish | null
-    ): CrabWithdrawnEventFilter;
-    CrabWithdrawn(
-      withdrawer?: string | null,
-      crabAmount?: null,
-      usdcAmount?: null,
-      receiptIndex?: BigNumberish | null
-    ): CrabWithdrawnEventFilter;
-
-    "NonceTrue(address,uint256)"(
-      sender?: null,
-      nonce?: null
-    ): NonceTrueEventFilter;
-    NonceTrue(sender?: null, nonce?: null): NonceTrueEventFilter;
+    "NetAtPrice(bool,address,uint256,uint256,uint256)"(
+      isDeposit?: boolean | null,
+      receiver?: string | null,
+      amountQueuedProcessed?: null,
+      amountReceived?: null,
+      index?: BigNumberish | null
+    ): NetAtPriceEventFilter;
+    NetAtPrice(
+      isDeposit?: boolean | null,
+      receiver?: string | null,
+      amountQueuedProcessed?: null,
+      amountReceived?: null,
+      index?: BigNumberish | null
+    ): NetAtPriceEventFilter;
 
     "OwnershipTransferred(address,address)"(
       previousOwner?: string | null,
@@ -1292,6 +1256,32 @@ export interface CrabNetting extends BaseContract {
       newOwner?: string | null
     ): OwnershipTransferredEventFilter;
 
+    "QueueEth(address,uint256,uint256,uint256)"(
+      depositor?: string | null,
+      amount?: null,
+      depositorsBalance?: null,
+      receiptIndex?: BigNumberish | null
+    ): QueueEthEventFilter;
+    QueueEth(
+      depositor?: string | null,
+      amount?: null,
+      depositorsBalance?: null,
+      receiptIndex?: BigNumberish | null
+    ): QueueEthEventFilter;
+
+    "QueueZenBull(address,uint256,uint256,uint256)"(
+      withdrawer?: string | null,
+      amount?: null,
+      withdrawersBalance?: null,
+      receiptIndex?: BigNumberish | null
+    ): QueueZenBullEventFilter;
+    QueueZenBull(
+      withdrawer?: string | null,
+      amount?: null,
+      withdrawersBalance?: null,
+      receiptIndex?: BigNumberish | null
+    ): QueueZenBullEventFilter;
+
     "SetAuctionTwapPeriod(uint32,uint32)"(
       previousTwap?: null,
       newTwap?: null
@@ -1301,16 +1291,32 @@ export interface CrabNetting extends BaseContract {
       newTwap?: null
     ): SetAuctionTwapPeriodEventFilter;
 
-    "SetDepositsIndex(uint256)"(
+    "SetDepositsIndex(uint256,uint256)"(
+      oldDepositsIndex?: null,
       newDepositsIndex?: null
     ): SetDepositsIndexEventFilter;
-    SetDepositsIndex(newDepositsIndex?: null): SetDepositsIndexEventFilter;
+    SetDepositsIndex(
+      oldDepositsIndex?: null,
+      newDepositsIndex?: null
+    ): SetDepositsIndexEventFilter;
 
-    "SetMinCrab(uint256)"(amount?: null): SetMinCrabEventFilter;
-    SetMinCrab(amount?: null): SetMinCrabEventFilter;
+    "SetMinEthAmount(uint256,uint256)"(
+      oldAmount?: null,
+      newAmount?: null
+    ): SetMinEthAmountEventFilter;
+    SetMinEthAmount(
+      oldAmount?: null,
+      newAmount?: null
+    ): SetMinEthAmountEventFilter;
 
-    "SetMinUSDC(uint256)"(amount?: null): SetMinUSDCEventFilter;
-    SetMinUSDC(amount?: null): SetMinUSDCEventFilter;
+    "SetMinZenBullAmount(uint256,uint256)"(
+      oldAmount?: null,
+      newAmount?: null
+    ): SetMinZenBullAmountEventFilter;
+    SetMinZenBullAmount(
+      oldAmount?: null,
+      newAmount?: null
+    ): SetMinZenBullAmountEventFilter;
 
     "SetOTCPriceTolerance(uint256,uint256)"(
       previousTolerance?: null,
@@ -1321,65 +1327,45 @@ export interface CrabNetting extends BaseContract {
       newOtcPriceTolerance?: null
     ): SetOTCPriceToleranceEventFilter;
 
-    "SetWithdrawsIndex(uint256)"(
+    "SetWithdrawsIndex(uint256,uint256)"(
+      oldWithdrawsIndex?: null,
       newWithdrawsIndex?: null
     ): SetWithdrawsIndexEventFilter;
-    SetWithdrawsIndex(newWithdrawsIndex?: null): SetWithdrawsIndexEventFilter;
+    SetWithdrawsIndex(
+      oldWithdrawsIndex?: null,
+      newWithdrawsIndex?: null
+    ): SetWithdrawsIndexEventFilter;
 
     "ToggledAuctionLive(bool)"(
       isAuctionLive?: null
     ): ToggledAuctionLiveEventFilter;
     ToggledAuctionLive(isAuctionLive?: null): ToggledAuctionLiveEventFilter;
 
-    "USDCDeQueued(address,uint256,uint256)"(
-      depositor?: string | null,
-      amount?: null,
-      depositorsBalance?: null
-    ): USDCDeQueuedEventFilter;
-    USDCDeQueued(
-      depositor?: string | null,
-      amount?: null,
-      depositorsBalance?: null
-    ): USDCDeQueuedEventFilter;
+    "WithdrawAuction(address,uint256,uint256,uint256)"(
+      trader?: string | null,
+      bidId?: BigNumberish | null,
+      quantity?: null,
+      price?: null
+    ): WithdrawAuctionEventFilter;
+    WithdrawAuction(
+      trader?: string | null,
+      bidId?: BigNumberish | null,
+      quantity?: null,
+      price?: null
+    ): WithdrawAuctionEventFilter;
 
-    "USDCDeposited(address,uint256,uint256,uint256,uint256)"(
-      depositor?: string | null,
-      usdcAmount?: null,
-      crabAmount?: null,
-      receiptIndex?: BigNumberish | null,
-      refundedETH?: null
-    ): USDCDepositedEventFilter;
-    USDCDeposited(
-      depositor?: string | null,
-      usdcAmount?: null,
-      crabAmount?: null,
-      receiptIndex?: BigNumberish | null,
-      refundedETH?: null
-    ): USDCDepositedEventFilter;
-
-    "USDCQueued(address,uint256,uint256,uint256)"(
-      depositor?: string | null,
-      amount?: null,
-      depositorsBalance?: null,
-      receiptIndex?: BigNumberish | null
-    ): USDCQueuedEventFilter;
-    USDCQueued(
-      depositor?: string | null,
-      amount?: null,
-      depositorsBalance?: null,
-      receiptIndex?: BigNumberish | null
-    ): USDCQueuedEventFilter;
-
-    "WithdrawRejected(address,uint256,uint256)"(
+    "ZenBullWithdrawn(address,uint256,uint256,uint256)"(
       withdrawer?: string | null,
-      crabAmount?: null,
-      index?: null
-    ): WithdrawRejectedEventFilter;
-    WithdrawRejected(
+      zenBullAmount?: null,
+      ethAmount?: null,
+      receiptIndex?: BigNumberish | null
+    ): ZenBullWithdrawnEventFilter;
+    ZenBullWithdrawn(
       withdrawer?: string | null,
-      crabAmount?: null,
-      index?: null
-    ): WithdrawRejectedEventFilter;
+      zenBullAmount?: null,
+      ethAmount?: null,
+      receiptIndex?: BigNumberish | null
+    ): ZenBullWithdrawnEventFilter;
   };
 
   estimateGas: {
@@ -1387,24 +1373,17 @@ export interface CrabNetting extends BaseContract {
 
     MAX_OTC_PRICE_TOLERANCE(overrides?: CallOverrides): Promise<BigNumber>;
 
+    MIN_AUCTION_TWAP(overrides?: CallOverrides): Promise<BigNumber>;
+
     auctionTwapPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
     checkOrder(
-      _order: OrderStruct,
+      _order: ZenBullNetting.OrderStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    crab(overrides?: CallOverrides): Promise<BigNumber>;
-
-    crabBalance(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
     depositAuction(
-      _p: DepositAuctionParamsStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    depositUSDC(
-      _amount: BigNumberish,
+      _params: ZenBullNetting.DepositAuctionParamsStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1414,21 +1393,35 @@ export interface CrabNetting extends BaseContract {
 
     depositsQueued(overrides?: CallOverrides): Promise<BigNumber>;
 
-    dequeueCrab(
+    dequeueEth(
       _amount: BigNumberish,
       _force: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    ethSqueethPool(overrides?: CallOverrides): Promise<BigNumber>;
+    dequeueZenBull(
+      _amount: BigNumberish,
+      _force: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
-    ethUsdcPool(overrides?: CallOverrides): Promise<BigNumber>;
+    ethBalance(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    getDepositReceipt(
+      _index: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getWithdrawReceipt(
+      _index: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     isAuctionLive(overrides?: CallOverrides): Promise<BigNumber>;
 
-    minCrabAmount(overrides?: CallOverrides): Promise<BigNumber>;
+    minEthAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    minUSDCAmount(overrides?: CallOverrides): Promise<BigNumber>;
+    minZenBullAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
     netAtPrice(
       _price: BigNumberish,
@@ -1442,19 +1435,16 @@ export interface CrabNetting extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    oracle(overrides?: CallOverrides): Promise<BigNumber>;
-
     otcPriceTolerance(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    queueCrabForWithdrawal(
-      _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    queueEth(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    rejectWithdraw(
-      i: BigNumberish,
+    queueZenBull(
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1472,18 +1462,13 @@ export interface CrabNetting extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setMinCrab(
+    setMinEthAmount(
       _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setMinUSDC(
+    setMinZenBullAmount(
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setNonceTrue(
-      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1497,14 +1482,6 @@ export interface CrabNetting extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    sqth(overrides?: CallOverrides): Promise<BigNumber>;
-
-    sqthController(overrides?: CallOverrides): Promise<BigNumber>;
-
-    sqthTwapPeriod(overrides?: CallOverrides): Promise<BigNumber>;
-
-    swapRouter(overrides?: CallOverrides): Promise<BigNumber>;
-
     toggleAuctionLive(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1514,9 +1491,12 @@ export interface CrabNetting extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    usdBalance(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    usdc(overrides?: CallOverrides): Promise<BigNumber>;
+    uniswapV3SwapCallback(
+      amount0Delta: BigNumberish,
+      amount1Delta: BigNumberish,
+      _data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     userDepositsIndex(
       arg0: string,
@@ -1530,16 +1510,8 @@ export interface CrabNetting extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    weth(overrides?: CallOverrides): Promise<BigNumber>;
-
     withdrawAuction(
-      _p: WithdrawAuctionParamsStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    withdrawUSDC(
-      _amount: BigNumberish,
-      _force: boolean,
+      _params: ZenBullNetting.WithdrawAuctionParamsStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1551,6 +1523,8 @@ export interface CrabNetting extends BaseContract {
     withdrawsIndex(overrides?: CallOverrides): Promise<BigNumber>;
 
     withdrawsQueued(overrides?: CallOverrides): Promise<BigNumber>;
+
+    zenBullBalance(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1560,27 +1534,17 @@ export interface CrabNetting extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    MIN_AUCTION_TWAP(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     auctionTwapPeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     checkOrder(
-      _order: OrderStruct,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    crab(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    crabBalance(
-      arg0: string,
+      _order: ZenBullNetting.OrderStruct,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     depositAuction(
-      _p: DepositAuctionParamsStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    depositUSDC(
-      _amount: BigNumberish,
+      _params: ZenBullNetting.DepositAuctionParamsStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1593,21 +1557,38 @@ export interface CrabNetting extends BaseContract {
 
     depositsQueued(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    dequeueCrab(
+    dequeueEth(
       _amount: BigNumberish,
       _force: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    ethSqueethPool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    dequeueZenBull(
+      _amount: BigNumberish,
+      _force: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
-    ethUsdcPool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    ethBalance(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getDepositReceipt(
+      _index: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getWithdrawReceipt(
+      _index: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     isAuctionLive(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    minCrabAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    minEthAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    minUSDCAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    minZenBullAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     netAtPrice(
       _price: BigNumberish,
@@ -1621,19 +1602,16 @@ export interface CrabNetting extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    oracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     otcPriceTolerance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    queueCrabForWithdrawal(
-      _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    queueEth(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    rejectWithdraw(
-      i: BigNumberish,
+    queueZenBull(
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1651,18 +1629,13 @@ export interface CrabNetting extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setMinCrab(
+    setMinEthAmount(
       _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setMinUSDC(
+    setMinZenBullAmount(
       _amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setNonceTrue(
-      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1676,14 +1649,6 @@ export interface CrabNetting extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    sqth(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    sqthController(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    sqthTwapPeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    swapRouter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     toggleAuctionLive(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1693,12 +1658,12 @@ export interface CrabNetting extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    usdBalance(
-      arg0: string,
-      overrides?: CallOverrides
+    uniswapV3SwapCallback(
+      amount0Delta: BigNumberish,
+      amount1Delta: BigNumberish,
+      _data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    usdc(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     userDepositsIndex(
       arg0: string,
@@ -1712,16 +1677,8 @@ export interface CrabNetting extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    weth(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     withdrawAuction(
-      _p: WithdrawAuctionParamsStruct,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawUSDC(
-      _amount: BigNumberish,
-      _force: boolean,
+      _params: ZenBullNetting.WithdrawAuctionParamsStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1733,5 +1690,10 @@ export interface CrabNetting extends BaseContract {
     withdrawsIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     withdrawsQueued(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    zenBullBalance(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
   };
 }

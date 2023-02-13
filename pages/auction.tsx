@@ -12,6 +12,7 @@ import useAccountStore from '../store/accountStore'
 import useCrabV2Store from '../store/crabV2Store'
 import { useInitBull } from '../hooks/init/useInitBull'
 import { useInitCrabNetting } from '../hooks/init/useInitCrabNetting'
+import { useInitBullNetting } from '../hooks/init/useInitBullNetting'
 
 const AuctionPage: NextPage = () => {
   useInitCrabV2()
@@ -19,6 +20,7 @@ const AuctionPage: NextPage = () => {
   useController()
   useInitBull()
   useInitCrabNetting()
+  useInitBullNetting()
   const isLoading = useCrabV2Store(s => s.isLoading)
   const address = useAccountStore(s => s.address)
 

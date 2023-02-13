@@ -201,18 +201,18 @@ export async function getFullRebalanceDetails(params: getFullRebalanceType) {
   let wethToTrade = BigNumber.from(0)
   if (isDepositingIntoCrab) {
     // Deposit into crab
-    const totalEthNeededForCrab = (crabAmount.wdiv(crabTotalSupply)).wmul(ethInCrab)
+    const totalEthNeededForCrab = crabAmount.wdiv(crabTotalSupply).wmul(ethInCrab)
     const wethFromAuction = oSQTHAuctionAmount.wmul(clearingPrice)
-    const ethNeededForCrab = totalEthNeededForCrab.sub(wethFromAuction) 
-    if (wethTargetInEuler.gt(loanCollat)){
+    const ethNeededForCrab = totalEthNeededForCrab.sub(wethFromAuction)
+    if (wethTargetInEuler.gt(loanCollat)) {
       // Need more weth
       const wethToGet = wethTargetInEuler.sub(loanCollat).add(ethNeededForCrab)
       usdcAmount = await getUsdcAmountForWeth(wethToGet, false, quoter, slippageTolerance)
       wethToTrade = wethToGet
     } else {
-      const wethFromEuler = loanCollat.sub(wethTargetInEuler);
+      const wethFromEuler = loanCollat.sub(wethTargetInEuler)
 
-      if(ethNeededForCrab.gte(wethFromEuler)) {
+      if (ethNeededForCrab.gte(wethFromEuler)) {
         const wethToGet = ethNeededForCrab.sub(wethFromEuler)
         usdcAmount = await getUsdcAmountForWeth(wethToGet, false, quoter, slippageTolerance)
         wethToTrade = wethToGet
@@ -227,7 +227,7 @@ export async function getFullRebalanceDetails(params: getFullRebalanceType) {
     const wethFromCrab = crabAmount.wmul(ethInCrab).wdiv(crabTotalSupply)
     const wethToAuction = oSQTHAuctionAmount.wmul(clearingPrice)
     const netWethReceived = wethFromCrab.sub(wethToAuction)
-    if (wethTargetInEuler.gt(netWethReceived.add(loanCollat))){
+    if (wethTargetInEuler.gt(netWethReceived.add(loanCollat))) {
       const wethToBuy = wethTargetInEuler.sub(netWethReceived).add(loanCollat)
       usdcAmount = await getUsdcAmountForWeth(wethToBuy, false, quoter, slippageTolerance)
       wethToTrade = wethToBuy
@@ -236,7 +236,6 @@ export async function getFullRebalanceDetails(params: getFullRebalanceType) {
       usdcAmount = await getUsdcAmountForWeth(wethToSell, true, quoter, slippageTolerance)
       wethToTrade = wethToSell
     }
-
   }
 
   const wethLimitPrice = usdcAmount.wdiv(wethToTrade.abs()).mul(WETH_DECIMALS_DIFF)

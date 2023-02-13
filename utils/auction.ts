@@ -1,6 +1,14 @@
 import { BigNumber, ethers } from 'ethers'
 import { doc, setDoc } from 'firebase/firestore'
-import { CRAB_STRATEGY_V2, WETH, OSQUEETH, CRAB_NETTING, AUCTION_BULL, BULL_STRATEGY } from '../constants/address'
+import {
+  CRAB_STRATEGY_V2,
+  WETH,
+  OSQUEETH,
+  CRAB_NETTING,
+  AUCTION_BULL,
+  BULL_STRATEGY,
+  ZEN_BULL_NETTING,
+} from '../constants/address'
 import { BIG_ONE, BIG_ZERO, CHAIN_ID, V2_AUCTION_TIME_MILLIS } from '../constants/numbers'
 import {
   Auction,
@@ -228,6 +236,13 @@ export const bullDomain = {
   verifyingContract: AUCTION_BULL,
 }
 
+export const bullNettingDomain = {
+  name: 'ZenBullNetting',
+  version: '1',
+  chainId: CHAIN_ID,
+  verifyingContract: ZEN_BULL_NETTING,
+}
+
 export const emptyDomain = {
   name: 'EMPTY',
   version: '1',
@@ -239,6 +254,7 @@ export const getAuctionDomain = (type: AuctionType) => {
   if (type === AuctionType.CRAB_HEDGE) return hedgeDomain
   if (type === AuctionType.NETTING) return nettingDomain
   if (type === AuctionType.CALM_BULL) return bullDomain
+  if (type === AuctionType.BULL_NETTING) return bullNettingDomain
 
   return emptyDomain
 }
@@ -247,6 +263,7 @@ export const getAuctionContract = (type: AuctionType) => {
   if (type === AuctionType.CRAB_HEDGE) return CRAB_STRATEGY_V2
   if (type === AuctionType.NETTING) return CRAB_NETTING
   if (type === AuctionType.CALM_BULL) return AUCTION_BULL
+  if (type === AuctionType.BULL_NETTING) return ZEN_BULL_NETTING
 
   return ethers.constants.AddressZero
 }
@@ -405,6 +422,7 @@ export const getAuctionTypeText = (type: AuctionType) => {
   if (type === AuctionType.CRAB_HEDGE) return 'Crab Hedge'
   if (type === AuctionType.NETTING) return 'Netting'
   if (type === AuctionType.CALM_BULL) return 'Zen Bull'
+  if (type === AuctionType.BULL_NETTING) return 'Bull Netting'
 
   return ethers.constants.AddressZero
 }

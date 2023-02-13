@@ -62,7 +62,7 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "from",
         type: "address",
@@ -112,6 +112,31 @@ const _abi = [
       },
     ],
     name: "Deposit",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "wethDeposited",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "usdcRepaid",
+        type: "uint256",
+      },
+    ],
+    name: "DepositAndRepayFromLeverage",
     type: "event",
   },
   {
@@ -234,13 +259,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
-        name: "newShutdownContract",
+        name: "oldShutdownContract",
         type: "address",
       },
       {
         indexed: false,
         internalType: "address",
-        name: "oldShutdownContract",
+        name: "newShutdownContract",
         type: "address",
       },
     ],
@@ -437,6 +462,24 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_wethToDeposit",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_usdcToRepay",
+        type: "uint256",
+      },
+    ],
+    name: "auctionDepositAndRepayFromLeverage",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -791,7 +834,13 @@ const _abi = [
       },
     ],
     name: "redeemCrabAndWithdrawWEth",
-    outputs: [],
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
     stateMutability: "nonpayable",
     type: "function",
   },

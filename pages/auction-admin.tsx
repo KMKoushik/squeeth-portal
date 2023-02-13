@@ -23,6 +23,7 @@ import { useInitBull } from '../hooks/init/useInitBull'
 import { useCalmBullStore } from '../store/calmBullStore'
 import { AuctionType } from '../types'
 import NotBullAdmin from '../container/CalmBull/NotBullAdmin'
+import { useInitBullNetting } from '../hooks/init/useInitBullNetting'
 
 const AuctionAdmin: NextPage = () => {
   useInitCrabV2()
@@ -30,6 +31,7 @@ const AuctionAdmin: NextPage = () => {
   useController()
   useInitCrabNetting()
   useInitBull()
+  useInitBullNetting()
 
   const { isLoading, owner, auction, setAuctionStatus } = useCrabV2Store(
     s => ({ isLoading: s.isLoading, owner: s.owner, auction: s.auction, setAuctionStatus: s.setAuctionStatus }),

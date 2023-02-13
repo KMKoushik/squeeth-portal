@@ -29,8 +29,13 @@ import { Button, Checkbox, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { SecondaryButton } from '../../../../components/button/SecondaryButton'
 import { useBalance, useContract, useContractWrite, useSigner, useWaitForTransaction } from 'wagmi'
-import { AUCTION_BULL_CONTRACT, CRAB_NETTING_CONTRACT, CRAB_V2_CONTRACT } from '../../../../constants/contracts'
-import { AuctionBull, CrabNetting, CrabStrategyV2 } from '../../../../types/contracts'
+import {
+  AUCTION_BULL_CONTRACT,
+  CRAB_NETTING_CONTRACT,
+  CRAB_V2_CONTRACT,
+  ZEN_BULL_NETTING_CONTRACT,
+} from '../../../../constants/contracts'
+import { AuctionBull, CrabNetting, CrabStrategyV2, BullNetting } from '../../../../types/contracts'
 import useToaster from '../../../../hooks/useToaster'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
 import { BIG_ZERO, ETHERSCAN, ETH_OSQTH_FEE, ETH_USDC_FEE } from '../../../../constants/numbers'
@@ -51,6 +56,8 @@ import useQuoter from '../../../../hooks/useQuoter'
 import { getCrabFromSqueethAmount, getWsqueethFromCrabAmount } from '../../../../utils/crab'
 import { useBullAuction } from '../../../../hooks/useBullAuction'
 import { useCalmBullStore } from '../../../../store/calmBullStore'
+import { bnComparator } from '../../../../utils'
+import { ZenBullNetting } from '../../../../types/contracts/BullNetting'
 
 const AdminBidView: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
@@ -66,8 +73,9 @@ const AdminBidView: React.FC = () => {
   const { getBalances } = useBalances(uniqueTraders, auction.isSelling ? WETH : OSQUEETH)
   const showMessageFromServer = useToaster()
   const addRecentTransaction = useAddRecentTransaction()
-  const { getRebalanceDetails } = useBullAuction()
+  const { getRebalanceDetails, getNettingDepositAuction } = useBullAuction()
   const vault = useCrabV2Store(s => s.vault)
+  const bullDepositQueued = useCalmBullStore(s => s.bullDepositQueued, bnComparator)
 
   const quoter = useQuoter()
 
@@ -117,6 +125,12 @@ const AdminBidView: React.FC = () => {
     args: [],
   })
 
+  const { data: bullNettingDepositAuctionTx, writeAsync: bullNettingDepositAuction } = useContractWrite({
+    ...ZEN_BULL_NETTING_CONTRACT,
+    functionName: 'depositAuction',
+    args: [],
+  })
+
   const { data, isFetched: balfetched } = useBalance({
     addressOrName: CRAB_NETTING,
   })
@@ -137,6 +151,11 @@ const AdminBidView: React.FC = () => {
 
   const auctionBull = useContract<AuctionBull>({
     ...AUCTION_BULL_CONTRACT,
+    signerOrProvider: signer,
+  })
+
+  const bullNetting = useContract<BullNetting>({
+    ...ZEN_BULL_NETTING_CONTRACT,
     signerOrProvider: signer,
   })
 
@@ -463,6 +482,77 @@ const AdminBidView: React.FC = () => {
     }
   }
 
+  const executeBullNettingDepositAuction = async () => {
+    try {
+      const { orders } = getOrders()
+      const availableOsqth = orders.reduce((acc, o) => acc.add(o.quantity), BIG_ZERO)
+      const auctionSqth = BigNumber.from(auction.oSqthAmount)
+
+      let auctionOsqthAmount = auctionSqth
+      if (availableOsqth.lt(auctionOsqthAmount)) {
+        auctionOsqthAmount = availableOsqth
+      }
+
+      const { crabAmount, osqthAmount, bullToMint, ethToCrab } = await getNettingDepositAuction(
+        bullDepositQueued,
+        BigNumber.from(clearingPrice),
+      )
+
+      console.log(
+        'Bull deposit:',
+        crabAmount.toString(),
+        osqthAmount.toString(),
+        bullToMint.toString(),
+        ethToCrab.toString(),
+      )
+
+      // const gasLimit = await bullNetting.estimateGas.depositAuction({
+      //   depositsToProcess: bullDepositQueued,
+      //   crabAmount,
+      //   orders,
+      //   clearingPrice,
+      //   flashDepositEthToCrab: BIG_ZERO,
+      //   flashDepositMinEthFromSqth: BIG_ZERO,
+      //   flashDepositMinEthFromUsdc: BIG_ZERO,
+      //   flashDepositWPowerPerpPoolFee: ETH_OSQTH_FEE,
+      //   wethUsdcPoolFee: ETH_USDC_FEE,
+      // })
+
+      const gasLimit = BigNumber.from(7000000)
+
+      const tx = await bullNettingDepositAuction({
+        args: [
+          {
+            depositsToProcess: bullDepositQueued,
+            crabAmount,
+            orders,
+            clearingPrice,
+            flashDepositEthToCrab: BIG_ZERO,
+            flashDepositMinEthFromSqth: BIG_ZERO,
+            flashDepositMinEthFromUsdc: BIG_ZERO,
+            flashDepositWPowerPerpPoolFee: ETH_OSQTH_FEE,
+            wethUsdcPoolFee: ETH_USDC_FEE,
+          },
+        ],
+        overrides: {
+          gasLimit: gasLimit.mul(125).div(100),
+        },
+      })
+      try {
+        addRecentTransaction({
+          hash: tx.hash,
+          description: 'Bull netting Deposit Auction',
+        })
+      } catch (e) {
+        console.log(e)
+      }
+      await tx.wait()
+      await submitTx(tx.hash, tx.timestamp || 0)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   const submitTx = async (tx: string, timestamp: number, auctionQty?: BigNumber) => {
     const { orders, manualBids } = getOrders()
 
@@ -471,9 +561,9 @@ const AdminBidView: React.FC = () => {
       bids: getBidsWithReasonMap(
         manualBids.length
           ? bids.map(b => ({
-              ...b,
-              status: !!manualBidMap[`${b.bidder}-${b.order.nonce}`] ? BidStatus.INCLUDED : BidStatus.ALREADY_FILLED,
-            }))
+            ...b,
+            status: !!manualBidMap[`${b.bidder}-${b.order.nonce}`] ? BidStatus.INCLUDED : BidStatus.ALREADY_FILLED,
+          }))
           : filteredBids!,
       ),
       tx,
@@ -544,6 +634,9 @@ const AdminBidView: React.FC = () => {
       }
       if (auction.type === AuctionType.CALM_BULL) {
         await executeBullAuction()
+      }
+      if (auction.type === AuctionType.BULL_NETTING) {
+        await executeBullNettingDepositAuction()
       }
     } catch (e) {
       console.log(e)

@@ -4,19 +4,29 @@
 
 import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-import type { CrabNetting, CrabNettingInterface } from "../CrabNetting";
+import type { BullNetting, BullNettingInterface } from "../BullNetting";
 
 const _abi = [
   {
     inputs: [
       {
         internalType: "address",
-        name: "_crab",
+        name: "_zenBull",
         type: "address",
       },
       {
         internalType: "address",
-        name: "_swapRouter",
+        name: "_eulerSimpleLens",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_flashZenBull",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_uniFactory",
         type: "address",
       },
     ],
@@ -28,15 +38,15 @@ const _abi = [
     inputs: [
       {
         indexed: true,
-        internalType: "uint256",
-        name: "bidId",
-        type: "uint256",
-      },
-      {
-        indexed: true,
         internalType: "address",
         name: "trader",
         type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "bidId",
+        type: "uint256",
       },
       {
         indexed: false,
@@ -50,120 +60,132 @@ const _abi = [
         name: "price",
         type: "uint256",
       },
+    ],
+    name: "DepositAuction",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "depositor",
+        type: "address",
+      },
       {
         indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "depositorsBalance",
+        type: "uint256",
+      },
+    ],
+    name: "DequeueEth",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "withdrawer",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "withdrawersBalance",
+        type: "uint256",
+      },
+    ],
+    name: "DequeueZenBull",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "depositor",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "ethAmount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "zenBullAmount",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "receiptIndex",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "refundedETH",
+        type: "uint256",
+      },
+    ],
+    name: "EthDeposited",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
         internalType: "bool",
-        name: "isBuying",
+        name: "isDeposit",
         type: "bool",
       },
-    ],
-    name: "BidTraded",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
       {
         indexed: true,
         internalType: "address",
-        name: "withdrawer",
+        name: "receiver",
         type: "address",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "amount",
+        name: "amountQueuedProcessed",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "withdrawersBalance",
-        type: "uint256",
-      },
-    ],
-    name: "CrabDeQueued",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "withdrawer",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "withdrawersBalance",
+        name: "amountReceived",
         type: "uint256",
       },
       {
         indexed: true,
         internalType: "uint256",
-        name: "receiptIndex",
+        name: "index",
         type: "uint256",
       },
     ],
-    name: "CrabQueued",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "withdrawer",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "crabAmount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "usdcAmount",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "receiptIndex",
-        type: "uint256",
-      },
-    ],
-    name: "CrabWithdrawn",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "sender",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "nonce",
-        type: "uint256",
-      },
-    ],
-    name: "NonceTrue",
+    name: "NetAtPrice",
     type: "event",
   },
   {
@@ -183,6 +205,68 @@ const _abi = [
       },
     ],
     name: "OwnershipTransferred",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "depositor",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "depositorsBalance",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "receiptIndex",
+        type: "uint256",
+      },
+    ],
+    name: "QueueEth",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "withdrawer",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "withdrawersBalance",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "receiptIndex",
+        type: "uint256",
+      },
+    ],
+    name: "QueueZenBull",
     type: "event",
   },
   {
@@ -210,6 +294,12 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
+        name: "oldDepositsIndex",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
         name: "newDepositsIndex",
         type: "uint256",
       },
@@ -223,11 +313,17 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "amount",
+        name: "oldAmount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newAmount",
         type: "uint256",
       },
     ],
-    name: "SetMinCrab",
+    name: "SetMinEthAmount",
     type: "event",
   },
   {
@@ -236,11 +332,17 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "amount",
+        name: "oldAmount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newAmount",
         type: "uint256",
       },
     ],
-    name: "SetMinUSDC",
+    name: "SetMinZenBullAmount",
     type: "event",
   },
   {
@@ -265,6 +367,12 @@ const _abi = [
   {
     anonymous: false,
     inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "oldWithdrawsIndex",
+        type: "uint256",
+      },
       {
         indexed: false,
         internalType: "uint256",
@@ -294,91 +402,29 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "depositor",
+        name: "trader",
         type: "address",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
-        name: "amount",
+        name: "bidId",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "depositorsBalance",
+        name: "quantity",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "price",
         type: "uint256",
       },
     ],
-    name: "USDCDeQueued",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "depositor",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "usdcAmount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "crabAmount",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "receiptIndex",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "refundedETH",
-        type: "uint256",
-      },
-    ],
-    name: "USDCDeposited",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "depositor",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "depositorsBalance",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "receiptIndex",
-        type: "uint256",
-      },
-    ],
-    name: "USDCQueued",
+    name: "WithdrawAuction",
     type: "event",
   },
   {
@@ -393,17 +439,23 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "crabAmount",
+        name: "zenBullAmount",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "index",
+        name: "ethAmount",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "receiptIndex",
         type: "uint256",
       },
     ],
-    name: "WithdrawRejected",
+    name: "ZenBullWithdrawn",
     type: "event",
   },
   {
@@ -427,6 +479,19 @@ const _abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "MIN_AUCTION_TWAP",
+    outputs: [
+      {
+        internalType: "uint32",
+        name: "",
+        type: "uint32",
       },
     ],
     stateMutability: "view",
@@ -500,43 +565,17 @@ const _abi = [
             type: "bytes32",
           },
         ],
-        internalType: "struct Order",
+        internalType: "struct ZenBullNetting.Order",
         name: "_order",
         type: "tuple",
       },
     ],
     name: "checkOrder",
-    outputs: [],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "crab",
     outputs: [
       {
-        internalType: "address",
+        internalType: "bool",
         name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "crabBalance",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
+        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -548,17 +587,12 @@ const _abi = [
         components: [
           {
             internalType: "uint256",
-            name: "depositsQueued",
+            name: "depositsToProcess",
             type: "uint256",
           },
           {
             internalType: "uint256",
-            name: "minEth",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "totalDeposit",
+            name: "crabAmount",
             type: "uint256",
           },
           {
@@ -614,7 +648,7 @@ const _abi = [
                 type: "bytes32",
               },
             ],
-            internalType: "struct Order[]",
+            internalType: "struct ZenBullNetting.Order[]",
             name: "orders",
             type: "tuple[]",
           },
@@ -625,39 +659,36 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "ethToFlashDeposit",
+            name: "flashDepositEthToCrab",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "flashDepositMinEthFromSqth",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "flashDepositMinEthFromUsdc",
             type: "uint256",
           },
           {
             internalType: "uint24",
-            name: "ethUSDFee",
+            name: "flashDepositWPowerPerpPoolFee",
             type: "uint24",
           },
           {
             internalType: "uint24",
-            name: "flashDepositFee",
+            name: "wethUsdcPoolFee",
             type: "uint24",
           },
         ],
-        internalType: "struct DepositAuctionParams",
-        name: "_p",
+        internalType: "struct ZenBullNetting.DepositAuctionParams",
+        name: "_params",
         type: "tuple",
       },
     ],
     name: "depositAuction",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_amount",
-        type: "uint256",
-      },
-    ],
-    name: "depositUSDC",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -730,32 +761,101 @@ const _abi = [
         type: "bool",
       },
     ],
-    name: "dequeueCrab",
+    name: "dequeueEth",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
   },
   {
-    inputs: [],
-    name: "ethSqueethPool",
-    outputs: [
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256",
+      },
+      {
+        internalType: "bool",
+        name: "_force",
+        type: "bool",
+      },
+    ],
+    name: "dequeueZenBull",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
       {
         internalType: "address",
         name: "",
         type: "address",
       },
     ],
+    name: "ethBalance",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
     stateMutability: "view",
     type: "function",
   },
   {
-    inputs: [],
-    name: "ethUsdcPool",
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_index",
+        type: "uint256",
+      },
+    ],
+    name: "getDepositReceipt",
     outputs: [
       {
         internalType: "address",
         name: "",
         type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_index",
+        type: "uint256",
+      },
+    ],
+    name: "getWithdrawReceipt",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -776,7 +876,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "minCrabAmount",
+    name: "minEthAmount",
     outputs: [
       {
         internalType: "uint256",
@@ -789,7 +889,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "minUSDCAmount",
+    name: "minZenBullAmount",
     outputs: [
       {
         internalType: "uint256",
@@ -844,19 +944,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "oracle",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "otcPriceTolerance",
     outputs: [
       {
@@ -882,6 +969,13 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "queueEth",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
@@ -889,20 +983,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "queueCrabForWithdrawal",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "i",
-        type: "uint256",
-      },
-    ],
-    name: "rejectWithdraw",
+    name: "queueZenBull",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -948,7 +1029,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "setMinCrab",
+    name: "setMinEthAmount",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -961,20 +1042,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "setMinUSDC",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_nonce",
-        type: "uint256",
-      },
-    ],
-    name: "setNonceTrue",
+    name: "setMinZenBullAmount",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -1007,58 +1075,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "sqth",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "sqthController",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "sqthTwapPeriod",
-    outputs: [
-      {
-        internalType: "uint32",
-        name: "",
-        type: "uint32",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "swapRouter",
-    outputs: [
-      {
-        internalType: "contract ISwapRouter",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "toggleAuctionLive",
     outputs: [],
     stateMutability: "nonpayable",
@@ -1080,33 +1096,24 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
+        internalType: "int256",
+        name: "amount0Delta",
+        type: "int256",
       },
-    ],
-    name: "usdBalance",
-    outputs: [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
+        internalType: "int256",
+        name: "amount1Delta",
+        type: "int256",
       },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "usdc",
-    outputs: [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
+        internalType: "bytes",
+        name: "_data",
+        type: "bytes",
       },
     ],
-    stateMutability: "view",
+    name: "uniswapV3SwapCallback",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -1158,25 +1165,12 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "weth",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         components: [
           {
             internalType: "uint256",
-            name: "crabToWithdraw",
+            name: "withdrawsToProcess",
             type: "uint256",
           },
           {
@@ -1232,7 +1226,7 @@ const _abi = [
                 type: "bytes32",
               },
             ],
-            internalType: "struct Order[]",
+            internalType: "struct ZenBullNetting.Order[]",
             name: "orders",
             type: "tuple[]",
           },
@@ -1243,39 +1237,21 @@ const _abi = [
           },
           {
             internalType: "uint256",
-            name: "minUSDC",
+            name: "maxWethForUsdc",
             type: "uint256",
           },
           {
             internalType: "uint24",
-            name: "ethUSDFee",
+            name: "wethUsdcPoolFee",
             type: "uint24",
           },
         ],
-        internalType: "struct WithdrawAuctionParams",
-        name: "_p",
+        internalType: "struct ZenBullNetting.WithdrawAuctionParams",
+        name: "_params",
         type: "tuple",
       },
     ],
     name: "withdrawAuction",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_amount",
-        type: "uint256",
-      },
-      {
-        internalType: "bool",
-        name: "_force",
-        type: "bool",
-      },
-    ],
-    name: "withdrawUSDC",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -1336,20 +1312,39 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "zenBullBalance",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     stateMutability: "payable",
     type: "receive",
   },
 ];
 
-export class CrabNetting__factory {
+export class BullNetting__factory {
   static readonly abi = _abi;
-  static createInterface(): CrabNettingInterface {
-    return new utils.Interface(_abi) as CrabNettingInterface;
+  static createInterface(): BullNettingInterface {
+    return new utils.Interface(_abi) as BullNettingInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): CrabNetting {
-    return new Contract(address, _abi, signerOrProvider) as CrabNetting;
+  ): BullNetting {
+    return new Contract(address, _abi, signerOrProvider) as BullNetting;
   }
 }

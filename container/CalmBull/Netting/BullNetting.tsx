@@ -4,7 +4,7 @@ import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
 import { useMemo, useState } from 'react'
 import { useContractWrite, useWaitForTransaction } from 'wagmi'
 import { PrimaryLoadingButton } from '../../../components/button/PrimaryButton'
-import { ZEN_BULL_NETTING_CONTRACT } from '../../../constants/contracts'
+import { AUCTION_BULL_CONTRACT, ZEN_BULL_NETTING_CONTRACT } from '../../../constants/contracts'
 import { BIG_ZERO } from '../../../constants/numbers'
 import { useCalmBullStore } from '../../../store/calmBullStore'
 import usePriceStore from '../../../store/priceStore'
@@ -157,6 +157,34 @@ export const BullNetting: React.FC = () => {
       <Typography color="error">{error}</Typography>
       <PrimaryLoadingButton disabled={!!error} onClick={executeNetting} loading={isNetting}>
         Execute netting
+      </PrimaryLoadingButton>
+      <Box mt={6}>
+        <UpdateAuctionManager />
+      </Box>
+    </Box>
+  )
+}
+
+const UpdateAuctionManager: React.FC = () => {
+  const [address, setAddress] = useState('')
+
+  const { writeAsync: setAuctionManager } = useContractWrite({
+    ...AUCTION_BULL_CONTRACT,
+    functionName: 'setAuctionManager',
+    args: [address],
+  })
+
+  return (
+    <Box>
+      <TextField
+        label="Auction manager"
+        sx={{ width: 400 }}
+        size="small"
+        value={address}
+        onChange={e => setAddress(e.target.value)}
+      />
+      <PrimaryLoadingButton sx={{ ml: 2 }} onClick={() => setAuctionManager()}>
+        Set auction manager
       </PrimaryLoadingButton>
     </Box>
   )
