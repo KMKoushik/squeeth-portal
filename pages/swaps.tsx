@@ -7,8 +7,6 @@ import UniswapReact from 'uniswap-react'
 import Web3 from 'web3'
 import styles from '../styles/Home.module.css'
 
-const defaultWeb3 = new Web3(`https://mainnet.infura.io/v3/99eaaebb57bb4a96bb0183c0f0c2e160`)
-
 const Home: NextPage = () => {
   const [uniswapDappSharedLogicContext, setUniswapDappSharedLogicContext] = React.useState<
     undefined | UniswapDappSharedLogicContext
@@ -18,7 +16,7 @@ const Home: NextPage = () => {
   const [loading, setLoading] = React.useState<boolean>(true)
 
   useEffect(() => {
-    ;(async () => {
+    ; (async () => {
       async function getMetaMaskAccount(): Promise<string[]> {
         try {
           const accounts = await (window as any).ethereum.request({
