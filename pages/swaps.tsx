@@ -16,7 +16,7 @@ const Home: NextPage = () => {
   const [loading, setLoading] = React.useState<boolean>(true)
 
   useEffect(() => {
-    ; (async () => {
+    ;(async () => {
       async function getMetaMaskAccount(): Promise<string[]> {
         try {
           const accounts = await (window as any).ethereum.request({
