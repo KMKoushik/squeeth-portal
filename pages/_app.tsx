@@ -13,7 +13,7 @@ import '@rainbow-me/rainbowkit/styles.css'
 import { getDefaultWallets, RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit'
 import { SafeConnector } from '@gnosis.pm/safe-apps-wagmi'
 import { chain, configureChains, createClient, WagmiConfig } from 'wagmi'
-import { infuraProvider } from 'wagmi/providers/infura'
+import { alchemyProvider } from 'wagmi/providers/alchemy'
 import { publicProvider } from 'wagmi/providers/public'
 import { CHAIN_ID, TWAP_PERIOD } from '../constants/numbers'
 import useInitAccount from '../hooks/init/useInitAccount'
@@ -25,12 +25,12 @@ import { useAutoConnect } from '../hooks/useAutoConnect'
 
 // API key for Ethereum node
 // Two popular services are Infura (infura.io) and Alchemy (alchemy.com)
-const infuraId = process.env.NEXT_PUBLIC_INFURA_API_KEY
+const alchemyId = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY
 
 const appChain = CHAIN_ID === 1 ? chain.mainnet : CHAIN_ID === 5 ? chain.goerli : chain.ropsten
 
 // Chains for connectors to support
-const { chains, provider } = configureChains([appChain], [infuraProvider({ infuraId }), publicProvider()])
+const { chains, provider } = configureChains([appChain], [alchemyProvider({ alchemyId }), publicProvider()])
 
 //Set up connectors
 const { connectors } = getDefaultWallets({

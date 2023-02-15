@@ -15,7 +15,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 First, create a .env file with following keys
 
 ```
-NEXT_PUBLIC_INFURA_API_KEY=*************
+NEXT_PUBLIC_ALCHEMY_API_KEY=*************
 NEXT_PUBLIC_CHAIN_ID=1
 NEXT_PUBLIC_DERIBIT_BASE_URL=https://test.deribit.com
 ```

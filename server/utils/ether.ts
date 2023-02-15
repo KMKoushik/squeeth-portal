@@ -9,6 +9,6 @@ export const verifyMessage = (message: string, signature: string, address: strin
   return address.toLowerCase() === addr.toLowerCase()
 }
 
-export const provider = new ethers.providers.InfuraProvider(CHAIN_ID, process.env.NEXT_PUBLIC_INFURA_API_KEY)
+export const provider = new ethers.providers.AlchemyProvider(CHAIN_ID, process.env.NEXT_PUBLIC_ALCHEMY_API_KEY)
 
 export const crabV2Contract = new ethers.Contract(CRAB_STRATEGY_V2, crabAbi, provider) as CrabStrategyV2
