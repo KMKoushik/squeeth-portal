@@ -36,6 +36,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const crabDeposits = useCrabNettingStore(s => s.withdrawQueued)
   const bullEthDeposits = useCalmBullStore(s => s.bullDepositQueued)
   const bullWithdraws = useCalmBullStore(s => s.bullWithdrawQueued)
+  const bullEthValue = useCalmBullStore(s => s.bullEthValue)
   const isNettingAuctionLive = useCrabNettingStore(s => s.isAuctionLive)
   const setIsAuctionLive = useCrabNettingStore(s => s.setAuctionLive)
   const isNew = !auction.currentAuctionId
@@ -55,7 +56,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
   const { data: signer } = useSigner()
   const showMessageFromServer = useToaster()
   const addRecentTransaction = useAddRecentTransaction()
-  const { getBullAuctionDetails, getNettingDepositAuction } = useBullAuction()
+  const { getBullAuctionDetails, getNettingDepositAuction, getNettingWithdrawAuction } = useBullAuction()
 
   const { data: toggleAuctionLiveTx, writeAsync: toggleAuction } = useContractWrite({
     ...CRAB_NETTING_CONTRACT,
@@ -152,6 +153,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
   }, [auction, signer, updateAuction])
 
   const isUSDCHigher = convertBigNumber(usdcDeposits, 6) > convertBigNumber(wmul(crabDeposits, crabUsdcPrice), 18)
+  const isBullEthHigher = convertBigNumber(bullEthDeposits, 18) > convertBigNumber(bullWithdraws.wmul(bullEthValue), 18)
 
   const updateAuctionType = async (aucType: AuctionType) => {
     setAuctionType(aucType)
@@ -165,6 +167,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
       setIsSelling(isDepositingIntoCrab)
     } else if (auctionType === AuctionType.BULL_NETTING) {
       updateOsqthAmountForBullNetting(price)
+      setIsSelling(isBullEthHigher ? true : false)
     } else {
       setOsqthAmount(convertBigNumberStr(auction.oSqthAmount, 18))
     }
@@ -174,16 +177,14 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
     if (!vault || auctionType !== AuctionType.BULL_NETTING) return null
     console.log('updateOsqthAmountForBullNetting', _price)
 
-    // if (isUSDCHigher) {
-    //   const { sqthToMint } = await calculateTotalDeposit(quoter, usdcDeposits, toBigNumber(_price, 18), vault)
-    //   console.log(sqthToMint.toString())
-    //   setOsqthAmount(convertBigNumberStr(sqthToMint, 18))
-    // } else {
-    //   const osqthToBuy = getWsqueethFromCrabAmount(crabDeposits, vault, totalSupply)
-    //   setOsqthAmount(convertBigNumberStr(osqthToBuy, 18))
-    // }
-    const { osqthAmount } = await getNettingDepositAuction(bullEthDeposits, toBigNumber(_price, 18))
-    setOsqthAmount(convertBigNumberStr(osqthAmount, 18))
+    if (isUSDCHigher) {
+      const { osqthAmount } = await getNettingDepositAuction(bullEthDeposits, toBigNumber(_price, 18))
+      console.log(osqthAmount.toString())
+      setOsqthAmount(convertBigNumberStr(osqthAmount, 18))
+    } else {
+      const { oSqthAmount } = await getNettingWithdrawAuction(bullWithdraws)
+      setOsqthAmount(convertBigNumberStr(oSqthAmount, 18))
+    }
   }
 
   const updateOsqthAmountForCrabNetting = async (_price: string) => {

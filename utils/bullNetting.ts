@@ -1,6 +1,9 @@
 import { BigNumber } from 'ethers'
-import { BIG_ONE } from '../constants/numbers'
+import { USDC, WETH } from '../constants/address'
+import { BIG_ONE, ETH_USDC_FEE } from '../constants/numbers'
 import { Vault } from '../types'
+import { Quoter } from '../types/contracts'
+import { quoteExactOut } from './quoter'
 
 type CalculateTotalDepositParams = {
   amount: BigNumber
@@ -52,10 +55,33 @@ export async function calculateTotalDeposit(params: CalculateTotalDepositParams)
     eulerEth,
     eulerUSD,
   )
-  const osqthAmount = crabAmount.mul(vault.shortAmount).div(crabSupply)
   const ethToCrab = crabAmount.mul(vault.collateral).div(crabSupply)
+  const osqthAmount = ethToCrab.mul(vault.shortAmount).div(vault.collateral)
   const share = crabAmount.mul(BIG_ONE).div(bullCrabBalance.add(crabAmount))
   const bullToMint = share.mul(bullSupply).div(BIG_ONE.sub(share))
 
   return { osqthAmount, crabAmount, bullToMint, ethToCrab }
+}
+
+type CalculateTotalWithdrawParams = {
+  amount: BigNumber
+  vault: Vault
+  bullCrabBalance: BigNumber
+  crabSupply: BigNumber
+  bullSupply: BigNumber
+  eulerEth: BigNumber
+  eulerUSD: BigNumber
+  quoter: Quoter
+}
+
+export async function calculateTotalWithdraw(params: CalculateTotalWithdrawParams) {
+  const { amount, vault, bullCrabBalance, bullSupply, crabSupply, eulerUSD, quoter } = params
+
+  const share = amount.wdiv(bullSupply)
+  const crabAmount = share.wmul(bullCrabBalance)
+  const oSqthAmount = crabAmount.wmul(vault.shortAmount).wdiv(crabSupply)
+  const usdToRepay = amount.wdiv(bullSupply).wmul(eulerUSD)
+  const maxWeth = await quoteExactOut(quoter, WETH, USDC, usdToRepay, ETH_USDC_FEE)
+
+  return { oSqthAmount, usdToRepay, maxWeth }
 }

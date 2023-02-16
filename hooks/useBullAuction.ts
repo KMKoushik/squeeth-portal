@@ -101,9 +101,27 @@ export const useBullAuction = () => {
     return nettingDepositDetails
   }
 
+  async function getNettingWithdrawAuction(withdrawAmount: BigNumber) {
+    if (!vault || !isReady) return { oSqthAmount: BIG_ZERO, usdToRepay: BIG_ZERO, maxWeth: BIG_ZERO }
+
+    const nettingWithdrawDetails = await bullNetting.calculateTotalWithdraw({
+      amount: withdrawAmount,
+      bullSupply,
+      vault,
+      bullCrabBalance: crabBalance,
+      eulerEth: loanCollat,
+      eulerUSD: loanDebt,
+      crabSupply,
+      quoter,
+    })
+
+    return nettingWithdrawDetails
+  }
+
   return {
     getBullAuctionDetails,
     getRebalanceDetails,
     getNettingDepositAuction,
+    getNettingWithdrawAuction,
   }
 }

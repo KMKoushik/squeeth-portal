@@ -73,9 +73,10 @@ const AdminBidView: React.FC = () => {
   const { getBalances } = useBalances(uniqueTraders, auction.isSelling ? WETH : OSQUEETH)
   const showMessageFromServer = useToaster()
   const addRecentTransaction = useAddRecentTransaction()
-  const { getRebalanceDetails, getNettingDepositAuction } = useBullAuction()
+  const { getRebalanceDetails, getNettingDepositAuction, getNettingWithdrawAuction } = useBullAuction()
   const vault = useCrabV2Store(s => s.vault)
   const bullDepositQueued = useCalmBullStore(s => s.bullDepositQueued, bnComparator)
+  const bullWithdrawQueued = useCalmBullStore(s => s.bullWithdrawQueued, bnComparator)
 
   const quoter = useQuoter()
 
@@ -128,6 +129,12 @@ const AdminBidView: React.FC = () => {
   const { data: bullNettingDepositAuctionTx, writeAsync: bullNettingDepositAuction } = useContractWrite({
     ...ZEN_BULL_NETTING_CONTRACT,
     functionName: 'depositAuction',
+    args: [],
+  })
+
+  const { data: bullNettingWithdrawAuctionTx, writeAsync: bullNettingWithdrawAuction } = useContractWrite({
+    ...ZEN_BULL_NETTING_CONTRACT,
+    functionName: 'withdrawAuction',
     args: [],
   })
 
@@ -553,6 +560,60 @@ const AdminBidView: React.FC = () => {
     }
   }
 
+  const executeBullNettingWithdrawAuction = async () => {
+    try {
+      const { orders } = getOrders()
+      const availableOsqth = orders.reduce((acc, o) => acc.add(o.quantity), BIG_ZERO)
+      const auctionSqth = BigNumber.from(auction.oSqthAmount)
+
+      let auctionOsqthAmount = auctionSqth
+      if (availableOsqth.lt(auctionOsqthAmount)) {
+        auctionOsqthAmount = availableOsqth
+      }
+
+      const { oSqthAmount, usdToRepay, maxWeth } = await getNettingWithdrawAuction(bullWithdrawQueued)
+
+      console.log('Bull withdraw:', oSqthAmount.toString(), usdToRepay.toString(), maxWeth.toString())
+
+      const gasLimit = await bullNetting.estimateGas.withdrawAuction({
+        withdrawsToProcess: bullWithdrawQueued,
+        orders,
+        clearingPrice,
+        maxWethForUsdc: maxWeth,
+        wethUsdcPoolFee: ETH_USDC_FEE,
+      })
+
+      //const gasLimit = BigNumber.from(7000000)
+
+      const tx = await bullNettingWithdrawAuction({
+        args: [
+          {
+            withdrawsToProcess: bullWithdrawQueued,
+            orders,
+            clearingPrice,
+            maxWethForUsdc: maxWeth,
+            wethUsdcPoolFee: ETH_USDC_FEE,
+          },
+        ],
+        overrides: {
+          gasLimit: gasLimit.mul(125).div(100),
+        },
+      })
+      try {
+        addRecentTransaction({
+          hash: tx.hash,
+          description: 'Bull netting withdraw Auction',
+        })
+      } catch (e) {
+        console.log(e)
+      }
+      await tx.wait()
+      await submitTx(tx.hash, tx.timestamp || 0)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   const submitTx = async (tx: string, timestamp: number, auctionQty?: BigNumber) => {
     const { orders, manualBids } = getOrders()
 
@@ -636,7 +697,11 @@ const AdminBidView: React.FC = () => {
         await executeBullAuction()
       }
       if (auction.type === AuctionType.BULL_NETTING) {
-        await executeBullNettingDepositAuction()
+        if (auction.isSelling) {
+          await executeBullNettingDepositAuction()
+        } else {
+          await executeBullNettingWithdrawAuction()
+        }
       }
     } catch (e) {
       console.log(e)
