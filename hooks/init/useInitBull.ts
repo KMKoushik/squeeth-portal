@@ -9,6 +9,7 @@ import {
   USDC_D_TOKEN_CONTRACT,
   WETH_E_TOKEN_CONTRACT,
 } from '../../constants/contracts'
+import { BIG_ZERO } from '../../constants/numbers'
 import { useCalmBullActions } from '../../store/calmBullStore'
 import { useCrabNettingStore } from '../../store/crabNettingStore'
 
@@ -88,9 +89,8 @@ export const useInitBull = () => {
         setDelta(data[7][0] as any as BigNumber)
         setCR(data[7][1] as any as BigNumber)
       }
-      setLoanDebt(data[8] as any as BigNumber)
-      console.log((data[9] as any as BigNumber).toString())
-      setLoanCollat(data[9] as any as BigNumber)
+      setLoanDebt((data[8] || BIG_ZERO) as any as BigNumber)
+      setLoanCollat((data[9] || BIG_ZERO) as any as BigNumber)
 
       setIsReady(true)
     }
