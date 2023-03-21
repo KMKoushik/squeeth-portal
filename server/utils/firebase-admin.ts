@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { initializeApp, cert } from 'firebase-admin/app'
 import { apps, auth, firestore } from 'firebase-admin'
-import { Auction, AuctionType, BullRebalance } from '../../types'
+import { Auction, AuctionType, BullRebalance, Bid } from '../../types'
 import { AUCTION_COLLECTION, emptyAuction } from '../../utils/auction'
 import { CHAIN_ID } from '../../constants/numbers'
 
@@ -27,6 +27,12 @@ export const dbAdmin = firestore()
 
 export const addOrUpdateAuction = (auction: Auction, merge?: boolean) => {
   return dbAdmin.collection(AUCTION_COLLECTION).doc('current').set(auction, { merge })
+}
+
+export const addOrUpdateBid = (bidId: string, bid: Bid) => {
+  return dbAdmin.collection(AUCTION_COLLECTION).doc('current').update({
+    [`bids.${bidId}`]: bid
+  })
 }
 
 export const getAuction = () => {
