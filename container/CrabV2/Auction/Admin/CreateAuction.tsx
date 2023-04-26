@@ -3,6 +3,7 @@ import { Box } from '@mui/system'
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
+import setSeconds from 'date-fns/setSeconds'
 import { ethers } from 'ethers'
 import * as React from 'react'
 import { useContractWrite, useFeeData, useSigner, useWaitForTransaction } from 'wagmi'
@@ -259,7 +260,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
         <DateTimePicker
           label="Auction ends at"
           value={endDate}
-          onChange={d => setEndDate(d || new Date())}
+          onChange={d => setEndDate(setSeconds(d || new Date(), 0))}
           renderInput={params => <TextField {...params} />}
         />
       </LocalizationProvider>
