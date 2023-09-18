@@ -277,7 +277,7 @@ const CreateAuction: React.FC = React.memo(function CreateAuction() {
         sx={{ m: 'auto', mt: 2 }}
         onClick={createOrUpdate}
         loading={loading}
-        disabled={(auctionType === AuctionType.NETTING && !isNettingAuctionLive && Number(oSqthAmount) != 0) || !!error}
+        disabled={auctionType === AuctionType.NETTING && !isNettingAuctionLive && Number(oSqthAmount) != 0}
       >
         {isNew ? 'Create' : 'update'}
       </PrimaryLoadingButton>
