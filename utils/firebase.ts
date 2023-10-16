@@ -15,7 +15,7 @@ import { Firestore } from "firebase/firestore"
 const firebaseConfig =
   CHAIN_ID === 1
     ? {
-        apiKey: 'AIzaSyBiXQZR9st59josYl2d5Q7arPb1ZoXEAfw',
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
         authDomain: 'crab-v2-mainnet.firebaseapp.com',
         projectId: 'crab-v2-mainnet',
         storageBucket: 'crab-v2-mainnet.appspot.com',
@@ -24,7 +24,7 @@ const firebaseConfig =
         measurementId: 'G-EWNE553DPB',
       }
     : {
-        apiKey: 'AIzaSyAmIfokxcpt9pah1g9phk_rsXJkGVKhiE0',
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
         authDomain: 'crab-v2-testnet.firebaseapp.com',
         projectId: 'crab-v2-testnet',
         storageBucket: 'crab-v2-testnet.appspot.com',
