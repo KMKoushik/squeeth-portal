@@ -28,6 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { isValidOrder, response: errorMessage } = await validateOrder(order, auction, auction.type)
     if (!isValidOrder) return res.status(401).json({ message: errorMessage })
   } catch (e) {
+    console.log({ e })
     return res.status(401).json({ message: "Order can't be validated" })
   }
 
