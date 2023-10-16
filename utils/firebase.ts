@@ -6,6 +6,7 @@
 import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
 import { CHAIN_ID } from '../constants/numbers'
+import { Firestore } from "firebase/firestore"
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -34,7 +35,7 @@ const firebaseConfig =
 
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig)
-let db;
+let db: Firestore;
 
 try {
   db = getFirestore(app);
