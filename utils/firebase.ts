@@ -34,4 +34,12 @@ const firebaseConfig =
 
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig)
-export const db = getFirestore(app)
+let db;
+
+try {
+  db = getFirestore(app);
+} catch (error) {
+  console.error("Error initializing Firestore: ", error);
+}
+
+export { db };
