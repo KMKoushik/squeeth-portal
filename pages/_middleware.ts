@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const BLOCKED_COUNTRIES = ['US', 'BY', 'CU', 'IR', 'IQ', 'CI', 'LR', 'KP', 'SD', 'SY', 'ZW', 'CA']
 const ALLOWED_URLS = RegExp(
-  '(/images|/favicon.ico|/font|/api/auction/getLatestAuction|/api/auction/getAuctionById|/api/auction/getLastHedge)',
+  '(/images|/favicon.ico|/font|/api/auction/getLatestAuction|/api/auction/getUserBids|/api/auction/createOrEditBid|/api/auction/deleteBid|/api/auction/getAuctionById|/api/auction/getLastHedge)',
 )
 
 export function middleware(req: NextRequest) {
