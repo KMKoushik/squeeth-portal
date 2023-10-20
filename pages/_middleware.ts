@@ -1,4 +1,3 @@
-import { request } from 'http'
 import { NextRequest, NextResponse } from 'next/server'
 
 const BLOCKED_COUNTRIES = ['US', 'BY', 'CU', 'IR', 'IQ', 'CI', 'LR', 'KP', 'SD', 'SY', 'ZW', 'CA']
