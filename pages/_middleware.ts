@@ -16,8 +16,9 @@ export function middleware(req: NextRequest) {
   if (country && userIp && BLOCKED_COUNTRIES.includes(country) && !ALLOWED_URLS.test(path) && !ALLOWED_IPS.includes(userIp)) {
     return NextResponse.rewrite('/blocked')
   }
-  // console.log(req.ip?.toString());
-  console.log('here with country ' + response.status)
+  console.log('country: ' + country)
+  console.log('request IP: ' + userIp)
+
   console.log(req.headers.get('sec-fetch-site') === 'cross-site')
   if (req.headers.get('sec-fetch-site') === 'cross-site') {
     req.nextUrl.searchParams.set('g-safe', 'true')
