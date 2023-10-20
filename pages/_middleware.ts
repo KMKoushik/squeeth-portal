@@ -12,11 +12,18 @@ export function middleware(req: NextRequest) {
   const response = NextResponse.next()
   const path = req.url
 
-  if (country && userIp && BLOCKED_COUNTRIES.includes(country) && !ALLOWED_URLS.test(path) && !ALLOWED_IPS.includes(userIp)) {
-    return NextResponse.rewrite('/blocked')
-  }
   console.log('country: ' + country)
   console.log('request IP: ' + userIp)
+
+  if (
+    country &&
+    userIp &&
+    BLOCKED_COUNTRIES.includes(country) &&
+    !ALLOWED_URLS.test(path) &&
+    !ALLOWED_IPS.includes(userIp)
+  ) {
+    return NextResponse.rewrite('/blocked')
+  }
 
   console.log(req.headers.get('sec-fetch-site') === 'cross-site')
   if (req.headers.get('sec-fetch-site') === 'cross-site') {
