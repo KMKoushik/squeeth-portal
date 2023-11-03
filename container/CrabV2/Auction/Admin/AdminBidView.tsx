@@ -341,6 +341,8 @@ const AdminBidView: React.FC = () => {
     crabAmount = auctionOsqthAmount.gt(sqthForCrab)
       ? crabAmount
       : getCrabFromSqueethAmount(auctionOsqthAmount.sub(1), vault!, supply)
+    
+    crabAmount = crabAmount.sub(10);
 
     console.log(
       'Crab',
