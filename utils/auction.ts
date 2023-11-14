@@ -16,7 +16,7 @@ import {
 import { db } from './firebase'
 import { toBigNumber, wdiv, wmul } from './math'
 import erc20Abi from '../abis/ERC20.json'
-import { provider } from '../server/utils/ether'
+import { crabV2Contract, provider } from '../server/utils/ether'
 import { ERC20 } from '../types/contracts'
 
 export const emptyAuction: Auction = {
@@ -105,6 +105,10 @@ export const categorizeBidsWithReason = (
       if (!balanceMap[b.bidder] || !balanceMap[b.bidder].gte(erc20Needed)) return { ...b, status: BidStatus.NO_BALANCE }
 
       if (filledAmt.eq(quantity)) return { ...b, status: BidStatus.ALREADY_FILLED }
+
+      if(crabV2Contract.nonces(b.bidder, b.order.nonce).then((used) => {
+        if(used == true) return { ...b, status: BidStatus.NONCE_ALREADY_USED }
+      }))
 
       if (quantity.lt(filledAmt.add(_osqth))) {
         balanceMap[b.bidder] = balanceMap[b.bidder].sub(wmul(quantity.sub(filledAmt), _price))
