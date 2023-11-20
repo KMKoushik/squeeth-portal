@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useMemo } from 'react'
 import shallow from 'zustand/shallow'
 import { BIG_ZERO } from '../constants/numbers'
 import { useCalmBullStore } from '../store/calmBullStore'
@@ -17,27 +17,23 @@ import { useBullAuction } from './useBullAuction'
 import useQuoter from './useQuoter'
 
 export const useAuctionEstimate = () => {
-
   const auction = useCrabV2Store(s => s.auction)
-  const { ethPriceBN } = usePriceStore(
-    s => ({ ethPriceBN: s.ethPrice }),
-    shallow,
-  )
+  const { ethPriceBN } = usePriceStore(s => ({ ethPriceBN: s.ethPrice }), shallow)
   const { osqthRefVol } = useCrabV2Store(s => ({ osqthRefVol: s.oSqthRefVolIndex }), shallow)
   const { nfBN } = useControllerStore(s => ({ nfBN: s.normFactor }), shallow)
 
   const ethPrice = convertBigNumber(auction.ethPrice || ethPriceBN, 18)
   const nf = convertBigNumber(auction.normFactor || nfBN, 18)
-  const refVol = auction.osqthRefVol ?? osqthRefVol ;
-  const refPrice = ethPrice * nf * Math.exp((refVol/100)**2 * (17.5/365))/10000 *1e18
+  const refVol = auction.osqthRefVol ?? osqthRefVol
+  const refPrice = ((ethPrice * nf * Math.exp((refVol / 100) ** 2 * (17.5 / 365))) / 10000) * 1e18
   console.log('refVol is', refVol)
   console.log('nf is', nf)
   console.log('ethPrice is', ethPrice)
-  console.log('ref price is', refPrice )
+  console.log('ref price is', refPrice)
 
   // const oSqthPrice = usePriceStore(s => s.oSqthPrice, bnComparator)
-  const oSqthPrice = BigNumber.from(refPrice.toFixed()) // use ref price instead of pool price
-  console.log('oSQTH prcie is',oSqthPrice.toString())
+  const oSqthPrice = useMemo(() => BigNumber.from(refPrice.toFixed()), [refPrice]) // use ref price instead of pool price
+  console.log('oSQTH price is', oSqthPrice.toString())
   const vault = useCrabV2Store(s => s.vault, shallow)
   const usdcDeposits = useCrabNettingStore(s => s.depositQueued, bnComparator)
   const crabDeposits = useCrabNettingStore(s => s.withdrawQueued, bnComparator)
