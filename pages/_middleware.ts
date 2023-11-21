@@ -8,11 +8,19 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 })
 
+const ignoredPaths = ['/api', '/favicon.ico', '/static', '/_next', '/blocked']
+
 export async function middleware(request: NextRequest) {
+  const url = request.nextUrl
+
+  // should not block api calls, static files, nextjs files, favicon, blocked page and files with extension
+  const isIgnoredPath = ignoredPaths.some(path => url.pathname.startsWith(path)) || url.pathname.includes('.')
+  if (isIgnoredPath) {
+    return NextResponse.next()
+  }
+
   const cloudflareCountry = request.headers.get('cf-ipcountry')
   const country = cloudflareCountry ?? request?.geo?.country
-
-  const url = request.nextUrl
 
   const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || request.ip
 
@@ -45,14 +53,4 @@ export async function middleware(request: NextRequest) {
   }
 
   return NextResponse.next()
-}
-
-/*
-  matcher for excluding public assets/api routes/_next
-  link: https://github.com/vercel/next.js/discussions/36308#discussioncomment-3758041
-
-  regex: negative lookahead and will match any path that does not contain 'api', 'static', any string with a dot in it ('.\..'), '_next' or 'blocked'
-*/
-export const config = {
-  matcher: '/((?!api|static|.*\\..*|_next|blocked).*)',
 }
