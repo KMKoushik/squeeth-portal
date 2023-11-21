@@ -15,7 +15,11 @@ export async function middleware(request: NextRequest) {
   const url = request.nextUrl
 
   const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || request.ip
-  if (ip) {
+
+  const allowedIPs = (process.env.WHITELISTED_IPS || '').split(',')
+  const isIPWhitelisted = ip && allowedIPs.includes(ip)
+
+  if (ip && !isIPWhitelisted) {
     const redisData = await redis.get(ip)
     const isIPBlocked = !!redisData
 
