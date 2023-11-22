@@ -8,7 +8,7 @@ const ignoredPaths = ['/api', '/favicon.ico', '/static', '/_next', '/blocked']
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl
 
-  // should not block api calls, static files, nextjs files, favicon, blocked page and files with extension
+  // should not block api calls, static files, nextjs files, favicon, blocked page and files with extension (images, fonts, etc)
   const isIgnoredPath = ignoredPaths.some(path => url.pathname.startsWith(path)) || url.pathname.includes('.')
   if (isIgnoredPath) {
     return NextResponse.next()
@@ -18,7 +18,6 @@ export async function middleware(request: NextRequest) {
   const country = cloudflareCountry ?? request?.geo?.country
 
   const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || request.ip
-
   const allowedIPs = (process.env.WHITELISTED_IPS || '').split(',')
   const isIPWhitelisted = ip && allowedIPs.includes(ip)
 
@@ -27,7 +26,6 @@ export async function middleware(request: NextRequest) {
     const isIPBlocked = !!redisData
 
     console.log('ip', ip, isIPBlocked, url.protocol, url.host, '/blocked')
-
     if (isIPBlocked && url.pathname !== '/blocked') {
       return NextResponse.redirect(`${url.protocol}//${url.host}/blocked`)
     }
@@ -40,12 +38,16 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  console.log('country', cloudflareCountry, country)
-
   console.log(request.headers.get('sec-fetch-site') === 'cross-site')
   if (request.headers.get('sec-fetch-site') === 'cross-site') {
     request.nextUrl.searchParams.set('g-safe', 'true')
   }
 
-  return NextResponse.next()
+  console.log('country', cloudflareCountry, country)
+  if (url.searchParams.has('ct') && url.searchParams.get('ct') === String(country)) {
+    return NextResponse.next()
+  }
+
+  url.searchParams.set('ct', country!)
+  return NextResponse.redirect(url)
 }

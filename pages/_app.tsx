@@ -2,6 +2,7 @@ import '../styles/globals.css'
 import * as React from 'react'
 import App, { AppProps } from 'next/app'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import theme from '../theme'
 import { CssBaseline, ThemeProvider } from '@mui/material'
 import CatLoader from '../components/loaders/CatLoader'
@@ -12,7 +13,7 @@ import shallow from 'zustand/shallow'
 import '@rainbow-me/rainbowkit/styles.css'
 import { getDefaultWallets, RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit'
 import { SafeConnector } from '@gnosis.pm/safe-apps-wagmi'
-import { chain, configureChains, createClient, WagmiConfig } from 'wagmi'
+import { chain, configureChains, createClient, WagmiConfig, useAccount } from 'wagmi'
 import { alchemyProvider } from 'wagmi/providers/alchemy'
 import { publicProvider } from 'wagmi/providers/public'
 import { CHAIN_ID, TWAP_PERIOD } from '../constants/numbers'
@@ -22,6 +23,10 @@ import { getoSqthRefVolIndex } from '../utils/external'
 import useCrabV2Store from '../store/crabV2Store'
 import useInterval from '../hooks/useInterval'
 import { useAutoConnect } from '../hooks/useAutoConnect'
+import useAccountStore from '../store/accountStore'
+import { BLOCKED_COUNTRIES, ALLOW_WITHDRAWALS } from '../constants/restrictions'
+import StrikeWarningModal from '../container/StrikeWarningModal'
+import useHandleStrikeCount from '../hooks/useHandleStrikeCount'
 
 // API key for Ethereum node
 // Two popular services are Infura (infura.io) and Alchemy (alchemy.com)
@@ -80,9 +85,51 @@ const InitializePrice = React.memo(function InitializePrice() {
   return <></>
 })
 
-function MyApp({ Component, pageProps, router }: AppProps) {
-  console.log('here', { ...pageProps })
+const InitializeAuth = () => {
+  const router = useRouter()
+  const userLocation = router.query?.ct
+  const { isBlocked, setAddress, setIsRestricted, setIsWithdrawalAllowed, setStrikeCount } = useAccountStore(
+    s => ({
+      isBlocked: s.isBlocked,
+      setAddress: s.setAddress,
+      setIsRestricted: s.setIsRestricted,
+      setIsWithdrawalAllowed: s.setIsWithdrawalAllowed,
+      setStrikeCount: s.setStrikeCount,
+    }),
+    shallow,
+  )
 
+  useAccount({
+    onConnect: ({ address }) => {
+      setAddress(address)
+    },
+    onDisconnect: () => {
+      setAddress(undefined)
+      setStrikeCount(0)
+    },
+  })
+
+  const isUserRestricted = BLOCKED_COUNTRIES.includes(String(userLocation)) || isBlocked
+  const isUserAllowedToWithdraw = ALLOW_WITHDRAWALS.includes(String(userLocation)) || isBlocked
+
+  // set restricted and withdrawal allowed states
+  React.useEffect(() => {
+    if (isUserRestricted && appChain === chain.mainnet) {
+      setIsRestricted(true)
+      setIsWithdrawalAllowed(isUserAllowedToWithdraw)
+    } else {
+      setIsRestricted(false)
+      setIsWithdrawalAllowed(true)
+    }
+  }, [isUserRestricted, isUserAllowedToWithdraw])
+
+  // get and set strike count
+  useHandleStrikeCount()
+
+  return <></>
+}
+
+function MyApp({ Component, pageProps, router }: AppProps) {
   if (!pageProps.crossSite) {
     wagmiClient.autoConnect()
   }
@@ -123,10 +170,13 @@ function MyApp({ Component, pageProps, router }: AppProps) {
         >
           <ThemeProvider theme={theme}>
             <CssBaseline />
+            <InitializeAuth />
             <InitializePrice />
             <ToastMessage />
             <Component {...pageProps} />
             <CatLoader />
+
+            <StrikeWarningModal />
           </ThemeProvider>
         </RainbowKitProvider>
       </WagmiConfig>
