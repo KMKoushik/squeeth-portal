@@ -37,6 +37,7 @@ import { Expiry } from '../../CrabOTC/Expiry'
 import useToaster from '../../../hooks/useToaster'
 import { validateOrder } from '../../../utils/crabotc'
 import { OTCInfo } from './OTCInfo'
+import RestrictionInfo from '../../../components/RestrictionInfo'
 
 export const CrabOTCBox: React.FC = () => {
   const { data: signer } = useSigner()
@@ -364,7 +365,7 @@ const Withdraw: React.FC = () => {
                     </TableCell>
                     <TableCell component="th" scope="row">
                       {Date.now() < userOtc?.data.sortedBids[Number(bidId)].order.expiry &&
-                        Date.now() < userOtc?.data.expiry ? (
+                      Date.now() < userOtc?.data.expiry ? (
                         <BoxLoadingButton
                           sx={{ width: 100 }}
                           size="small"
@@ -399,7 +400,13 @@ const CreateDeposit: React.FC = () => {
   const [limitPrice, setLimitPrice] = useState(userOtc?.data.limitPrice.toString() || '0')
   const vault = useCrabV2Store(s => s.vault)
   const oSqthPrice = usePriceStore(s => s.oSqthPrice)
-  const address = useAccountStore(s => s.address)
+  const { address, isRestricted: isUserRestricted } = useAccountStore(
+    s => ({
+      address: s.address,
+      isRestricted: s.isRestricted,
+    }),
+    shallow,
+  )
   const { data: signer } = useSigner()
   const [isLoading, setLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -459,7 +466,7 @@ const CreateDeposit: React.FC = () => {
       }
       for (let i = 0; i < 1000; i++) {
         console.log(i)
-        const [tot_dep, to_mint, trade_value] = mth(i*100)
+        const [tot_dep, to_mint, trade_value] = mth(i * 100)
         if (trade_value.gte(tot_dep)) {
           console.log(tot_dep.toString(), to_mint.toString(), trade_value.toString(), i)
           return [to_mint, tot_dep]
@@ -478,7 +485,7 @@ const CreateDeposit: React.FC = () => {
     }
   }, [ethBalance, ethAmount])
 
-  const depositError = balanceError 
+  const depositError = balanceError
 
   const createOtcOrder = async () => {
     setLoading(true)
@@ -657,13 +664,14 @@ const CreateDeposit: React.FC = () => {
         <CopyLink id={userOtc?.id || ''} />
         <Expiry time={userOtc?.data.expiry || 0} />
 
+        {isUserRestricted && <RestrictionInfo />}
         <BoxLoadingButton
           onClick={createOtcOrder}
           sx={{ width: 300, mt: 2, mb: 2 }}
           loading={isLoading}
-          disabled={!(Number(ethAmount) > 0 && Number(limitPrice) > 0 && !depositError) }
+          disabled={isUserRestricted || !(Number(ethAmount) > 0 && Number(limitPrice) > 0 && !depositError)}
         >
-          {isEdit ? 'Edit deposit OTC' : 'Create deposit OTC'}
+          {isUserRestricted ? 'Unavailable' : isEdit ? 'Edit deposit OTC' : 'Create deposit OTC'}
         </BoxLoadingButton>
         {isEdit ? (
           <DangerButton sx={{ width: 300, mt: 1 }} onClick={deleteOTCOrder} loading={deleteLoading}>
@@ -679,7 +687,6 @@ const CreateDeposit: React.FC = () => {
           {Number(ethAmount) > 0 ? depositError : ''}
         </Typography>
       </Box>
-     
 
       {isEdit ? (
         <>
@@ -720,7 +727,7 @@ const CreateDeposit: React.FC = () => {
                     </TableCell>
                     <TableCell component="th" scope="row">
                       {Date.now() < userOtc?.data?.sortedBids[Number(bidId)].order.expiry &&
-                        Date.now() < userOtc?.data.expiry ? (
+                      Date.now() < userOtc?.data.expiry ? (
                         <BoxLoadingButton
                           sx={{ width: 100 }}
                           size="small"

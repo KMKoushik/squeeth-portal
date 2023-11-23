@@ -11,16 +11,24 @@ import { SecondaryButton } from '../../../components/button/SecondaryButton'
 import { MM_CANCEL } from '../../../constants/message'
 import { BIG_ZERO } from '../../../constants/numbers'
 import useToaster from '../../../hooks/useToaster'
-import useAccountStore from '../../../store/accountStore'
 import useCrabV2Store from '../../../store/crabV2Store'
 import { AuctionStatus, Order, MessageWithTimeSignature } from '../../../types'
 import { getUserBids, signOrder, signMessageWithTime } from '../../../utils/auction'
-import { convertBigNumber, formatBigNumber, toBigNumber, wmul, calculateDollarValue, calculateIV, convertBigNumberStr } from '../../../utils/math'
+import {
+  convertBigNumber,
+  formatBigNumber,
+  toBigNumber,
+  wmul,
+  calculateDollarValue,
+  calculateIV,
+  convertBigNumberStr,
+} from '../../../utils/math'
 import Bids from './Bids'
 import FilledBids from './FilledBids'
 import usePriceStore from '../../../store/priceStore'
 import useControllerStore from '../../../store/controllerStore'
-
+import RestrictionInfo from '../../../components/RestrictionInfo'
+import useAccountStore from '../../../store/accountStore'
 
 const AuctionBody: React.FC = () => {
   const isHistoricalView = useCrabV2Store(s => s.isHistoricalView)
@@ -65,7 +73,13 @@ const BidForm: React.FC = () => {
 
   const { data: signer } = useSigner()
   const auction = useCrabV2Store(s => s.auction)
-  const address = useAccountStore(s => s.address)
+  const { address, isRestricted: isUserRestricted } = useAccountStore(
+    s => ({
+      address: s.address,
+      isRestricted: s.isRestricted,
+    }),
+    shallow,
+  )
   const bidToEdit = useCrabV2Store(s => s.bidToEdit)
   const setBidToEdit = useCrabV2Store(s => s.setBidToEdit)
   const { oSqthApproval, wethApproval, auctionStatus, estClearingPrice } = useCrabV2Store(
@@ -82,10 +96,7 @@ const BidForm: React.FC = () => {
     shallow,
   )
 
-  const { nfBN } = useControllerStore(
-    s => ({ nfBN: s.normFactor }),
-    shallow,
-  )
+  const { nfBN } = useControllerStore(s => ({ nfBN: s.normFactor }), shallow)
 
   const { ethPriceBN, oSqthPriceBN } = usePriceStore(
     s => ({ ethPriceBN: s.ethPrice, oSqthPriceBN: s.oSqthPrice }),
@@ -129,10 +140,10 @@ const BidForm: React.FC = () => {
         },
         isEditBid
           ? BIG_ZERO.sub(
-            auction.isSelling
-              ? wmul(auction.bids[bidToEdit!].order.price, auction.bids[bidToEdit!].order.quantity)
-              : auction.bids[bidToEdit!].order.quantity,
-          )
+              auction.isSelling
+                ? wmul(auction.bids[bidToEdit!].order.price, auction.bids[bidToEdit!].order.quantity)
+                : auction.bids[bidToEdit!].order.quantity,
+            )
           : BIG_ZERO,
       ),
     [auction.bids, auction.isSelling, bidToEdit, isEditBid, userBids],
@@ -169,7 +180,21 @@ const BidForm: React.FC = () => {
     }
 
     setLoading(false)
-  }, [auction.currentAuctionId, auction.isSelling, auction.auctionEnd, auction.bids, auction.type, address, qty, price, isEditBid, bidToEdit, signer, setBidToEdit, showMessageFromServer])
+  }, [
+    auction.currentAuctionId,
+    auction.isSelling,
+    auction.auctionEnd,
+    auction.bids,
+    auction.type,
+    address,
+    qty,
+    price,
+    isEditBid,
+    bidToEdit,
+    signer,
+    setBidToEdit,
+    showMessageFromServer,
+  ])
 
   const cancelBid = React.useCallback(async () => {
     setDeleteLoading(true)
@@ -264,12 +289,16 @@ const BidForm: React.FC = () => {
 
   const warning = useMemo(() => {
     const _estPrice = convertBigNumber(estClearingPrice, 18)
-    if (_estPrice !== 0 && ((auction.isSelling && Number(price) < _estPrice) || (!auction.isSelling && Number(price) > _estPrice))) {
+    if (
+      _estPrice !== 0 &&
+      ((auction.isSelling && Number(price) < _estPrice) || (!auction.isSelling && Number(price) > _estPrice))
+    ) {
       return `You are quoting a worse price than the est. clearing price: ${_estPrice.toFixed(5)}`
     }
     if (auctionStatus === AuctionStatus.UPCOMING) {
-      return `Auction not started yet. If the ${auction.isSelling ? 'min' : 'max'
-        } price not matched, order will be cancelled`
+      return `Auction not started yet. If the ${
+        auction.isSelling ? 'min' : 'max'
+      } price not matched, order will be cancelled`
     }
   }, [auction.isSelling, auctionStatus, estClearingPrice, price])
 
@@ -303,7 +332,9 @@ const BidForm: React.FC = () => {
                 <Typography variant="caption" color="textSecondary" fontSize={12}>
                   oSQTH
                 </Typography>
-                <Button sx={{ ml: 2 }} onClick={() => setQty(convertBigNumberStr(auction.oSqthAmount, 18))}>Max</Button>
+                <Button sx={{ ml: 2 }} onClick={() => setQty(convertBigNumberStr(auction.oSqthAmount, 18))}>
+                  Max
+                </Button>
               </InputAdornment>
             ),
           }}
@@ -381,14 +412,25 @@ const BidForm: React.FC = () => {
             {auction.isSelling ? 'WETH' : 'oSQTH'}
           </Typography>
         </Box>
-        <Typography align="center" mt={3} color="error.main" variant="body3">
-          {price && qty ? error : ''}
-        </Typography>
-        <Typography align="center" mt={3} color="warning.main" variant="body3">
-          {price && qty ? warning : ''}
-        </Typography>
-        <BoxLoadingButton disabled={!!error || !canPlaceBid} onClick={placeBid} sx={{ mt: 1 }} loading={isLoading}>
-          {isEditBid ? `Edit ${action}` : `Place ${action}`}
+        {price && qty ? (
+          <Typography align="center" mt={3} color="error.main" variant="body3">
+            {error}
+          </Typography>
+        ) : null}
+        {price && qty ? (
+          <Typography align="center" mt={3} color="warning.main" variant="body3">
+            {warning}
+          </Typography>
+        ) : null}
+
+        {isUserRestricted && <RestrictionInfo />}
+        <BoxLoadingButton
+          disabled={!!error || !canPlaceBid || isUserRestricted}
+          onClick={placeBid}
+          sx={{ mt: 1 }}
+          loading={isLoading}
+        >
+          {isUserRestricted ? 'Unavailable' : isEditBid ? `Edit ${action}` : `Place ${action}`}
         </BoxLoadingButton>
         {isEditBid ? (
           <>
