@@ -24,7 +24,7 @@ import useCrabV2Store from '../store/crabV2Store'
 import useInterval from '../hooks/useInterval'
 import { useAutoConnect } from '../hooks/useAutoConnect'
 import useAccountStore from '../store/accountStore'
-import { BLOCKED_COUNTRIES, ALLOW_WITHDRAWALS } from '../constants/restrictions'
+import { BLOCKED_COUNTRIES } from '../constants/restrictions'
 import StrikeWarningModal from '../container/StrikeWarningModal'
 import useHandleStrikeCount from '../hooks/useHandleStrikeCount'
 
@@ -88,12 +88,11 @@ const InitializePrice = React.memo(function InitializePrice() {
 const InitializeAuth = () => {
   const router = useRouter()
   const userLocation = router.query?.ct
-  const { isBlocked, setAddress, setIsRestricted, setIsWithdrawalAllowed, setStrikeCount } = useAccountStore(
+  const { isBlocked, setAddress, setIsRestricted, setStrikeCount } = useAccountStore(
     s => ({
       isBlocked: s.isBlocked,
       setAddress: s.setAddress,
       setIsRestricted: s.setIsRestricted,
-      setIsWithdrawalAllowed: s.setIsWithdrawalAllowed,
       setStrikeCount: s.setStrikeCount,
     }),
     shallow,
@@ -110,18 +109,15 @@ const InitializeAuth = () => {
   })
 
   const isUserRestricted = BLOCKED_COUNTRIES.includes(String(userLocation)) || isBlocked
-  const isUserAllowedToWithdraw = ALLOW_WITHDRAWALS.includes(String(userLocation)) || isBlocked
 
   // set restricted and withdrawal allowed states
   React.useEffect(() => {
     if (isUserRestricted && appChain === chain.mainnet) {
       setIsRestricted(true)
-      setIsWithdrawalAllowed(isUserAllowedToWithdraw)
     } else {
       setIsRestricted(false)
-      setIsWithdrawalAllowed(true)
     }
-  }, [isUserRestricted, isUserAllowedToWithdraw])
+  }, [isUserRestricted])
 
   // get and set strike count
   useHandleStrikeCount()

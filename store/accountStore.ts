@@ -10,7 +10,6 @@ interface AccountState {
   crabBalance: BigNumber
   isRestricted: boolean
   isBlocked: boolean
-  isWithdrawalAllowed: boolean
   strikeCount: number
   isStrikeCountModalOpen: boolean
   setAddress: (addr: string | undefined) => void
@@ -20,7 +19,6 @@ interface AccountState {
   setCrabBalance: (bal: BigNumber) => void
   setIsRestricted: (value: boolean) => void
   setIsBlocked: (value: boolean) => void
-  setIsWithdrawalAllowed: (value: boolean) => void
   setStrikeCount: (value: number) => void
   setIsStrikeCountModalOpen: (value: boolean) => void
 }
@@ -33,7 +31,6 @@ const useAccountStore = create<AccountState>(set => ({
   crabBalance: BIG_ZERO,
   isRestricted: false,
   isBlocked: false,
-  isWithdrawalAllowed: false,
   strikeCount: 0,
   isStrikeCountModalOpen: false,
   setAddress: (addr: string | undefined) => set({ address: addr }),
@@ -43,7 +40,6 @@ const useAccountStore = create<AccountState>(set => ({
   setCrabBalance: bal => set({ crabBalance: bal }),
   setIsRestricted: value => set({ isRestricted: value }),
   setIsBlocked: value => set({ isBlocked: value }),
-  setIsWithdrawalAllowed: value => set({ isWithdrawalAllowed: value }),
   setStrikeCount: value => set({ strikeCount: value }),
   setIsStrikeCountModalOpen: value => set({ isStrikeCountModalOpen: value }),
 }))

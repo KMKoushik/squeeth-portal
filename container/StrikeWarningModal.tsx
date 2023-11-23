@@ -2,8 +2,8 @@ import { Box, Link } from '@mui/material'
 import { useState, useEffect } from 'react'
 import { useAccount } from 'wagmi'
 import shallow from 'zustand/shallow'
-import { Modal } from '../components/Modal'
 
+import { Modal } from '../components/Modal'
 import useAccountStore from '../store/accountStore'
 
 interface StrikeWarningModalProps {
