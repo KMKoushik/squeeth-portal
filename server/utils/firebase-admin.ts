@@ -1,17 +1,15 @@
 /* eslint-disable prettier/prettier */
-import firebase from 'firebase/compat/app'
-import 'firebase/compat/firestore'
-
 import { initializeApp, cert, App } from 'firebase-admin/app'
-import { apps, firestore, AppOptions } from 'firebase-admin'
+import { apps, AppOptions } from 'firebase-admin'
+import { getFirestore, Firestore } from 'firebase-admin/firestore'
 import { Auction, AuctionType, BullRebalance, Bid } from '../../types'
 import { AUCTION_COLLECTION, emptyAuction } from '../../utils/auction'
 import { CHAIN_ID } from '../../constants/numbers'
 
 let appCrab: App
 let appOpyn: App
-export let dbAdminCrab: firestore.Firestore
-let dbAdminOpyn: firestore.Firestore
+export let dbAdminCrab: Firestore
+let dbAdminOpyn: Firestore
 
 function initializeFirebaseApp(config: AppOptions, name: string) {
   return apps.find(app => app?.name === name) || initializeApp(config, name)
@@ -28,7 +26,7 @@ try {
     },
     'crab',
   )
-  dbAdminCrab = firestore(appCrab)
+  dbAdminCrab = getFirestore(appCrab)
 } catch (e) {
   console.log('Error initializing crab app', e)
 }
@@ -45,7 +43,7 @@ try {
     'opyn',
   )
 
-  dbAdminOpyn = firestore(appOpyn)
+  dbAdminOpyn = getFirestore(appOpyn)
 } catch (e) {
   console.log('Error initializing opyn app', e)
 }
