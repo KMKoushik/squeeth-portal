@@ -1,5 +1,5 @@
 import { CrabOTC, CrabOTCData } from '../../types'
-import { dbAdmin } from './firebase-admin'
+import { dbAdminCrab } from './firebase-admin'
 import { ipfsClient } from './ipfs'
 
 export const createOrUpdateOTC = async (crabOTC: CrabOTC, crabOTCData: CrabOTCData, merge?: boolean) => {
@@ -10,13 +10,13 @@ export const createOrUpdateOTC = async (crabOTC: CrabOTC, crabOTCData: CrabOTCDa
   crabOTC.cid = cid.toString()
 
   if (!crabOTC.id) {
-    return dbAdmin.collection('crabotc').add(crabOTC)
+    return dbAdminCrab.collection('crabotc').add(crabOTC)
   }
-  return dbAdmin.collection('crabotc').doc(crabOTC.id).set(crabOTC, { merge })
+  return dbAdminCrab.collection('crabotc').doc(crabOTC.id).set(crabOTC, { merge })
 }
 
 export const getOtc = async (otcId: string) => {
-  const crabOtc = (await dbAdmin.collection('crabotc').doc(otcId).get()).data() as CrabOTC
+  const crabOtc = (await dbAdminCrab.collection('crabotc').doc(otcId).get()).data() as CrabOTC
   const chunks = []
   for await (const chunk of ipfsClient.cat(crabOtc.cid)) {
     chunks.push(chunk)
@@ -32,6 +32,6 @@ export const deleteOtc = async (crabOtc: CrabOTC) => {
   }
 
   if (crabOtc.id) {
-    return dbAdmin.collection('crabotc').doc(crabOtc.id).delete()
+    return dbAdminCrab.collection('crabotc').doc(crabOtc.id).delete()
   }
 }

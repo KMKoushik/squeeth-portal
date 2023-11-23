@@ -1,33 +1,61 @@
 /* eslint-disable prettier/prettier */
-import { initializeApp, cert } from 'firebase-admin/app'
-import { apps, auth, firestore } from 'firebase-admin'
+import firebase from 'firebase/compat/app'
+import 'firebase/compat/firestore'
+
+import { initializeApp, cert, App } from 'firebase-admin/app'
+import { apps, firestore, AppOptions } from 'firebase-admin'
 import { Auction, AuctionType, BullRebalance, Bid } from '../../types'
 import { AUCTION_COLLECTION, emptyAuction } from '../../utils/auction'
 import { CHAIN_ID } from '../../constants/numbers'
 
-try {
-  apps.length > 0
-    ? apps[0]
-    : initializeApp({
-        credential: cert({
-          projectId: CHAIN_ID === 1 ? 'crab-v2-mainnet' : 'crab-v2-testnet',
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY,
-        }),
-      })
-} catch (e) {
-  console.log('error in init', e)
+let appCrab: App
+let appOpyn: App
+export let dbAdminCrab: firestore.Firestore
+let dbAdminOpyn: firestore.Firestore
+
+function initializeFirebaseApp(config: AppOptions, name: string) {
+  return apps.find(app => app?.name === name) || initializeApp(config, name)
 }
 
-export const authAdmin = auth()
-export const dbAdmin = firestore()
+try {
+  appCrab = initializeFirebaseApp(
+    {
+      credential: cert({
+        projectId: CHAIN_ID === 1 ? 'crab-v2-mainnet' : 'crab-v2-testnet',
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY,
+      }),
+    },
+    'crab',
+  )
+  dbAdminCrab = firestore(appCrab)
+} catch (e) {
+  console.log('Error initializing crab app', e)
+}
+
+try {
+  appOpyn = initializeFirebaseApp(
+    {
+      credential: cert({
+        projectId: 'mm-bot-prod',
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL_OPYN,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY_OPYN,
+      }),
+    },
+    'opyn',
+  )
+
+  dbAdminOpyn = firestore(appOpyn)
+} catch (e) {
+  console.log('Error initializing opyn app', e)
+}
 
 export const addOrUpdateAuction = (auction: Auction, merge?: boolean) => {
-  return dbAdmin.collection(AUCTION_COLLECTION).doc('current').set(auction, { merge })
+  return dbAdminCrab.collection(AUCTION_COLLECTION).doc('current').set(auction, { merge })
 }
 
 export const addOrUpdateBid = (bidId: string, bid: Bid) => {
-  return dbAdmin
+  return dbAdminCrab
     .collection(AUCTION_COLLECTION)
     .doc('current')
     .update({
@@ -36,18 +64,18 @@ export const addOrUpdateBid = (bidId: string, bid: Bid) => {
 }
 
 export const getAuction = () => {
-  return dbAdmin.collection(AUCTION_COLLECTION).doc('current').get()
+  return dbAdminCrab.collection(AUCTION_COLLECTION).doc('current').get()
 }
 
 export const getAuctionById = (auctionId: string) => {
-  return dbAdmin.collection(AUCTION_COLLECTION).doc(auctionId).get()
+  return dbAdminCrab.collection(AUCTION_COLLECTION).doc(auctionId).get()
 }
 
 export const createNewAuction = async () => {
   const auctionDoc = await getAuction()
   const auction = auctionDoc.data() as Auction
-  await dbAdmin.collection(AUCTION_COLLECTION).doc(auction!.currentAuctionId.toString()).set(auction!)
-  return dbAdmin
+  await dbAdminCrab.collection(AUCTION_COLLECTION).doc(auction!.currentAuctionId.toString()).set(auction!)
+  return dbAdminCrab
     .collection(AUCTION_COLLECTION)
     .doc('current')
     .set({ ...emptyAuction, nextAuctionId: auction.nextAuctionId + 1, currentAuctionId: auction.nextAuctionId })
@@ -68,14 +96,14 @@ export const getUserBids = async (userAddress: string) => {
 
 export const addBullRebalance = async (bullRebalance: BullRebalance) => {
   const id = Date.now()
-  return dbAdmin
+  return dbAdminCrab
     .collection('bull-rebalance')
     .doc(id.toString())
     .set({ ...bullRebalance, id })
 }
 
 export const getLastAuctionForType = async (type: AuctionType, currentId: number) => {
-  const auctions = await dbAdmin
+  const auctions = await dbAdminCrab
     .collection(AUCTION_COLLECTION)
     .where('type', '==', type)
     .where('currentAuctionId', '!=', currentId)
@@ -87,7 +115,7 @@ export const getLastAuctionForType = async (type: AuctionType, currentId: number
 
 /* utility functions for strikes logic */
 export const getAddressVisitCount = async (address: string) => {
-  const docRef = dbAdmin.collection('blocked-addresses').doc(address)
+  const docRef = dbAdminOpyn.collection('blocked-addresses').doc(address)
   const doc = await docRef.get()
   if (doc.exists) {
     return doc.data()?.visitCount
@@ -97,7 +125,7 @@ export const getAddressVisitCount = async (address: string) => {
 }
 
 export const incrementAddressVisitCount = async (address: string) => {
-  const docRef = dbAdmin.collection('blocked-addresses').doc(address)
+  const docRef = dbAdminOpyn.collection('blocked-addresses').doc(address)
   const doc = await docRef.get()
 
   let visitCount = 0
