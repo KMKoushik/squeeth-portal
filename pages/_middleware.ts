@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
   }
 
   const cloudflareCountry = request.headers.get('cf-ipcountry')
-  const country = 'US'
+  const country = cloudflareCountry ?? request?.geo?.country
 
   const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || request.ip
   const allowedIPs = (process.env.WHITELISTED_IPS || '').split(',')
