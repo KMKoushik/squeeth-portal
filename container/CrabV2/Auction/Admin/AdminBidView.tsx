@@ -52,6 +52,12 @@ import { getCrabFromSqueethAmount, getWsqueethFromCrabAmount } from '../../../..
 import { useBullAuction } from '../../../../hooks/useBullAuction'
 import { useCalmBullStore } from '../../../../store/calmBullStore'
 
+type Vault = {
+  address: string
+  shortAmount: BigNumber
+  collateral: BigNumber
+}
+
 const AdminBidView: React.FC = () => {
   const auction = useCrabV2Store(s => s.auction)
   const bids = useCrabV2Store(s => s.sortedBids)
@@ -341,6 +347,17 @@ const AdminBidView: React.FC = () => {
     crabAmount = auctionOsqthAmount.gt(sqthForCrab)
       ? crabAmount
       : getCrabFromSqueethAmount(auctionOsqthAmount.sub(1), vault!, supply)
+    
+    const adjustCrabAmount = (crabAmount: BigNumber, auctionOsqthAmount: BigNumber, vault: Vault, supply: BigNumber, x: number) => {
+      let count = 0;
+      while (getWsqueethFromCrabAmount(crabAmount, vault!, supply).gt(auctionOsqthAmount) && count < x) {
+        crabAmount = crabAmount.sub(1); // decrease crabAmount by 1
+        count++;
+      }
+      return crabAmount;
+    }
+    const MAX_LOOP_TIMES = 10;
+    crabAmount = adjustCrabAmount(crabAmount, auctionOsqthAmount, vault!, supply, MAX_LOOP_TIMES);
 
     console.log(
       'Crab',
