@@ -34,9 +34,15 @@ const AuctionDetails: React.FC = () => {
       <ul>
         <li>
           <Typography variant="body3">
-            The auction will run approximately MWF at 16:30 UTC, but could be more or less frequent
+            The crab hedge auction will run approximately MWF at 16:30 UTC, but could be more or less frequent
           </Typography>
         </li>
+        <li>
+          <Typography variant="body3">
+            The crab OTC auction (trading net deposits/withdrawals from crab) will run Tuesday at 16:30 UTC
+          </Typography>
+        </li>
+
         <li>
           <Typography variant="body3">Bids are selected by best price that will clear size</Typography>
         </li>
