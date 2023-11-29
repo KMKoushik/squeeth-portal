@@ -34,7 +34,7 @@ const AuctionDetails: React.FC = () => {
       <ul>
         <li>
           <Typography variant="body3">
-            The crab hedge auction will run approximately MWF at 16:30 UTC, but could be more or less frequent
+            The crab hedge auction will generally run MWF at 16:30 UTC, but could be more or less frequent
           </Typography>
         </li>
         <li>
