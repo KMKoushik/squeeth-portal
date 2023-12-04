@@ -65,7 +65,7 @@ export const getUniqueTraders = (bids: Array<Bid>) => {
   return Object.keys(uniqueApprovalMap)
 }
 
-export const categorizeBidsWithReason = (
+export const categorizeBidsWithReason = async (
   sortedBids: Array<Bid>,
   auction: Auction,
   _approvalMap: BigNumMap,
@@ -78,51 +78,51 @@ export const categorizeBidsWithReason = (
 
   let filledAmt = BigNumber.from(0)
 
-  const filteredBids = sortedBids
-    .map(b => {
-      const _osqth = BigNumber.from(b.order.quantity)
-      const _price = BigNumber.from(b.order.price)
-      const erc20Needed = auction.isSelling ? wmul(_osqth, _price) : _osqth
+  const filteredBidPromises = sortedBids.map(async b => {
+    const _osqth = BigNumber.from(b.order.quantity)
+    const _price = BigNumber.from(b.order.price)
+    const erc20Needed = auction.isSelling ? wmul(_osqth, _price) : _osqth
 
-      try {
-        if (!verifyOrder(b.order, b.signature, b.bidder, auction.type)) {
-          return { ...b, status: BidStatus.WRONG_AUCTION_TYPE }
-        }
-      } catch (e) {
+    try {
+      if (!verifyOrder(b.order, b.signature, b.bidder, auction.type)) {
         return { ...b, status: BidStatus.WRONG_AUCTION_TYPE }
       }
+    } catch (e) {
+      return { ...b, status: BidStatus.WRONG_AUCTION_TYPE }
+    }
 
-      if ((auction.isSelling && _price.lt(auctionPrice)) || (!auction.isSelling && _price.gt(auctionPrice)))
-        return { ...b, status: BidStatus.PRICE_MISMATCH }
+    if ((auction.isSelling && _price.lt(auctionPrice)) || (!auction.isSelling && _price.gt(auctionPrice)))
+      return { ...b, status: BidStatus.PRICE_MISMATCH }
 
-      if (auction.isSelling != b.order.isBuying) return { ...b, status: BidStatus.ORDER_DIRECTION_MISMATCH }
+    if (auction.isSelling != b.order.isBuying) return { ...b, status: BidStatus.ORDER_DIRECTION_MISMATCH }
 
-      if (_osqth.lt(toBigNumber(auction.minSize, 18))) return { ...b, status: BidStatus.MIN_SIZE_NOT_MET }
+    if (_osqth.lt(toBigNumber(auction.minSize, 18))) return { ...b, status: BidStatus.MIN_SIZE_NOT_MET }
 
-      if (!approvalMap[b.bidder] || !approvalMap[b.bidder].gte(erc20Needed))
-        return { ...b, status: BidStatus.NO_APPROVAL }
+    if (!approvalMap[b.bidder] || !approvalMap[b.bidder].gte(erc20Needed))
+      return { ...b, status: BidStatus.NO_APPROVAL }
 
-      if (!balanceMap[b.bidder] || !balanceMap[b.bidder].gte(erc20Needed)) return { ...b, status: BidStatus.NO_BALANCE }
+    if (!balanceMap[b.bidder] || !balanceMap[b.bidder].gte(erc20Needed)) return { ...b, status: BidStatus.NO_BALANCE }
 
-      if (filledAmt.eq(quantity)) return { ...b, status: BidStatus.ALREADY_FILLED }
+    if (filledAmt.eq(quantity)) return { ...b, status: BidStatus.ALREADY_FILLED }
 
-      if(crabV2Contract.nonces(b.bidder, b.order.nonce).then((used) => {
-        if(used == true) return { ...b, status: BidStatus.NONCE_ALREADY_USED }
-      }))
+    const nonceUsed = await crabV2Contract.nonces(b.bidder, b.order.nonce)
+    if (nonceUsed === true) {
+      return { ...b, status: BidStatus.NONCE_ALREADY_USED }
+    }
 
-      if (quantity.lt(filledAmt.add(_osqth))) {
-        balanceMap[b.bidder] = balanceMap[b.bidder].sub(wmul(quantity.sub(filledAmt), _price))
-        filledAmt = quantity
-        return { ...b, status: BidStatus.PARTIALLY_FILLED }
-      }
+    if (quantity.lt(filledAmt.add(_osqth))) {
+      balanceMap[b.bidder] = balanceMap[b.bidder].sub(wmul(quantity.sub(filledAmt), _price))
+      filledAmt = quantity
+      return { ...b, status: BidStatus.PARTIALLY_FILLED }
+    }
 
-      filledAmt = filledAmt.add(_osqth)
-      balanceMap[b.bidder] = balanceMap[b.bidder].sub(erc20Needed)
-      return { ...b, status: BidStatus.INCLUDED }
-    })
-    .sort((a, b) => a.status - b.status)
+    filledAmt = filledAmt.add(_osqth)
+    balanceMap[b.bidder] = balanceMap[b.bidder].sub(erc20Needed)
+    return { ...b, status: BidStatus.INCLUDED }
+  })
 
-  return filteredBids
+  const filteredBids = await Promise.all(filteredBidPromises)
+  return filteredBids.sort((a, b) => a.status - b.status)
 }
 
 export const getBidsWithReasonMap = (bids: Array<Bid & { status?: BidStatus }>) => {
@@ -401,6 +401,7 @@ export const getBidStatus = (status?: BidStatus) => {
   if (status === BidStatus.ORDER_DIRECTION_MISMATCH) return 'Wrong order direction'
   if (status === BidStatus.MIN_SIZE_NOT_MET) return 'Qty less than min size'
   if (status === BidStatus.WRONG_AUCTION_TYPE) return 'Wrong auction type'
+  if (status === BidStatus.NONCE_ALREADY_USED) return 'Nonce already used'
 
   return '--'
 }
