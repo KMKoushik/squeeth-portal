@@ -15,5 +15,3 @@ export const BLOCKED_COUNTRIES = [
   'CD',
   'UA',
 ]
-
-export const ALLOW_WITHDRAWALS = ['CA']
