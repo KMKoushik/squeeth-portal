@@ -82,6 +82,7 @@ export enum BidStatus {
   NO_BALANCE,
   NO_APPROVAL,
   WRONG_AUCTION_TYPE,
+  NONCE_ALREADY_USED,
 }
 
 export enum AuctionStatus {

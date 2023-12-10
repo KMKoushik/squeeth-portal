@@ -171,7 +171,7 @@ const AdminBidView: React.FC = () => {
       const approvalMap = convertArrayToMap<BigNumber>(uniqueTraders, approvals as any as Array<BigNumber>)
       const balanceMap = convertArrayToMap<BigNumber>(uniqueTraders, balances as any as Array<BigNumber>)
 
-      const _filteredBids = categorizeBidsWithReason(bids, auction, approvalMap, balanceMap)
+      const _filteredBids = await categorizeBidsWithReason(bids, auction, approvalMap, balanceMap)
       setFilteredBids(_filteredBids)
       const { clearingPrice: _clPrice } = getTxBidsAndClearingPrice(_filteredBids)
       setClearingPrice(_clPrice)
