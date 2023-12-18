@@ -1,7 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { addBullRebalance } from '../../../server/utils/firebase-admin'
+import { handler } from '../../../server/utils/middleware'
+import { restrictAccessMiddleware } from '../../../server/middlewares/restrict-access'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function requestHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(400).json({ message: 'Only post is allowed' })
   const { rebalance } = req.body
 
@@ -9,3 +11,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   res.status(200).json({ message: 'Updated successfully' })
 }
+
+export default handler(restrictAccessMiddleware, requestHandler)

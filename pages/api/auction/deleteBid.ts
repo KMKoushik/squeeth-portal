@@ -6,8 +6,10 @@ import { addOrUpdateAuction, getAuction } from '../../../server/utils/firebase-a
 import { Auction, AuctionStatus, MessageWithTimeSignature } from '../../../types'
 import { isApiRequest } from '../../../utils'
 import { getAuctionStatus, verifyMessageWithTime } from '../../../utils/auction'
+import { handler } from '../../../server/utils/middleware'
+import { restrictAccessMiddleware } from '../../../server/middlewares/restrict-access'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function requestHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'DELETE') return res.status(400).json({ message: 'Only delete method is allowed' })
   const { signature, bidId, mandate } = req.body
 
@@ -43,3 +45,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   res.status(200).json({ message: 'Successfully deleted bid' })
 }
+
+export default handler(restrictAccessMiddleware, requestHandler)
