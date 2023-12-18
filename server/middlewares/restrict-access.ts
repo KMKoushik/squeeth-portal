@@ -6,7 +6,7 @@ import { redis } from '../../utils/redisClient'
 import { BLOCKED_IP_VALUE } from '../../constants/restrictions'
 
 const ALLOWED_HOSTS = ['squeethportal.xyz', 'auction.opyn.co']
-const ALLOWED_HOST_PATTERN = /^squeeth-portal-[a-zA-Z0-9]+-opynfinance\.vercel\.app$/ // Replace with your excluded pattern
+const ALLOWED_HOST_PATTERN = /^squeeth-portal-[a-zA-Z0-9-]+-opynfinance\.vercel\.app$/
 
 export const restrictAccessMiddleware: Middleware = async (request, response, next) => {
   const ip = requestIp.getClientIp(request)
