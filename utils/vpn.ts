@@ -48,7 +48,6 @@ async function checkUserIP(ipAddress: string): Promise<ApiResponse | null> {
     '&allow_public_access_points=' +
     allow_public_access_points
   const result = await getIPQUrl(url)
-  console.log({ result })
   if (result !== null) {
     return result
   } else {

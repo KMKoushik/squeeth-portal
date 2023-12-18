@@ -5,11 +5,25 @@ import { isIPBlockedInRedis, isVPN } from '../../utils/vpn'
 import { redis } from '../../utils/redisClient'
 import { BLOCKED_IP_VALUE } from '../../constants/restrictions'
 
+const ALLOWED_HOSTS = ['squeethportal.xyz', 'auction.opyn.co']
+const ALLOWED_HOST_PATTERN = /^squeeth-portal-[a-zA-Z0-9]+-opynfinance\.vercel\.app$/ // Replace with your excluded pattern
+
 export const restrictAccessMiddleware: Middleware = async (request, response, next) => {
   const ip = requestIp.getClientIp(request)
 
   const allowedIPs = (process.env.WHITELISTED_IPS || '').split(',')
   const isIPWhitelisted = ip && allowedIPs.includes(ip)
+
+  const host = request.headers['host']
+
+  // check if api request is from the squeethportal site
+  // if yes, we allow the request without any restrictions
+  const isRequestFromAllowedHost = host && (ALLOWED_HOSTS.includes(host) || ALLOWED_HOST_PATTERN.test(host))
+  console.log({ isRequestFromAllowedHost, host })
+  if (isRequestFromAllowedHost) {
+    await next()
+    return
+  }
 
   if (ip && !isIPWhitelisted) {
     const currentTime = Date.now()
