@@ -68,11 +68,22 @@ export async function isVPN(ipAddress: string): Promise<boolean> {
     return false
   }
 
-  if (typeof ipResult['vpn'] !== 'undefined' && ipResult['vpn'] === true) {
-    return true
-  } else if (typeof ipResult['tor'] !== 'undefined' && ipResult['tor'] === true) {
-    return true
-  } else {
-    return false
+  const isSuspectedToBeVPN = ipResult.vpn === true || ipResult.tor === true
+  if (isSuspectedToBeVPN) {
+    const org = ipResult.organization
+
+    // exclude datacenter IPs
+    // organization should include one of whitelisted datacenter organizations
+    const whitelistedDataOrgs = (process.env.WHITELISTED_DATACENTER_ORGANIZATIONS || '').split(',')
+    const isWhitelistedOrg = whitelistedDataOrgs.some(whitelistedOrg =>
+      org.toLowerCase().includes(whitelistedOrg.toLowerCase()),
+    )
+    const isActiveVPN = ipResult.active_vpn === true
+
+    // label as isAllowedOrg only if isWhitelistedOrg and not a active VPN
+    const isAllowedOrg = isWhitelistedOrg && !isActiveVPN
+    return !isAllowedOrg
   }
+
+  return false
 }

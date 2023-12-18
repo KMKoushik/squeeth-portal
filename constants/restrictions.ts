@@ -15,3 +15,5 @@ export const BLOCKED_COUNTRIES = [
   'CD',
   'UA',
 ]
+
+export const BLOCKED_IP_VALUE = 'BLOCKED'
