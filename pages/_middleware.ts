@@ -1,42 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { redis } from '../utils/redisClient'
-import { isVPN } from '../utils/vpn'
+import { isVPN, isIPBlockedInRedis } from '../utils/vpn'
 import { BLOCKED_IP_VALUE } from '../constants/restrictions'
 
 const IGNORED_PATHS = ['/api', '/favicon.ico', '/static', '/_next', '/blocked']
-
-const THIRTY_DAYS_IN_MS = 30 * 24 * 60 * 60 * 1000
-
-interface RedisResponse {
-  value: string
-  timestamp: number
-}
-
-async function isIPBlockedInRedis(ip: string, currentTime: number) {
-  let redisData: RedisResponse | null = null
-  try {
-    redisData = await redis.get<RedisResponse>(ip)
-  } catch (error) {
-    console.error('Failed to get data from Redis:', error)
-  }
-
-  let isIPBlocked = false
-  if (redisData) {
-    try {
-      const { value, timestamp } = redisData
-
-      // check if entry is valid and is less than 30 days old
-      if (value === BLOCKED_IP_VALUE && currentTime - timestamp <= THIRTY_DAYS_IN_MS) {
-        isIPBlocked = true
-      }
-    } catch (error) {
-      console.error('Failed to parse data from Redis:', error)
-    }
-  }
-
-  return isIPBlocked
-}
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl

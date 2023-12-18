@@ -1,3 +1,6 @@
+import { redis } from './redisClient'
+import { BLOCKED_IP_VALUE } from '../constants/restrictions'
+
 type ApiResponse = {
   success: boolean
   message: string
@@ -45,6 +48,7 @@ async function checkUserIP(ipAddress: string): Promise<ApiResponse | null> {
     '&allow_public_access_points=' +
     allow_public_access_points
   const result = await getIPQUrl(url)
+  console.log({ result })
   if (result !== null) {
     return result
   } else {
@@ -86,4 +90,36 @@ export async function isVPN(ipAddress: string): Promise<boolean> {
   }
 
   return false
+}
+
+const THIRTY_DAYS_IN_MS = 30 * 24 * 60 * 60 * 1000
+
+interface RedisResponse {
+  value: string
+  timestamp: number
+}
+
+export async function isIPBlockedInRedis(ip: string, currentTime: number) {
+  let redisData: RedisResponse | null = null
+  try {
+    redisData = await redis.get<RedisResponse>(ip)
+  } catch (error) {
+    console.error('Failed to get data from Redis:', error)
+  }
+
+  let isIPBlocked = false
+  if (redisData) {
+    try {
+      const { value, timestamp } = redisData
+
+      // check if entry is valid and is less than 30 days old
+      if (value === BLOCKED_IP_VALUE && currentTime - timestamp <= THIRTY_DAYS_IN_MS) {
+        isIPBlocked = true
+      }
+    } catch (error) {
+      console.error('Failed to parse data from Redis:', error)
+    }
+  }
+
+  return isIPBlocked
 }

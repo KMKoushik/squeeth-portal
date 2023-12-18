@@ -1,7 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getAddressVisitCount, incrementAddressVisitCount } from '../../../../server/utils/firebase-admin'
+import { handler } from '../../../../server/utils/middleware'
+import { restrictAccessMiddleware } from '../../../../server/middlewares/restrict-access'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function requestHandler(req: NextApiRequest, res: NextApiResponse) {
   const addressId = req.query.addressId as string
 
   if (req.method === 'GET') {
@@ -32,3 +34,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   return res.status(400).json({ message: 'Invalid method' })
 }
+
+export default handler(restrictAccessMiddleware, requestHandler)
