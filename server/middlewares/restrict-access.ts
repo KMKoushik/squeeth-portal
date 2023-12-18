@@ -14,13 +14,13 @@ export const restrictAccessMiddleware: Middleware = async (request, response, ne
   const allowedIPs = (process.env.WHITELISTED_IPS || '').split(',')
   const isIPWhitelisted = ip && allowedIPs.includes(ip)
 
-  const host = request.headers['host']
+  const origin = request.headers['origin']
 
   // check if api request is from the squeethportal site
   // if yes, we allow the request without any restrictions
-  const isRequestFromAllowedHost = host && (ALLOWED_HOSTS.includes(host) || ALLOWED_HOST_PATTERN.test(host))
-  console.log({ isRequestFromAllowedHost, host })
-  if (isRequestFromAllowedHost) {
+  const isRequestFromAllowedOrigin = origin && (ALLOWED_HOSTS.includes(origin) || ALLOWED_HOST_PATTERN.test(origin))
+  console.log({ isRequestFromAllowedOrigin, origin })
+  if (isRequestFromAllowedOrigin) {
     await next()
     return
   }
