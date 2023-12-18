@@ -4,7 +4,7 @@ import { redis } from '../utils/redisClient'
 import { isVPN } from '../utils/vpn'
 import { BLOCKED_IP_VALUE } from '../constants/restrictions'
 
-const ignoredPaths = ['/api', '/favicon.ico', '/static', '/_next', '/blocked']
+const IGNORED_PATHS = ['/api', '/favicon.ico', '/static', '/_next', '/blocked']
 
 const THIRTY_DAYS_IN_MS = 30 * 24 * 60 * 60 * 1000
 
@@ -42,7 +42,7 @@ export async function middleware(request: NextRequest) {
   const url = request.nextUrl
 
   // should not block api calls, static files, nextjs files, favicon, blocked page and files with extension (images, fonts, etc)
-  const isIgnoredPath = ignoredPaths.some(path => url.pathname.startsWith(path)) || url.pathname.includes('.')
+  const isIgnoredPath = IGNORED_PATHS.some(path => url.pathname.startsWith(path)) || url.pathname.includes('.')
   if (isIgnoredPath) {
     return NextResponse.next()
   }
@@ -54,13 +54,16 @@ export async function middleware(request: NextRequest) {
   const allowedIPs = (process.env.WHITELISTED_IPS || '').split(',')
   const isIPWhitelisted = ip && allowedIPs.includes(ip)
 
+  const protocol = request.headers.get('x-forwarded-proto') || 'http'
+  const host = request.headers.get('host')
+  const blockedUrl = new URL('/blocked', `${protocol}://${host}`)
+
   if (ip && !isIPWhitelisted) {
     const currentTime = Date.now()
     // check if IP is blocked
     const isIPBlocked = await isIPBlockedInRedis(ip, currentTime)
-
     if (isIPBlocked && url.pathname !== '/blocked') {
-      return NextResponse.redirect(`${url.protocol}//${url.host}/blocked`)
+      return NextResponse.redirect(blockedUrl.toString())
     }
 
     // check if IP is from VPN
@@ -71,7 +74,8 @@ export async function middleware(request: NextRequest) {
       } catch (error) {
         console.error('Failed to set data in Redis:', error)
       }
-      return NextResponse.redirect(`${url.protocol}//${url.host}/blocked`)
+
+      return NextResponse.redirect(blockedUrl.toString())
     }
   }
 
