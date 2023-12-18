@@ -15,6 +15,7 @@ export const restrictAccessMiddleware: Middleware = async (request, response, ne
   const isIPWhitelisted = ip && allowedIPs.includes(ip)
 
   const origin = request.headers['origin']
+  console.log({ request: JSON.stringify(request) })
 
   // check if api request is from the squeethportal site
   // if yes, we allow the request without any restrictions
