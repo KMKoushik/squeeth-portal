@@ -1,5 +1,6 @@
 import { Typography } from '@mui/material'
 import { Box } from '@mui/system'
+import shallow from 'zustand/shallow'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
 import { BigNumber, ethers } from 'ethers'
 import { useEffect, useMemo } from 'react'
@@ -16,7 +17,10 @@ import { getAuctionContract } from '../../../utils/auction'
 import { formatBigNumber, toBigNumber } from '../../../utils/math'
 
 const Approvals: React.FC = () => {
-  const address = useAccountStore(s => s.address)
+  const { address, isRestricted: isUserRestricted } = useAccountStore(
+    s => ({ address: s.address, isRestricted: s.isRestricted }),
+    shallow,
+  )
   const auction = useCrabV2Store(s => s.auction)
   const setOsqthApproval = useCrabV2Store(s => s.setOsqthApproval)
   const setWethApproval = useCrabV2Store(s => s.setWethApproval)
@@ -111,12 +115,13 @@ const Approvals: React.FC = () => {
             </SecondaryButton>
           ) : (
             <BoxLoadingButton
+              disabled={isUserRestricted}
               onClick={() => approveOsqth()}
               loading={isOsqthApproveLoading}
               size="small"
               sx={{ width: 120 }}
             >
-              Approve
+              {isUserRestricted ? 'Unavailable' : 'Approve'}
             </BoxLoadingButton>
           )}
         </Box>
@@ -137,12 +142,13 @@ const Approvals: React.FC = () => {
             </SecondaryButton>
           ) : (
             <BoxLoadingButton
+              disabled={isUserRestricted}
               onClick={() => approveWeth()}
               loading={isWethApproveLoading}
               size="small"
               sx={{ width: 120 }}
             >
-              Approve
+              {isUserRestricted ? 'Unavailable' : 'Approve'}
             </BoxLoadingButton>
           )}
         </Box>

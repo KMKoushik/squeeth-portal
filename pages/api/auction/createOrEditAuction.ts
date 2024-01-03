@@ -3,8 +3,10 @@ import { CRAB_COUNCIL_MEMBERS } from '../../../constants/address'
 import { KING_CRAB } from '../../../constants/message'
 import { crabV2Contract, verifyMessage } from '../../../server/utils/ether'
 import { addOrUpdateAuction } from '../../../server/utils/firebase-admin'
+import { handler } from '../../../server/utils/middleware'
+import { restrictAccessMiddleware } from '../../../server/middlewares/restrict-access'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function requestHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(400).json({ message: 'Only post is allowed' })
   const { signature, auction, address } = req.body
 
@@ -21,3 +23,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   res.status(200).json({ message: 'Successfully updated auction' })
 }
+
+export default handler(restrictAccessMiddleware, requestHandler)

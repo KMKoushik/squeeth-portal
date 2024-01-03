@@ -2,6 +2,7 @@ import { Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
 import { BigNumber, ethers } from 'ethers'
+import shallow from 'zustand/shallow'
 import { useEffect, useMemo } from 'react'
 import { useContractReads, useContractWrite, useWaitForTransaction } from 'wagmi'
 import { BoxLoadingButton } from '../../../components/button/PrimaryButton'
@@ -14,7 +15,10 @@ import useCrabV2Store from '../../../store/crabV2Store'
 import { formatBigNumber, toBigNumber } from '../../../utils/math'
 
 const ApprovalsOtc: React.FC = () => {
-  const address = useAccountStore(s => s.address)
+  const { address, isRestricted: isUserRestricted } = useAccountStore(
+    s => ({ address: s.address, isRestricted: s.isRestricted }),
+    shallow,
+  )
   const setWethApproval = useCrabV2Store(s => s.setWethApprovalOtc)
   const setOsqthApproval = useCrabV2Store(s => s.setOsqthApprovalOtc)
   const setCrabApproval = useCrabV2Store(s => s.setCrabApprovalOtc)
@@ -150,12 +154,13 @@ const ApprovalsOtc: React.FC = () => {
             </SecondaryButton>
           ) : (
             <BoxLoadingButton
+              disabled={isUserRestricted}
               onClick={() => approveWeth()}
               loading={isWethApproveLoading}
               size="small"
               sx={{ width: 120 }}
             >
-              Approve
+              {isUserRestricted ? 'Unavailable' : 'Approve'}
             </BoxLoadingButton>
           )}
         </Box>
@@ -176,12 +181,13 @@ const ApprovalsOtc: React.FC = () => {
             </SecondaryButton>
           ) : (
             <BoxLoadingButton
+              disabled={isUserRestricted}
               onClick={() => approveOsqth()}
               loading={isOsqthApproveLoading}
               size="small"
               sx={{ width: 120 }}
             >
-              Approve
+              {isUserRestricted ? 'Unavailable' : 'Approve'}
             </BoxLoadingButton>
           )}
         </Box>
@@ -202,12 +208,13 @@ const ApprovalsOtc: React.FC = () => {
             </SecondaryButton>
           ) : (
             <BoxLoadingButton
+              disabled={isUserRestricted}
               onClick={() => approveCrab()}
               loading={isCrabApproveLoading}
               size="small"
               sx={{ width: 120 }}
             >
-              Approve
+              {isUserRestricted ? 'Unavailable' : 'Approve'}
             </BoxLoadingButton>
           )}
         </Box>

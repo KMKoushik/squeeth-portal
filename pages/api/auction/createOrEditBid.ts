@@ -4,8 +4,10 @@ import { getAuctionStatus, verifyOrder, validateOrder } from '../../../utils/auc
 import { addOrUpdateBid, getAuction } from '../../../server/utils/firebase-admin'
 import { trackEvent } from '../../../server/utils/analytics'
 import { isApiRequest } from '../../../utils'
+import { handler } from '../../../server/utils/middleware'
+import { restrictAccessMiddleware } from '../../../server/middlewares/restrict-access'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function requestHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(400).json({ message: 'Only post is allowed' })
   const { signature, order }: { signature: string; order: Order } = req.body
 
@@ -52,3 +54,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await trackEvent('REQUEST', order.trader, { eventType: 'CREATE_BID', isApiRequest: isApiRequest(req) })
   res.status(200).json({ message: 'Successfully placed/updated bid' })
 }
+
+export default handler(restrictAccessMiddleware, requestHandler)

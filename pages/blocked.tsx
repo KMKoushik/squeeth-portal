@@ -14,8 +14,9 @@ const Blocked: NextPage = () => {
         <Box margin="auto">
           <Image src="/images/blocked_cat.gif" width={200} height={200} alt="Cat loader" />
         </Box>
-        <Typography align="center" variant="h6" color={t => t.palette.error.main}>
-          Squeeth portal is blocked in your country :(
+        <Typography align="center" variant="h6" color={t => t.palette.error.main} width="75%" marginX="auto">
+          Seems you are using a VPN service or accessing our website from a blocked country, which is a violation of our
+          terms of service. Please disconnect from your VPN and refresh the page to continue using our service.
         </Typography>
       </Box>
     </div>

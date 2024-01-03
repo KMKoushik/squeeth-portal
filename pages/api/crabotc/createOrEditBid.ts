@@ -2,8 +2,10 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { Bid, CrabOTC, CrabOTCBid, CrabOTCOrder } from '../../../types'
 import { createOrUpdateOTC, getOtc } from '../../../server/utils/crab-otc'
 import { verifyOTCOrder } from '../../../utils/crabotc'
+import { handler } from '../../../server/utils/middleware'
+import { restrictAccessMiddleware } from '../../../server/middlewares/restrict-access'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function requestHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(400).json({ message: 'Only post is allowed' })
   const { signature, order, otcId }: { signature: string; order: CrabOTCOrder; otcId: string } = req.body
 
@@ -33,3 +35,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   res.status(200).json({ message: 'Successfully placed/updated bid' })
 }
+
+export default handler(restrictAccessMiddleware, requestHandler)

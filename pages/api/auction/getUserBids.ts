@@ -1,7 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getUserBids } from '../../../server/utils/firebase-admin'
+import { handler } from '../../../server/utils/middleware'
+import { restrictAccessMiddleware } from '../../../server/middlewares/restrict-access'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function requestHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') return res.status(400).json({ message: 'Only get is allowed' })
   const { user } = req.query.user ? req.query : { user: '' }
 
@@ -17,3 +19,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   res.status(200).json({ bids, message })
 }
+
+export default handler(restrictAccessMiddleware, requestHandler)

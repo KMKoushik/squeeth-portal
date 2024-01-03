@@ -1,22 +1,12 @@
 import { AppBar, Box, IconButton, Modal, Toolbar, Typography, useMediaQuery, useTheme } from '@mui/material'
 import * as React from 'react'
-import { useAccount } from 'wagmi'
 import GitHubIcon from '@mui/icons-material/GitHub'
 import ConnectWallet from '../../container/ConnectWallet'
-import useAccountStore from '../../store/accountStore'
 import Link from 'next/link'
 
 export const Nav: React.FC = React.memo(function Nav() {
-  const { address } = useAccount()
-  const setAddress = useAccountStore(state => state.setAddress)
   const theme = useTheme()
   const matches = useMediaQuery(theme.breakpoints.down('sm'))
-
-  React.useEffect(() => {
-    if (address) {
-      setAddress(address)
-    }
-  }, [address, setAddress])
 
   return (
     <Box sx={{ flexGrow: 1 }}>

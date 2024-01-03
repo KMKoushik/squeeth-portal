@@ -1,8 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getAuctionById } from '../../../server/utils/firebase-admin'
 import { Auction } from '../../../types'
+import { handler } from '../../../server/utils/middleware'
+import { restrictAccessMiddleware } from '../../../server/middlewares/restrict-access'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function requestHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') return res.status(400).json({ message: 'Only get is allowed' })
   const { id } = req.query.id ? req.query : { id: '' }
 
@@ -18,3 +20,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   res.status(200).json({ auction: auction })
 }
+
+export default handler(restrictAccessMiddleware, requestHandler)

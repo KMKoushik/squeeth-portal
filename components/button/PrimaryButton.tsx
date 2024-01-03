@@ -42,6 +42,10 @@ export const BoxLoadingButton = styled(LoadingButton)(({ theme }) => ({
     backgroundColor: theme.palette.primary.light,
     color: theme.palette.primary.main,
   },
+  '&:disabled': {
+    backgroundColor: theme.palette.background.overlayLight,
+    border: 'none',
+  },
 }))
 
 export default PrimaryButton

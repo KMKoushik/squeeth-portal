@@ -2,8 +2,10 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { deleteOtc, getOtc } from '../../../server/utils/crab-otc'
 import { verifyMessageWithTime } from '../../../utils/auction'
 import { sendTelegramMessage } from '../../../server/utils/telegram-bot'
+import { handler } from '../../../server/utils/middleware'
+import { restrictAccessMiddleware } from '../../../server/middlewares/restrict-access'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function requestHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'DELETE') return res.status(400).json({ message: 'Only delete is allowed' })
   const { signature, id, mandate } = req.body
 
@@ -19,3 +21,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await deleteOtc(crabOtc)
   res.status(200).json({ message: 'Successfully deleted OTC' })
 }
+
+export default handler(restrictAccessMiddleware, requestHandler)
