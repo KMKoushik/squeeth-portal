@@ -175,6 +175,13 @@ const AdminBidView: React.FC = () => {
       setFilteredBids(_filteredBids)
       const { clearingPrice: _clPrice } = getTxBidsAndClearingPrice(_filteredBids)
       setClearingPrice(_clPrice)
+
+      console.log('Approvals:', JSON.stringify(approvalMap, null, 2))
+      console.log('Balances:', JSON.stringify(balanceMap, null, 2))
+      console.log('Auction:', JSON.stringify(auction, null, 2))
+      console.log('Bids:', JSON.stringify(bids, null, 2))
+      console.log('Filtered Bids:', JSON.stringify(_filteredBids, null, 2))
+      console.log('Clearing Price:', _clPrice.toString())
     } catch (e) {
       console.log(e)
     }
@@ -347,17 +354,23 @@ const AdminBidView: React.FC = () => {
     crabAmount = auctionOsqthAmount.gt(sqthForCrab)
       ? crabAmount
       : getCrabFromSqueethAmount(auctionOsqthAmount.sub(1), vault!, supply)
-    
-    const adjustCrabAmount = (crabAmount: BigNumber, auctionOsqthAmount: BigNumber, vault: Vault, supply: BigNumber, x: number) => {
-      let count = 0;
+
+    const adjustCrabAmount = (
+      crabAmount: BigNumber,
+      auctionOsqthAmount: BigNumber,
+      vault: Vault,
+      supply: BigNumber,
+      x: number,
+    ) => {
+      let count = 0
       while (getWsqueethFromCrabAmount(crabAmount, vault!, supply).gt(auctionOsqthAmount) && count < x) {
-        crabAmount = crabAmount.sub(1); // decrease crabAmount by 1
-        count++;
+        crabAmount = crabAmount.sub(1) // decrease crabAmount by 1
+        count++
       }
-      return crabAmount;
+      return crabAmount
     }
-    const MAX_LOOP_TIMES = 10;
-    crabAmount = adjustCrabAmount(crabAmount, auctionOsqthAmount, vault!, supply, MAX_LOOP_TIMES);
+    const MAX_LOOP_TIMES = 10
+    crabAmount = adjustCrabAmount(crabAmount, auctionOsqthAmount, vault!, supply, MAX_LOOP_TIMES)
 
     console.log(
       'Crab',
