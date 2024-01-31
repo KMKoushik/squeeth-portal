@@ -65,6 +65,19 @@ export const getUniqueTraders = (bids: Array<Bid>) => {
   return Object.keys(uniqueApprovalMap)
 }
 
+export const checkNonces = async (bids: Array<Bid>) => {
+  const nonceCheckPromises = bids.map(async bid => {
+    const isNonceUsed = await crabV2Contract.nonces(bid.bidder, bid.order.nonce)
+    return { bidder: bid.bidder, nonce: bid.order.nonce, isNonceUsed }
+  })
+
+  const nonceResults = await Promise.all(nonceCheckPromises)
+  return nonceResults.reduce((acc, { bidder, nonce, isNonceUsed }) => {
+    acc[`${bidder}-${nonce}`] = isNonceUsed
+    return acc
+  }, {} as { [key: string]: boolean })
+}
+
 export const categorizeBidsWithReason = async (
   sortedBids: Array<Bid>,
   auction: Auction,
@@ -77,8 +90,9 @@ export const categorizeBidsWithReason = async (
   const auctionPrice = BigNumber.from(auction.price)
 
   let filledAmt = BigNumber.from(0)
+  const nonceStatuses = await checkNonces(sortedBids)
 
-  const filteredBidPromises = sortedBids.map(async b => {
+  const filteredBids = sortedBids.map(b => {
     const _osqth = BigNumber.from(b.order.quantity)
     const _price = BigNumber.from(b.order.price)
     const erc20Needed = auction.isSelling ? wmul(_osqth, _price) : _osqth
@@ -105,8 +119,8 @@ export const categorizeBidsWithReason = async (
 
     if (filledAmt.eq(quantity)) return { ...b, status: BidStatus.ALREADY_FILLED }
 
-    const nonceUsed = await crabV2Contract.nonces(b.bidder, b.order.nonce)
-    if (nonceUsed === true) {
+    const isNonceUsed = nonceStatuses[`${b.bidder}-${b.order.nonce}`]
+    if (isNonceUsed === true) {
       return { ...b, status: BidStatus.NONCE_ALREADY_USED }
     }
 
@@ -121,7 +135,6 @@ export const categorizeBidsWithReason = async (
     return { ...b, status: BidStatus.INCLUDED }
   })
 
-  const filteredBids = await Promise.all(filteredBidPromises)
   return filteredBids.sort((a, b) => a.status - b.status)
 }
 
