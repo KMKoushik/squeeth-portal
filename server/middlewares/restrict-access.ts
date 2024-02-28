@@ -17,14 +17,17 @@ export const restrictAccessMiddleware: Middleware = async (request, response, ne
   const refererHeader = request.headers['referer']
   const referer = refererHeader ? new URL(refererHeader).hostname : ''
 
-  console.log({ referer, refererHeader })
-
   // check if api request is from the squeethportal site
   // if yes, we allow the request without any restrictions
   // this is done as a preventive measure so as to not hit the request limit of redis
   const isRequestFromAllowedReferer =
     referer && (ALLOWED_REFERERS.includes(referer) || ALLOWED_REFERER_PATTERN.test(referer))
-  if (isRequestFromAllowedReferer) {
+
+  const requestType = request.method
+  console.log({ referer, refererHeader, requestType })
+
+  // allow GET requests and requests from allowed referers
+  if (requestType === 'GET' || isRequestFromAllowedReferer) {
     await next()
     return
   }
