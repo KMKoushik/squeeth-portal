@@ -175,13 +175,6 @@ const AdminBidView: React.FC = () => {
       setFilteredBids(_filteredBids)
       const { clearingPrice: _clPrice } = getTxBidsAndClearingPrice(_filteredBids)
       setClearingPrice(_clPrice)
-
-      console.log('Approvals:', JSON.stringify(approvalMap, null, 2))
-      console.log('Balances:', JSON.stringify(balanceMap, null, 2))
-      console.log('Auction:', JSON.stringify(auction, null, 2))
-      console.log('Bids:', JSON.stringify(bids, null, 2))
-      console.log('Filtered Bids:', JSON.stringify(_filteredBids, null, 2))
-      console.log('Clearing Price:', _clPrice.toString())
     } catch (e) {
       console.log(e)
     }
