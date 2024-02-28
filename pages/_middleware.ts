@@ -9,15 +9,11 @@ const IGNORED_PATHS = ['/api', '/favicon.ico', '/static', '/_next', '/blocked']
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl
 
-  // console.log({ pathname: url.pathname })
-
   // should not block api calls, static files, nextjs files, favicon, blocked page and files with extension (images, fonts, etc)
   const isIgnoredPath = IGNORED_PATHS.some(path => url.pathname.startsWith(path)) || url.pathname.includes('.')
   if (isIgnoredPath) {
-    console.log('Ignoring path:', url.pathname)
     return NextResponse.next()
   }
-  console.log('middleware logic:', url.pathname)
 
   const cloudflareCountry = request.headers.get('cf-ipcountry')
   const country = cloudflareCountry ?? request?.geo?.country

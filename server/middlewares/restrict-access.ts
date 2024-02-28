@@ -24,7 +24,6 @@ export const restrictAccessMiddleware: Middleware = async (request, response, ne
     referer && (ALLOWED_REFERERS.includes(referer) || ALLOWED_REFERER_PATTERN.test(referer))
 
   const requestType = request.method
-  console.log({ referer, refererHeader, requestType })
 
   // allow GET requests and requests from allowed referers
   if (requestType === 'GET' || isRequestFromAllowedReferer) {
