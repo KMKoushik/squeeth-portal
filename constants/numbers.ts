@@ -40,4 +40,4 @@ export const TWAP_PERIOD = 420
 
 export const WETH_DECIMALS_DIFF = 1e12
 
-export const SHUTDOWN_DATE = '2023-11-16T13:00:00-08:00'
+export const SHUTDOWN_DATE = '2024-10-31T16:30:00Z'
