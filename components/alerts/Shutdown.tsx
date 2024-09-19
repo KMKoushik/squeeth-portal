@@ -39,9 +39,8 @@ export const ShutdownAlert = () => {
           gears up for launch
         </Typography>
         <Typography color="#e6c18b" sx={{ fontSize: '15px', fontWeight: 500, marginTop: theme.spacing(1) }}>
-          The protocol will function normally until shutdown,{' '}
-          <span style={{ fontWeight: 600 }}>meaning positions can be opened and closed at users&apos; discretion</span>{' '}
-          and Squeeth will continue to track ETH^2.
+          The protocol will function normally until shutdown, meaning positions can be opened and closed at users&apos;
+          discretion and Squeeth will continue to track ETH^2.
         </Typography>
         <Typography color="#e6c18b" sx={{ fontSize: '15px', fontWeight: 500, marginTop: theme.spacing(0.5) }}>
           At shutdown, positions will be closed with 0 fees and 0 price impact. For more details, please refer to our{' '}
