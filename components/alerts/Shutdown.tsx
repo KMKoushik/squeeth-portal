@@ -44,11 +44,14 @@ export const ShutdownAlert = () => {
         </Typography>
         <Typography color="#e6c18b" sx={{ fontSize: '15px', fontWeight: 500, marginTop: theme.spacing(0.5) }}>
           At shutdown, positions will be closed with 0 fees and 0 price impact. For more details, please refer to our{' '}
-          <Link href="https://opyn.gitbook.io/opyn-strategies/strategies-faq/faq" passHref>
+          <Link href="https://opyn.gitbook.io/opyn-hub/squeeth-retirement/squeeth-retirement-faqs" passHref>
             <a style={{ textDecoration: 'underline' }}>FAQ</a>
           </Link>{' '}
           and{' '}
-          <Link href="https://opyn.gitbook.io/opyn-strategies/strategies-faq/faq" passHref>
+          <Link
+            href="https://opyn.medium.com/our-beloved-squeeth-is-retiring-its-time-for-opyn-markets-to-take-over-1b66aad68f00"
+            passHref
+          >
             <a style={{ textDecoration: 'underline' }}>Announcement</a>
           </Link>
           .
