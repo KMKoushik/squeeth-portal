@@ -87,7 +87,7 @@ const LiveAuction = React.memo<LiveAuctionProps>(function LiveAuction({ isContra
     const nf = convertBigNumber(normFactor, 18)
     const _ethPrice = convertBigNumber(ethPrice, 18)
     const oSqthPrice = convertBigNumber(osqthPrice, 18)
-    const _actIv = calculateIV(oSqthPrice, nf, _ethPrice) * 100
+    const _actIv = calculateIV(oSqthPrice, nf, _ethPrice) * 100    
     return _actIv
   }, [ethPrice, normFactor, osqthPrice])
 

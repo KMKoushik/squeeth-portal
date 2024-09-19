@@ -39,3 +39,5 @@ export const DEFAULT_SLIPPAGE = 0.25
 export const TWAP_PERIOD = 420
 
 export const WETH_DECIMALS_DIFF = 1e12
+
+export const SHUTDOWN_DATE = '2024-11-04T16:00:00Z'
