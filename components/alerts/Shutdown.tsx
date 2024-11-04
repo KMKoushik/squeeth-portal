@@ -38,16 +38,16 @@ export const ShutdownAlert = () => {
         <Typography color="#e6c18b" sx={{ fontSize: '15px', fontWeight: 500, marginTop: theme.spacing(1) }}>
           Positions can be redeemed with 0 price impact (from the settlement price) by connecting your wallet. For more
           information, please refer to the{' '}
-          <Link href="https://opyn.gitbook.io/opyn-hub/squeeth-retirement/squeeth-retirement-faqs" passHref>
+          <Link
+            href="https://opyn.gitbook.io/opyn-hub/squeeth-retirement/post-shutdown-osqth-and-crab-withdrawal-functions"
+            passHref
+          >
             <a target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline' }}>
-              Squeeth Shutdown FAQ
+              GitBook
             </a>
           </Link>{' '}
           and{' '}
-          <Link
-            href="https://opyn.medium.com/our-beloved-squeeth-is-retiring-its-time-for-opyn-markets-to-take-over-1b66aad68f00"
-            passHref
-          >
+          <Link href="https://medium.com/opyn/squeeth-has-shutdown-a8a3c2869eaa" passHref>
             <a target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline' }}>
               Announcement
             </a>
