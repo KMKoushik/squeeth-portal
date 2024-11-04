@@ -93,7 +93,7 @@ const Auction: React.FC = () => {
           <Typography variant="h6">
             Auction {isHistoricalView ? new Date(auction.auctionEnd).toLocaleDateString() : ''}
           </Typography>
-          <AuctionBadge />
+          {/* <AuctionBadge /> */}
         </Box>
 
         <Box
@@ -133,22 +133,9 @@ const Auction: React.FC = () => {
           </Link>
         </Box>
         <Box mt={1} border="1px solid grey" borderRadius={2} minHeight={150}>
-          {Date.now() > auction.auctionEnd + 30 * 60 * 1000 && !isHistoricalView ? (
-            <Typography textAlign="center" mt={3} variant="h6">
-              No auctions scheduled yet!
-            </Typography>
-          ) : (
-            <Box>
-              <AuctionDetailsHeader
-                isAuctionLive={auctionStatus === AuctionStatus.LIVE}
-                isSelling={auctionStatus === AuctionStatus.UPCOMING ? isSellingEst : auction.isSelling}
-              />
-              <AuctionHeaderBody
-                osqthEstimate={auctionStatus === AuctionStatus.UPCOMING ? osqthEstimate.toString() : undefined}
-                isUpcoming={isUpcoming}
-              />
-            </Box>
-          )}
+          <Typography textAlign="center" mt={3} variant="h6">
+            No auctions scheduled
+          </Typography>
         </Box>
         {Date.now() < auction.auctionEnd + V2_AUCTION_TIME_MILLIS || isHistoricalView ? (
           <>
