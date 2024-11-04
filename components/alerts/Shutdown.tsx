@@ -32,29 +32,30 @@ export const ShutdownAlert = () => {
         icon={isMobileBreakpoint ? false : <Warning />}
       >
         <Typography color="#e6c18b" sx={{ fontSize: '16.5px', fontWeight: 600 }}>
-          Squeeth will be shutting down on {shutdownDateFormatted} as{' '}
-          <Link href="https://markets.opyn.co" passHref>
-            <a style={{ textDecoration: 'underline' }}>Opyn Markets</a>
-          </Link>{' '}
-          gears up for launch
+          On {shutdownDateFormatted} the Squeeth protocol was shutdown.
         </Typography>
+
         <Typography color="#e6c18b" sx={{ fontSize: '15px', fontWeight: 500, marginTop: theme.spacing(1) }}>
-          The protocol will function normally until shutdown, meaning positions can be opened and closed at users&apos;
-          discretion and Squeeth will continue to track ETH^2.
-        </Typography>
-        <Typography color="#e6c18b" sx={{ fontSize: '15px', fontWeight: 500, marginTop: theme.spacing(0.5) }}>
-          At shutdown, positions will be closed with 0 fees and 0 price impact. For more details, please refer to our{' '}
+          Positions can be redeemed with 0 price impact (from the settlement price) by connecting your wallet. For more
+          information, please refer to the{' '}
           <Link href="https://opyn.gitbook.io/opyn-hub/squeeth-retirement/squeeth-retirement-faqs" passHref>
-            <a style={{ textDecoration: 'underline' }}>FAQ</a>
+            <a target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline' }}>
+              Squeeth Shutdown FAQ
+            </a>
           </Link>{' '}
           and{' '}
           <Link
             href="https://opyn.medium.com/our-beloved-squeeth-is-retiring-its-time-for-opyn-markets-to-take-over-1b66aad68f00"
             passHref
           >
-            <a style={{ textDecoration: 'underline' }}>Announcement</a>
+            <a target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline' }}>
+              Announcement
+            </a>
           </Link>
           .
+        </Typography>
+        <Typography color="#e6c18b" sx={{ fontSize: '15px', fontWeight: 500, marginTop: theme.spacing(0.5) }}>
+          More announcements to come on the launch of Opyn Markets.
         </Typography>
       </Alert>
     </Box>
